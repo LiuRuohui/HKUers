@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HKUers</string>
+    <string name="hku_xxx_connect_hku_hk">HKU邮箱 (xxx@connect.hku.hk)</string>
+    <string name="_8">密码（至少8位，包含字母和数字）</string>
+</resources>

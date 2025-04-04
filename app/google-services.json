@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "588024395793",
+    "project_id": "hkuers-85a7e",
+    "storage_bucket": "hkuers-85a7e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:588024395793:android:79be50984d4dffb76c59b0",
+        "android_client_info": {
+          "package_name": "hk.hku.cs.hkuers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHSM5p5LF8P88xrQOH7WyCIlA9ZBYJKzk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
