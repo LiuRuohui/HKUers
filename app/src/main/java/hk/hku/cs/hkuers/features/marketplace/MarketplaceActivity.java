@@ -1,4 +1,6 @@
 package hk.hku.cs.hkuers.features.marketplace;
 
-public class MarketplaceActivity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MarketplaceActivity extends AppCompatActivity {
 }
