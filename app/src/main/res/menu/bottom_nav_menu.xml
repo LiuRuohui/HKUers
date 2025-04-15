@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_chat"
+        android:icon="@android:drawable/ic_dialog_email"
+        android:title="聊天" />
+    <item
+        android:id="@+id/navigation_map"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:title="地图" />
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="我的" />
+    <item
+        android:id="@+id/navigation_courses"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="课程" />
+    <item
+        android:id="@+id/navigation_marketplace"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="市场" />
+</menu> 

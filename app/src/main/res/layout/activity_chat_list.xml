@@ -24,6 +24,17 @@
         android:elevation="4dp"
         app:layout_constraintTop_toBottomOf="@id/statusBarSpace">
 
+        <!-- 返回按钮 -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="start"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back to previous page"
+            android:src="@android:drawable/ic_menu_revert"
+            android:tint="#333333" />
+
         <!-- 页面标题 -->
         <TextView
             android:id="@+id/tvTitle"
@@ -69,7 +80,7 @@
         android:paddingEnd="12dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/divider"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
         tools:listitem="@layout/item_chat_group" />
 
     <!-- 空列表提示 -->
@@ -82,8 +93,18 @@
         android:textColor="#757575"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="@id/recyclerChatGroups"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 底部导航栏 -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,6 +3,7 @@ package hk.hku.cs.hkuers.features.chat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -31,13 +33,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
+import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
+import hk.hku.cs.hkuers.features.map.MapActivity;
+import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.ChatGroup;
 
-public class ChatListActivity extends AppCompatActivity {
+public class ChatListActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
     private RecyclerView recyclerView;
     private TextView tvEmptyState;
+    private BottomNavigationView bottomNavigationView;
     private FirebaseFirestore db;
     private FirestoreRecyclerAdapter<ChatGroup, ChatGroupViewHolder> adapter;
     private FirebaseUser currentUser;
@@ -57,19 +64,63 @@ public class ChatListActivity extends AppCompatActivity {
             return;
         }
 
-        // 初始化视图
+        // 初始化视图组件
         recyclerView = findViewById(R.id.recyclerChatGroups);
         tvEmptyState = findViewById(R.id.tvEmptyState);
         ImageButton btnCreateChat = findViewById(R.id.btnCreateChat);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        bottomNavigationView = findViewById(R.id.bottomNavigation);
 
         // 设置布局管理器
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // 设置返回按钮点击事件
+        btnBack.setOnClickListener(v -> finish());
+
         // 设置创建聊天按钮点击事件
         btnCreateChat.setOnClickListener(v -> showCreateChatDialog());
 
+        // 设置底部导航栏
+        bottomNavigationView.setOnNavigationItemSelectedListener(this);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_chat); // 设置聊天为选中项
+
         // 加载聊天列表
         loadChatGroups();
+    }
+
+    /**
+     * 处理底部导航栏点击事件
+     */
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+        
+        // 如果点击当前选中的选项，不执行任何操作
+        if (itemId == R.id.navigation_chat) {
+            return true;
+        }
+        
+        // 跳转到相应界面
+        Intent intent = null;
+        
+        if (itemId == R.id.navigation_map) {
+            intent = new Intent(this, MapActivity.class);
+        } else if (itemId == R.id.navigation_profile) {
+            intent = new Intent(this, MainActivity.class);
+            intent.putExtra("openProfile", true);
+        } else if (itemId == R.id.navigation_courses) {
+            intent = new Intent(this, CourseSearchActivity.class);
+        } else if (itemId == R.id.navigation_marketplace) {
+            intent = new Intent(this, MarketplaceActivity.class);
+        }
+        
+        if (intent != null) {
+            startActivity(intent);
+            finish(); // 结束当前活动
+            return true;
+        }
+        
+        return false;
     }
 
     /**
