@@ -224,18 +224,40 @@ public class ChatListActivity extends AppCompatActivity {
     private void showCreateChatDialog() {
         // 创建对话框布局
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_create_chat, null);
-        TextInputLayout tilGroupName = dialogView.findViewById(R.id.tilGroupName);
-        TextInputEditText etGroupName = dialogView.findViewById(R.id.etGroupName);
+        TextInputLayout tilCourse = dialogView.findViewById(R.id.tilCourse);
+        TextInputLayout tilSection = dialogView.findViewById(R.id.tilSection);
+        TextInputLayout tilSemester = dialogView.findViewById(R.id.tilSemester);
+        TextInputEditText etCourse = dialogView.findViewById(R.id.etCourse);
+        TextInputEditText etSection = dialogView.findViewById(R.id.etSection);
+        TextInputEditText etSemester = dialogView.findViewById(R.id.etSemester);
 
         // 创建对话框
         new MaterialAlertDialogBuilder(this)
-                .setTitle("创建新聊天群组")
+                .setTitle("创建课程聊天群组")
                 .setView(dialogView)
                 .setPositiveButton("创建", (dialog, which) -> {
-                    String groupName = etGroupName.getText().toString().trim();
-                    if (!groupName.isEmpty()) {
-                        createNewChatGroup(groupName);
+                    // 验证输入
+                    String course = etCourse.getText().toString().trim();
+                    String section = etSection.getText().toString().trim();
+                    String semester = etSemester.getText().toString().trim();
+                    
+                    if (course.isEmpty()) {
+                        Toast.makeText(this, "请输入课程编号", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+                    
+                    if (section.isEmpty()) {
+                        Toast.makeText(this, "请输入班级", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    if (semester.isEmpty()) {
+                        Toast.makeText(this, "请输入学期", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // 创建聊天群组
+                    createNewChatGroup(course, section, semester);
                 })
                 .setNegativeButton("取消", null)
                 .show();
@@ -243,19 +265,39 @@ public class ChatListActivity extends AppCompatActivity {
 
     /**
      * 创建新的聊天群组
-     * @param groupName 群组名称
+     * @param course 课程编号
+     * @param section 班级
+     * @param semester 学期
      */
-    private void createNewChatGroup(String groupName) {
-        // 在Firestore中创建群组文档
-        Map<String, Object> groupData = new HashMap<>();
-        groupData.put("name", groupName);
-        groupData.put("createdBy", currentUser.getUid());
-        groupData.put("createdAt", new Timestamp(new Date()));
+    private void createNewChatGroup(String course, String section, String semester) {
+        // 生成聊天室名称 格式: 课程-班级-学期
+        String chatName = course + "-" + section + "-" + semester;
+        
+        // 生成唯一ID (可选用chatName作为ID，但这里仍使用自动生成的ID)
+        String chatId = db.collection("chat_rooms").document().getId();
+        
+        // 在Firestore中创建聊天室文档
+        Map<String, Object> chatData = new HashMap<>();
+        chatData.put("chat_id", chatId);
+        chatData.put("chat_name", chatName);
+        chatData.put("course", course);
+        chatData.put("section", section);
+        chatData.put("semester", semester);
+        chatData.put("creator_id", currentUser.getUid());
+        chatData.put("created_at", new Timestamp(new Date()));
+        chatData.put("is_active", true);
+        
+        // 为聊天室生成一个随机颜色代码
+        int colorIndex = Math.abs(chatId.hashCode()) % ChatGroupViewHolder.GROUP_COLORS.length;
+        String colorCode = String.format("#%06X", (0xFFFFFF & ChatGroupViewHolder.GROUP_COLORS[colorIndex]));
+        chatData.put("color_code", colorCode);
 
-        db.collection("groups").add(groupData)
+        // 保存聊天室数据
+        db.collection("chat_rooms").document(chatId)
+                .set(chatData)
                 .addOnSuccessListener(documentReference -> {
-                    String groupId = documentReference.getId();
-                    addUserToGroup(groupId, groupName);
+                    // 将用户添加到聊天室
+                    addUserToGroup(chatId, chatName);
                 })
                 .addOnFailureListener(e -> 
                     Toast.makeText(this, "创建群组失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
@@ -264,31 +306,45 @@ public class ChatListActivity extends AppCompatActivity {
 
     /**
      * 将当前用户添加到新创建的聊天群组
-     * @param groupId 群组ID
-     * @param groupName 群组名称
+     * @param chatId 聊天室ID
+     * @param chatName 聊天室名称
      */
-    private void addUserToGroup(String groupId, String groupName) {
+    private void addUserToGroup(String chatId, String chatName) {
         // 将用户加入群组的记录添加到用户文档
         ChatGroup userGroupData = new ChatGroup(
-                groupId,
-                groupName,
+                chatId,
+                chatName,
                 "Group created",
                 new Timestamp(new Date())
         );
 
+        // 用户-群组关联
         DocumentReference userGroupRef = db.collection("users")
                 .document(currentUser.getUid())
                 .collection("joinedGroups")
-                .document(groupId);
+                .document(chatId);
 
         userGroupRef.set(userGroupData)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "群组创建成功", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "课程群组创建成功", Toast.LENGTH_SHORT).show();
+                    
+                    // 群组-用户关联(聊天室成员列表)
+                    Map<String, Object> memberData = new HashMap<>();
+                    memberData.put("user_id", currentUser.getUid());
+                    memberData.put("email", currentUser.getEmail());
+                    memberData.put("joined_at", new Timestamp(new Date()));
+                    memberData.put("is_admin", true);
+                    
+                    db.collection("chat_rooms")
+                      .document(chatId)
+                      .collection("members")
+                      .document(currentUser.getUid())
+                      .set(memberData);
                     
                     // 创建后直接进入聊天页面
                     Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
-                    intent.putExtra("groupId", groupId);
-                    intent.putExtra("groupName", groupName);
+                    intent.putExtra("groupId", chatId);
+                    intent.putExtra("groupName", chatName);
                     startActivity(intent);
                 })
                 .addOnFailureListener(e ->
@@ -302,43 +358,23 @@ public class ChatListActivity extends AppCompatActivity {
     private void addTestData() {
         if (currentUser == null) return;
 
-        // 测试群组数据
-        String[][] testGroups = {
-            {"test_group_1", "COMP7506 Group A", "Latest project update discussion"},
-            {"test_group_2", "COMP7506 Group B", "When is the next meeting?"},
-            {"test_group_3", "COMP7506 Group C", "Project submission due tomorrow"},
-            {"test_group_4", "COMP7506 Group D", "Has anyone started on task 3?"},
-            {"test_group_5", "COMP7506 Group E", "Meeting at 3pm tomorrow"}
+        // 测试课程数据 [课程, 班级, 学期]
+        String[][] testCourses = {
+            {"COMP7506", "1A", "2024"},
+            {"COMP7506", "2B", "2024"},
+            {"COMP7507", "1", "2024"},
+            {"COMP7504", "A", "2024"},
+            {"COMP7508", "C", "2024"}
         };
 
         // 添加测试群组
-        for (String[] groupData : testGroups) {
-            String groupId = groupData[0];
-            String groupName = groupData[1];
-            String lastMessage = groupData[2];
+        for (String[] courseData : testCourses) {
+            String course = courseData[0];
+            String section = courseData[1];
+            String semester = courseData[2];
             
-            // 创建群组数据
-            ChatGroup chatGroup = new ChatGroup(
-                groupId, 
-                groupName,
-                lastMessage,
-                new Timestamp(new Date())
-            );
-            
-            // 随机设置未读消息数量（0-100之间）
-            int unreadCount = (int)(Math.random() * 100);
-            chatGroup.setUnreadCount(unreadCount);
-            
-            // 将群组数据添加到Firestore
-            db.collection("users")
-                .document(currentUser.getUid())
-                .collection("joinedGroups")
-                .document(groupId)
-                .set(chatGroup)
-                .addOnSuccessListener(aVoid -> 
-                    android.util.Log.d("ChatListActivity", "添加测试数据成功: " + groupName))
-                .addOnFailureListener(e -> 
-                    android.util.Log.e("ChatListActivity", "添加测试数据失败: " + e.getMessage()));
+            // 创建聊天群组
+            createNewChatGroup(course, section, semester);
         }
     }
 
