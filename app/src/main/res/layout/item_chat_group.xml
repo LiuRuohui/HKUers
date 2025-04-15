@@ -15,21 +15,47 @@
         android:layout_height="wrap_content"
         android:padding="14dp">
 
-        <!-- 未读消息指示器 (在组名左侧) -->
+        <!-- 颜色标识条 -->
+        <View
+            android:id="@+id/colorIndicator"
+            android:layout_width="3dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- 未读消息指示器 -->
         <TextView
             android:id="@+id/tvUnreadCount"
-            android:layout_width="16dp"
+            android:layout_width="wrap_content"
             android:layout_height="16dp"
+            android:layout_marginStart="12dp"
             android:background="@drawable/bg_unread_count"
             android:gravity="center"
+            android:minWidth="16dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:textColor="#FFFFFF"
             android:textSize="9sp"
             android:textStyle="bold"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/tvGroupName"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/colorIndicator"
             app:layout_constraintTop_toTopOf="@id/tvGroupName"
-            tools:text="3"
+            tools:text="99+"
+            tools:visibility="visible" />
+
+        <!-- 已读对勾图标 -->
+        <ImageView
+            android:id="@+id/ivReadMark"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="12dp"
+            android:src="@drawable/ic_check_circle"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/tvGroupName"
+            app:layout_constraintStart_toEndOf="@id/colorIndicator"
+            app:layout_constraintTop_toTopOf="@id/tvGroupName"
             tools:visibility="visible" />
 
         <!-- 群组名称 -->
@@ -38,7 +64,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:layout_marginStart="22dp"
+            android:layout_marginStart="40dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="#FFFFFF"
@@ -55,7 +81,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:layout_marginStart="22dp"
+            android:layout_marginStart="40dp"
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="1"

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -96,6 +97,13 @@ public class ChatListActivity extends AppCompatActivity {
 
         // 加载聊天列表
         loadChatGroups();
+        
+        // 添加长按创建聊天按钮的测试数据功能
+        btnCreateChat.setOnLongClickListener(v -> {
+            addTestData();
+            Toast.makeText(this, "已添加测试数据", Toast.LENGTH_SHORT).show();
+            return true;
+        });
     }
 
     /**
@@ -153,6 +161,16 @@ public class ChatListActivity extends AppCompatActivity {
             protected void onBindViewHolder(@NonNull ChatGroupViewHolder holder, int position, @NonNull ChatGroup model) {
                 // 绑定视图数据
                 holder.bind(model);
+                
+                // 调试日志 - 打印群组ID和颜色索引
+                String groupId = model.getGroupId();
+                if (groupId != null && !groupId.isEmpty()) {
+                    int colorIndex = Math.abs(groupId.hashCode()) % ChatGroupViewHolder.GROUP_COLORS.length;
+                    android.util.Log.d("ChatListActivity", 
+                        "Group ID: " + groupId + 
+                        ", Hash: " + groupId.hashCode() + 
+                        ", Color Index: " + colorIndex);
+                }
                 
                 // 设置点击事件，进入聊天详情
                 holder.itemView.setOnClickListener(v -> {
@@ -278,6 +296,52 @@ public class ChatListActivity extends AppCompatActivity {
                 );
     }
 
+    /**
+     * 添加测试数据（仅用于开发测试）
+     */
+    private void addTestData() {
+        if (currentUser == null) return;
+
+        // 测试群组数据
+        String[][] testGroups = {
+            {"test_group_1", "COMP7506 Group A", "Latest project update discussion"},
+            {"test_group_2", "COMP7506 Group B", "When is the next meeting?"},
+            {"test_group_3", "COMP7506 Group C", "Project submission due tomorrow"},
+            {"test_group_4", "COMP7506 Group D", "Has anyone started on task 3?"},
+            {"test_group_5", "COMP7506 Group E", "Meeting at 3pm tomorrow"}
+        };
+
+        // 添加测试群组
+        for (String[] groupData : testGroups) {
+            String groupId = groupData[0];
+            String groupName = groupData[1];
+            String lastMessage = groupData[2];
+            
+            // 创建群组数据
+            ChatGroup chatGroup = new ChatGroup(
+                groupId, 
+                groupName,
+                lastMessage,
+                new Timestamp(new Date())
+            );
+            
+            // 随机设置未读消息数量（0-100之间）
+            int unreadCount = (int)(Math.random() * 100);
+            chatGroup.setUnreadCount(unreadCount);
+            
+            // 将群组数据添加到Firestore
+            db.collection("users")
+                .document(currentUser.getUid())
+                .collection("joinedGroups")
+                .document(groupId)
+                .set(chatGroup)
+                .addOnSuccessListener(aVoid -> 
+                    android.util.Log.d("ChatListActivity", "添加测试数据成功: " + groupName))
+                .addOnFailureListener(e -> 
+                    android.util.Log.e("ChatListActivity", "添加测试数据失败: " + e.getMessage()));
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -299,6 +363,27 @@ public class ChatListActivity extends AppCompatActivity {
      */
     public static class ChatGroupViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvGroupName, tvLastMessage, tvTimestamp, tvUnreadCount;
+        private final ImageView ivReadMark;
+        private final View colorIndicator;
+        
+        // 聊天室颜色列表
+        public static final int[] GROUP_COLORS = {
+            0xFF4CAF50, // 绿色
+            0xFF2196F3, // 蓝色
+            0xFFE91E63, // 粉色
+            0xFFFF9800, // 橙色
+            0xFF9C27B0, // 紫色
+            0xFF00BCD4, // 青色
+            0xFFFF5722, // 深橙色
+            0xFF607D8B, // 蓝灰色
+            0xFFFFC107, // 琥珀色
+            0xFF795548, // 棕色
+            0xFF673AB7, // 深紫色
+            0xFF8BC34A, // 浅绿色
+            0xFF3F51B5, // 靛蓝色
+            0xFFFF4081, // 粉红色
+            0xFF009688  // 蓝绿色
+        };
         
         public ChatGroupViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -306,6 +391,8 @@ public class ChatListActivity extends AppCompatActivity {
             tvLastMessage = itemView.findViewById(R.id.tvLastMessage);
             tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
             tvUnreadCount = itemView.findViewById(R.id.tvUnreadCount);
+            ivReadMark = itemView.findViewById(R.id.ivReadMark);
+            colorIndicator = itemView.findViewById(R.id.colorIndicator);
         }
 
         public void bind(ChatGroup group) {
@@ -318,13 +405,33 @@ public class ChatListActivity extends AppCompatActivity {
             // 设置时间戳
             tvTimestamp.setText(group.getFormattedTimestamp());
             
-            // 设置未读消息数量
+            // 设置随机但稳定的颜色（根据群组ID生成）
+            String groupId = group.getGroupId();
+            if (groupId != null && !groupId.isEmpty()) {
+                int colorIndex = Math.abs(groupId.hashCode()) % GROUP_COLORS.length;
+                colorIndicator.setBackgroundColor(GROUP_COLORS[colorIndex]);
+            } else {
+                // 默认颜色
+                colorIndicator.setBackgroundColor(GROUP_COLORS[0]);
+            }
+            
+            // 设置未读消息数量和已读标记
             int unreadCount = group.getUnreadCount();
             if (unreadCount > 0) {
+                // 有未读消息，显示红点
                 tvUnreadCount.setVisibility(View.VISIBLE);
-                tvUnreadCount.setText(String.valueOf(unreadCount));
+                ivReadMark.setVisibility(View.GONE);
+                
+                // 未读消息超过99时显示"99+"
+                if (unreadCount > 99) {
+                    tvUnreadCount.setText("99+");
+                } else {
+                    tvUnreadCount.setText(String.valueOf(unreadCount));
+                }
             } else {
+                // 没有未读消息，显示绿色对勾
                 tvUnreadCount.setVisibility(View.GONE);
+                ivReadMark.setVisibility(View.VISIBLE);
             }
         }
     }
