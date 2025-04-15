@@ -3,9 +3,9 @@ package hk.hku.cs.hkuers.features.chat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -40,11 +39,11 @@ import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.ChatGroup;
 
-public class ChatListActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
+public class ChatListActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private TextView tvEmptyState;
-    private BottomNavigationView bottomNavigationView;
+    private Button btnChat, btnMap, btnProfile, btnCourses, btnMarketplace;
     private FirebaseFirestore db;
     private FirestoreRecyclerAdapter<ChatGroup, ChatGroupViewHolder> adapter;
     private FirebaseUser currentUser;
@@ -69,7 +68,13 @@ public class ChatListActivity extends AppCompatActivity implements BottomNavigat
         tvEmptyState = findViewById(R.id.tvEmptyState);
         ImageButton btnCreateChat = findViewById(R.id.btnCreateChat);
         ImageButton btnBack = findViewById(R.id.btnBack);
-        bottomNavigationView = findViewById(R.id.bottomNavigation);
+        
+        // 初始化底部导航按钮
+        btnChat = findViewById(R.id.btnChat);
+        btnMap = findViewById(R.id.btnMap);
+        btnProfile = findViewById(R.id.btnProfile);
+        btnCourses = findViewById(R.id.btnCourses);
+        btnMarketplace = findViewById(R.id.btnMarketplace);
 
         // 设置布局管理器
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -80,47 +85,53 @@ public class ChatListActivity extends AppCompatActivity implements BottomNavigat
         // 设置创建聊天按钮点击事件
         btnCreateChat.setOnClickListener(v -> showCreateChatDialog());
 
-        // 设置底部导航栏
-        bottomNavigationView.setOnNavigationItemSelectedListener(this);
-        bottomNavigationView.setSelectedItemId(R.id.navigation_chat); // 设置聊天为选中项
+        // 设置底部导航点击事件
+        setupBottomNavigation();
+        
+        // 高亮当前选中的聊天按钮
+        btnChat.setTextSize(16);
+        btnChat.setTextColor(getResources().getColor(android.R.color.white));
+        btnChat.setTextSize(16);
+        btnChat.setTypeface(null, android.graphics.Typeface.BOLD);
 
         // 加载聊天列表
         loadChatGroups();
     }
 
     /**
-     * 处理底部导航栏点击事件
+     * 设置底部导航按钮的点击事件
      */
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int itemId = item.getItemId();
+    private void setupBottomNavigation() {
+        // 聊天按钮已经在当前页面，不需要处理
         
-        // 如果点击当前选中的选项，不执行任何操作
-        if (itemId == R.id.navigation_chat) {
-            return true;
-        }
-        
-        // 跳转到相应界面
-        Intent intent = null;
-        
-        if (itemId == R.id.navigation_map) {
-            intent = new Intent(this, MapActivity.class);
-        } else if (itemId == R.id.navigation_profile) {
-            intent = new Intent(this, MainActivity.class);
-            intent.putExtra("openProfile", true);
-        } else if (itemId == R.id.navigation_courses) {
-            intent = new Intent(this, CourseSearchActivity.class);
-        } else if (itemId == R.id.navigation_marketplace) {
-            intent = new Intent(this, MarketplaceActivity.class);
-        }
-        
-        if (intent != null) {
+        // 地图按钮
+        btnMap.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MapActivity.class);
             startActivity(intent);
-            finish(); // 结束当前活动
-            return true;
-        }
+            finish();
+        });
         
-        return false;
+        // 个人资料按钮
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("openProfile", true);
+            startActivity(intent);
+            finish();
+        });
+        
+        // 课程按钮
+        btnCourses.setOnClickListener(v -> {
+            Intent intent = new Intent(this, CourseSearchActivity.class);
+            startActivity(intent);
+            finish();
+        });
+        
+        // 市场按钮
+        btnMarketplace.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MarketplaceActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
 
     /**

@@ -20,4 +20,4 @@
         android:id="@+id/navigation_marketplace"
         android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="市场" />
-</menu> 
+</menu>
