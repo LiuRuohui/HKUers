@@ -6,4 +6,17 @@
     </style>
 
     <style name="Theme.HKUers" parent="Base.Theme.HKUers" />
+    
+    <!-- 深色对话框主题 -->
+    <style name="DarkAlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:background">#333333</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:buttonBarButtonStyle">@style/DarkDialogButtonStyle</item>
+        <item name="colorAccent">#4CAF50</item>
+    </style>
+    
+    <style name="DarkDialogButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">#4CAF50</item>
+    </style>
 </resources>

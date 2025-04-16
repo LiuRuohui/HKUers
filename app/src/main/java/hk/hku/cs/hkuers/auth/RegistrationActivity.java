@@ -87,11 +87,17 @@ public class RegistrationActivity extends AppCompatActivity {
     // 存储用户到Firestore
     private void saveUserToFirestore(String email) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String uid = mAuth.getCurrentUser().getUid();
+        
         Map<String, Object> user = new HashMap<>();
+        user.put("uid", uid);
         user.put("email", email);
+        user.put("uname", email.substring(0, email.indexOf('@'))); // 默认用户名为邮箱前缀
+        user.put("avatar_url", "default"); // 使用默认头像
         user.put("courses", new ArrayList<String>());
+        user.put("created_at", System.currentTimeMillis()); // 添加创建时间戳
 
-        db.collection("users").document(mAuth.getCurrentUser().getUid())
+        db.collection("users").document(uid)
                 .set(user)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
