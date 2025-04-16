@@ -48,6 +48,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
-    // Firebase UI for Fire Store
-    implementation("com.firebaseui:firebase-ui-firestore:8.0.1")
+    // Firebase UI for Firestore RecyclerView
+    implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
 }
