@@ -50,4 +50,9 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     // Firebase UI for Firestore RecyclerView
     implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
+    
+    // 添加图片处理和网络请求依赖
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
