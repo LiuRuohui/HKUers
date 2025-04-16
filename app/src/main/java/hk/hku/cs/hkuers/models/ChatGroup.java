@@ -1,4 +1,3 @@
-
 package hk.hku.cs.hkuers.models;
 
 import com.google.firebase.Timestamp;
@@ -8,15 +7,27 @@ public class ChatGroup {
     private String groupName;        // 群组名称（如课程代码COMP7903）
     private String lastMessage;      // 最后一条消息内容
     private Timestamp lastMessageTimestamp; // 最后消息时间
+    private int unreadCount;         // 未读消息数量
 
     // 必须有无参构造函数
-    public ChatGroup() {}
+    public ChatGroup() {
+        this.unreadCount = 0;
+    }
 
     public ChatGroup(String groupId, String groupName, String lastMessage, Timestamp lastMessageTimestamp) {
         this.groupId = groupId;
         this.groupName = groupName;
         this.lastMessage = lastMessage;
         this.lastMessageTimestamp = lastMessageTimestamp;
+        this.unreadCount = 0;
+    }
+
+    public ChatGroup(String groupId, String groupName, String lastMessage, Timestamp lastMessageTimestamp, int unreadCount) {
+        this.groupId = groupId;
+        this.groupName = groupName;
+        this.lastMessage = lastMessage;
+        this.lastMessageTimestamp = lastMessageTimestamp;
+        this.unreadCount = unreadCount;
     }
 
     // Getter & Setter
@@ -51,9 +62,20 @@ public class ChatGroup {
     public void setLastMessageTimestamp(Timestamp lastMessageTimestamp) {
         this.lastMessageTimestamp = lastMessageTimestamp;
     }
+    
+    public int getUnreadCount() {
+        return unreadCount;
+    }
+    
+    public void setUnreadCount(int unreadCount) {
+        this.unreadCount = unreadCount;
+    }
 
     // 辅助方法：格式化时间戳
     public String getFormattedTimestamp() {
+        if (lastMessageTimestamp == null) {
+            return "";
+        }
         return new java.text.SimpleDateFormat("HH:mm").format(lastMessageTimestamp.toDate());
     }
 }
