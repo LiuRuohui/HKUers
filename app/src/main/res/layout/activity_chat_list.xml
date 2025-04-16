@@ -108,7 +108,7 @@
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 聊天 -->
+        <!-- 聊天 (高亮显示) -->
         <Button
             android:id="@+id/btnChat"
             android:layout_width="0dp"
@@ -116,6 +116,8 @@
             android:layout_weight="1"
             android:text="聊天"
             android:background="@android:color/transparent"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="#FFFFFF"/>
 
         <!-- 地图 -->
@@ -128,7 +130,7 @@
             android:background="@android:color/transparent"
             android:textColor="#FFFFFF"/>
 
-        <!-- 个人资料（居中放大） -->
+        <!-- 个人资料 -->
         <Button
             android:id="@+id/btnProfile"
             android:layout_width="0dp"
@@ -136,8 +138,6 @@
             android:layout_weight="1"
             android:text="我的"
             android:background="@android:color/transparent"
-            android:textSize="16sp"
-            android:textStyle="bold"
             android:textColor="#FFFFFF"/>
 
         <!-- 课程 -->

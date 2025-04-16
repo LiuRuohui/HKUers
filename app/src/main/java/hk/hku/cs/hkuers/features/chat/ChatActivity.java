@@ -33,11 +33,14 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        android.util.Log.d("ChatActivity", "onCreate: 进入旧的ChatActivity");
         setContentView(R.layout.activity_chat);
 
         // 初始化组件
         db = FirebaseFirestore.getInstance();
         groupId = getIntent().getStringExtra("groupId");
+        android.util.Log.d("ChatActivity", "收到参数: groupId=" + groupId);
+        
         recyclerView = findViewById(R.id.recyclerMessages);
         etMessage = findViewById(R.id.etMessage);
 

@@ -241,9 +241,9 @@ public class ChatListActivity extends AppCompatActivity {
                 
                 // 设置点击事件，进入聊天详情
                 holder.itemView.setOnClickListener(v -> {
-                    Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
-                    intent.putExtra("groupId", model.getGroupId());
-                    intent.putExtra("groupName", model.getGroupName());
+                    Intent intent = new Intent(ChatListActivity.this, ChatRoomActivity.class);
+                    intent.putExtra("chatRoomId", model.getGroupId());
+                    intent.putExtra("chatRoomName", model.getGroupName());
                     startActivity(intent);
                     
                     // 标记已读
@@ -469,9 +469,9 @@ public class ChatListActivity extends AppCompatActivity {
                     }
                     
                     // 创建后直接进入聊天页面
-                    Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
-                    intent.putExtra("groupId", chatId);
-                    intent.putExtra("groupName", chatName);
+                    Intent intent = new Intent(ChatListActivity.this, ChatRoomActivity.class);
+                    intent.putExtra("chatRoomId", chatId);
+                    intent.putExtra("chatRoomName", chatName);
                     startActivity(intent);
                 })
                 .addOnFailureListener(e -> 
@@ -612,9 +612,9 @@ public class ChatListActivity extends AppCompatActivity {
      * @param chatName 聊天室名称
      */
     private void openChatActivity(String chatId, String chatName) {
-        Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
-        intent.putExtra("groupId", chatId);
-        intent.putExtra("groupName", chatName);
+        Intent intent = new Intent(ChatListActivity.this, ChatRoomActivity.class);
+        intent.putExtra("chatRoomId", chatId);
+        intent.putExtra("chatRoomName", chatName);
         startActivity(intent);
     }
 

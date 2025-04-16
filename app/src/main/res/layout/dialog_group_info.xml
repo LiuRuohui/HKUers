@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvGroupName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="COMP7506-A-2023" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+    <Button
+        android:id="@+id/btnViewMembers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_people_24dp"
+        android:drawablePadding="16dp"
+        android:gravity="start|center_vertical"
+        android:padding="16dp"
+        android:text="查看成员"
+        android:textColor="#333333"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+    <Button
+        android:id="@+id/btnPublishAnnouncement"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_announcement_24dp"
+        android:drawablePadding="16dp"
+        android:gravity="start|center_vertical"
+        android:padding="16dp"
+        android:text="发布公告"
+        android:textColor="#333333"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+    <Button
+        android:id="@+id/btnLeaveGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_exit_24dp"
+        android:drawablePadding="16dp"
+        android:gravity="start|center_vertical"
+        android:padding="16dp"
+        android:text="退出群聊"
+        android:textColor="#E53935"
+        android:textSize="16sp" />
+
+</LinearLayout> 

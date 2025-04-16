@@ -131,9 +131,9 @@ public class ProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        String name = documentSnapshot.getString("name");
+                        String name = documentSnapshot.getString("uname");
                         String email = documentSnapshot.getString("email");
-                        String avatarUrl = documentSnapshot.getString("avatarUrl");
+                        String avatarUrl = documentSnapshot.getString("avatar_url");
                         
                         etName.setText(name);
                         etEmail.setText(email);
@@ -230,8 +230,8 @@ public class ProfileActivity extends AppCompatActivity {
             // 更新头像和名称
             db.collection("users").document(userId)
                     .update(
-                            "name", newName,
-                            "avatarUrl", avatarFilename
+                            "uname", newName,
+                            "avatar_url", avatarFilename
                     )
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "资料更新成功", Toast.LENGTH_SHORT).show();
@@ -243,7 +243,7 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             // 仅更新名称
             db.collection("users").document(userId)
-                    .update("name", newName)
+                    .update("uname", newName)
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "资料更新成功", Toast.LENGTH_SHORT).show();
                         finish();
