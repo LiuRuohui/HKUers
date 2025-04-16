@@ -32,6 +32,7 @@
             android:inputType="textEmailAddress"
             android:background="@drawable/edittext_background"
             android:padding="12dp"
+            android:textColorHint="#FFFFFF"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"/>
 
@@ -44,6 +45,7 @@
             android:inputType="textPassword"
             android:background="@drawable/edittext_background"
             android:padding="12dp"
+            android:textColorHint="#FFFFFF"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"/>
 
@@ -52,7 +54,7 @@
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="注册"
+            android:text="Registeration"
             android:background="@drawable/button_background"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"/>
@@ -61,7 +63,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="已有账号？立即登录"
+            android:text="Already have account? Login Now"
             android:textColor="#66BBFF"
             android:gravity="center"
             android:onClick="navigateToLogin"/>

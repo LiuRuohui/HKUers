@@ -2,13 +2,14 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingTop="40dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="40dp"
         android:gravity="center_vertical">
 
         <!-- 标题 -->
@@ -19,7 +20,7 @@
             android:text="HKUers"
             android:textSize="32sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
+            android:textColor="#000000"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="32dp"/>
 
@@ -28,10 +29,11 @@
             android:id="@+id/etLoginEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="邮箱"
+            android:hint="your HKU email"
             android:inputType="textEmailAddress"
             android:background="@drawable/edittext_background"
             android:padding="12dp"
+            android:textColorHint="#FFFFFF"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"/>
 
@@ -40,10 +42,11 @@
             android:id="@+id/etLoginPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="密码"
+            android:hint="password"
             android:inputType="textPassword"
             android:background="@drawable/edittext_background"
             android:padding="12dp"
+            android:textColorHint="#FFFFFF"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"/>
 
@@ -52,18 +55,32 @@
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="登录"
+            android:text="Login"
             android:background="@drawable/button_background"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"/>
+
+        <!-- 忘记密码 -->
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Forgot Password?"
+            android:textColor="#66BBFF"
+            android:gravity="center"
+            android:clickable="true"
+            android:onClick="navigateToForgotPassword"
+            android:paddingBottom="10dp"/>
 
         <!-- 跳转注册 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="没有账号？立即注册"
+            android:text="No account? Register Now"
             android:textColor="#66BBFF"
             android:gravity="center"
-            android:onClick="navigateToRegister"/>
+            android:clickable="true"
+            android:onClick="navigateToRegister"
+            android:paddingBottom="10dp"/>
     </LinearLayout>
 </ScrollView>

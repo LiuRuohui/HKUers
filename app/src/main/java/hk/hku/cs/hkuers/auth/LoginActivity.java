@@ -32,34 +32,46 @@ public class LoginActivity extends AppCompatActivity {
         etLoginPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email = etLoginEmail.getText().toString().trim();
-                String password = etLoginPassword.getText().toString().trim();
+        btnLogin.setOnClickListener(v -> {
+            String email = etLoginEmail.getText().toString().trim();
+            String password = etLoginPassword.getText().toString().trim();
 
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    if (mAuth.getCurrentUser().isEmailVerified()) {
-                                        Toast.makeText(LoginActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                    } else {
-                                        Toast.makeText(LoginActivity.this, "请先验证邮箱", Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    Toast.makeText(LoginActivity.this, "登录失败: " + task.getException(), Toast.LENGTH_SHORT).show();
-                                }
+            mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            if (mAuth.getCurrentUser().isEmailVerified()) {
+                                Toast.makeText(LoginActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            } else {
+                                Toast.makeText(LoginActivity.this, "请先验证邮箱", Toast.LENGTH_SHORT).show();
                             }
-                        });
-            }
+                        } else {
+                            Toast.makeText(LoginActivity.this, "登录失败: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
     }
 
     // 跳转到注册页面
     public void navigateToRegister(View view) {
         startActivity(new Intent(this, RegistrationActivity.class));
+    }
+
+    // 处理忘记密码点击事件
+    public void navigateToForgotPassword(View view) {
+        String email = etLoginEmail.getText().toString().trim();
+        if (email.isEmpty()) {
+            Toast.makeText(this, "请输入邮箱地址", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(LoginActivity.this, "重置密码邮件已发送，请检查邮箱", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "发送重置密码邮件失败: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
