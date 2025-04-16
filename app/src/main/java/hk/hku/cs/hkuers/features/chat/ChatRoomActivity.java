@@ -278,11 +278,12 @@ public class ChatRoomActivity extends AppCompatActivity {
                 String senderId = message.getSenderId();
                 String type = message.getType();
                 
+                // 添加空值检查，避免NullPointerException
                 if ("system".equals(senderId)) {
                     return VIEW_TYPE_SYSTEM;
-                } else if ("announcement".equals(type)) {
+                } else if (type != null && "announcement".equals(type)) {
                     return VIEW_TYPE_ANNOUNCEMENT;
-                } else if (senderId.equals(currentUser.getUid())) {
+                } else if (senderId != null && senderId.equals(currentUser.getUid())) {
                     return VIEW_TYPE_SENT;
                 } else {
                     return VIEW_TYPE_RECEIVED;
@@ -469,6 +470,13 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 只有群主可以发布公告
         btnPublishAnnouncement.setVisibility(isCreator ? View.VISIBLE : View.GONE);
         
+        // 根据是否为群主更改按钮文字
+        if (isCreator) {
+            btnLeaveGroup.setText("解散群聊");
+        } else {
+            btnLeaveGroup.setText("退出群聊");
+        }
+        
         // 查看成员按钮
         btnViewMembers.setOnClickListener(v -> {
             dialog.dismiss();
@@ -481,10 +489,14 @@ public class ChatRoomActivity extends AppCompatActivity {
             showAnnouncementDialog();
         });
         
-        // 退出群聊按钮
+        // 退出/解散群聊按钮
         btnLeaveGroup.setOnClickListener(v -> {
             dialog.dismiss();
-            showLeaveGroupConfirmation();
+            if (isCreator) {
+                showDisbandGroupConfirmation();
+            } else {
+                showLeaveGroupConfirmation();
+            }
         });
         
         dialog.setContentView(view);
@@ -602,12 +614,21 @@ public class ChatRoomActivity extends AppCompatActivity {
             .show();
     }
     
+    private void showDisbandGroupConfirmation() {
+        new AlertDialog.Builder(this, R.style.DarkAlertDialog)
+            .setTitle("解散群聊")
+            .setMessage("确定要解散该群聊吗？此操作不可逆，所有聊天记录将被删除！")
+            .setPositiveButton("确定解散", (dialog, which) -> disbandGroup())
+            .setNegativeButton("取消", null)
+            .show();
+    }
+    
     private void leaveGroup() {
         String uid = currentUser.getUid();
         
-        // 如果是群主，不允许退出
+        // 验证不是群主才能退出
         if (isCreator) {
-            Toast.makeText(this, "群主不能退出群聊，请先转让群主身份", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "群主不能退出群聊，只能解散群聊", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -644,6 +665,151 @@ public class ChatRoomActivity extends AppCompatActivity {
             .addOnFailureListener(e -> 
                 Toast.makeText(this, "获取群聊信息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
+    }
+    
+    private void disbandGroup() {
+        // 验证是群主才能解散
+        if (!isCreator) {
+            Toast.makeText(this, "只有群主可以解散群聊", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // 显示进度对话框
+        AlertDialog progressDialog = new AlertDialog.Builder(this)
+            .setTitle("正在解散群聊")
+            .setMessage("请稍候...")
+            .setCancelable(false)
+            .create();
+        progressDialog.show();
+        
+        final DocumentReference chatRef = db.collection("chat_rooms").document(chatRoomId);
+        
+        // 首先从聊天室集合中删除所有消息
+        chatRef.collection("messages")
+            .get()
+            .addOnSuccessListener(messagesSnapshot -> {
+                // 创建批量写入操作
+                android.util.Log.d("ChatRoomActivity", "正在删除聊天室消息, 共 " + messagesSnapshot.size() + " 条");
+                
+                // 使用递归方式批量删除，避免单次批量操作过多
+                deleteMessagesRecursively(chatRef, messagesSnapshot.getDocuments(), 0, progressDialog);
+            })
+            .addOnFailureListener(e -> {
+                progressDialog.dismiss();
+                Toast.makeText(this, "解散群聊失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    // 递归删除消息，每批次最多删除500条，避免超过Firebase批量操作限制
+    private void deleteMessagesRecursively(DocumentReference chatRef, 
+                                          List<DocumentSnapshot> messages,
+                                          int startIndex,
+                                          AlertDialog progressDialog) {
+        final int batchSize = 500; // Firestore每批次最多500个操作
+        
+        // 创建一个新的批量写入
+        com.google.firebase.firestore.WriteBatch batch = db.batch();
+        
+        int endIndex = Math.min(startIndex + batchSize, messages.size());
+        
+        // 将消息添加到批量删除中
+        for (int i = startIndex; i < endIndex; i++) {
+            batch.delete(messages.get(i).getReference());
+        }
+        
+        // 提交批量删除
+        batch.commit()
+            .addOnSuccessListener(aVoid -> {
+                android.util.Log.d("ChatRoomActivity", "已删除 " + (endIndex - startIndex) + " 条消息");
+                
+                // 检查是否还有更多消息需要删除
+                if (endIndex < messages.size()) {
+                    // 还有更多消息，继续递归删除
+                    deleteMessagesRecursively(chatRef, messages, endIndex, progressDialog);
+                } else {
+                    // 所有消息已删除，接下来删除成员集合
+                    android.util.Log.d("ChatRoomActivity", "所有消息已删除，正在删除成员集合");
+                    deleteMembers(chatRef, progressDialog);
+                }
+            })
+            .addOnFailureListener(e -> {
+                progressDialog.dismiss();
+                Toast.makeText(this, "删除消息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    // 删除成员集合
+    private void deleteMembers(DocumentReference chatRef, AlertDialog progressDialog) {
+        chatRef.collection("members")
+            .get()
+            .addOnSuccessListener(membersSnapshot -> {
+                android.util.Log.d("ChatRoomActivity", "正在删除群成员, 共 " + membersSnapshot.size() + " 个");
+                
+                // 创建批量写入操作
+                com.google.firebase.firestore.WriteBatch batch = db.batch();
+                
+                // 将所有成员添加到批量删除中
+                for (DocumentSnapshot memberDoc : membersSnapshot.getDocuments()) {
+                    batch.delete(memberDoc.getReference());
+                }
+                
+                // 提交批量删除
+                batch.commit()
+                    .addOnSuccessListener(aVoid -> {
+                        android.util.Log.d("ChatRoomActivity", "所有成员已删除，正在删除聊天室文档");
+                        
+                        // 最后删除聊天室文档本身
+                        deleteChat(chatRef, progressDialog);
+                    })
+                    .addOnFailureListener(e -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "删除成员失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                progressDialog.dismiss();
+                Toast.makeText(this, "删除成员集合失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    // 删除聊天室文档
+    private void deleteChat(DocumentReference chatRef, AlertDialog progressDialog) {
+        // 获取聊天室信息用于记录
+        chatRef.get()
+            .addOnSuccessListener(chatSnapshot -> {
+                if (chatSnapshot.exists()) {
+                    // 记录一下要删除的聊天室信息
+                    String chatRoomNameToDelete = chatSnapshot.getString("chat_name");
+                    android.util.Log.d("ChatRoomActivity", "准备删除聊天室: " + chatRoomNameToDelete);
+                    
+                    // 删除聊天室文档
+                    chatRef.delete()
+                        .addOnSuccessListener(aVoid -> {
+                            // 关闭进度对话框
+                            progressDialog.dismiss();
+                            
+                            Toast.makeText(ChatRoomActivity.this, "群聊已解散并删除", Toast.LENGTH_SHORT).show();
+                            android.util.Log.d("ChatRoomActivity", "聊天室已完全删除: " + chatRoomNameToDelete);
+                            
+                            // 返回聊天列表页面
+                            Intent intent = new Intent(ChatRoomActivity.this, ChatListActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(this, "删除聊天室失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+                } else {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "聊天室不存在", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .addOnFailureListener(e -> {
+                progressDialog.dismiss();
+                Toast.makeText(this, "获取聊天室信息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
     
     private void addUserLeftMessage() {
@@ -792,8 +958,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             // 动态获取已读状态
             updateReadStatus(message);
             
-            // 加载用户头像
-            // TODO: 替换为实际头像加载逻辑
+            // 暂不加载用户头像，使用默认头像
             
             // 处理长消息折叠/展开
             if (message.getText().length() > 100) {
@@ -837,11 +1002,17 @@ public class ChatRoomActivity extends AppCompatActivity {
                         
                         // 创建需要阅读此消息的用户列表（排除发送者自己）
                         List<String> readersToCount = new ArrayList<>();
-                        for (String memberId : memberIds) {
-                            // 不将消息发送者自己计入需要读取的人数
-                            if (!memberId.equals(message.getSenderId())) {
-                                readersToCount.add(memberId);
+                        String senderId = message.getSenderId();
+                        if (senderId != null) {
+                            for (String memberId : memberIds) {
+                                // 不将消息发送者自己计入需要读取的人数
+                                if (!memberId.equals(senderId)) {
+                                    readersToCount.add(memberId);
+                                }
                             }
+                        } else {
+                            // 如果发送者ID为空，则所有成员都需要阅读
+                            readersToCount.addAll(memberIds);
                         }
                         
                         int totalReadersCount = readersToCount.size();
@@ -900,23 +1071,29 @@ public class ChatRoomActivity extends AppCompatActivity {
             tvMessageText.setText(message.getText());
             tvTime.setText(formatTime(message.getTimestamp()));
             
-            // 获取发送者信息
-            db.collection("users").document(message.getSenderId())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    // 检查Activity是否正在结束
-                    if (isFinishing || isFinishing()) return;
-                    
-                    if (documentSnapshot.exists()) {
-                        String userName = documentSnapshot.getString("display_name");
-                        if (userName == null || userName.isEmpty()) {
-                            userName = documentSnapshot.getString("email");
-                        }
-                        tvSenderName.setText(userName);
+            // 获取发送者信息 - 添加空值检查
+            String senderId = message.getSenderId();
+            if (senderId != null && !senderId.isEmpty() && !"system".equals(senderId)) {
+                db.collection("users").document(senderId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        // 检查Activity是否正在结束
+                        if (isFinishing || isFinishing()) return;
                         
-                        // TODO: 加载用户头像
-                    }
-                });
+                        if (documentSnapshot.exists()) {
+                            String userName = documentSnapshot.getString("display_name");
+                            if (userName == null || userName.isEmpty()) {
+                                userName = documentSnapshot.getString("email");
+                            }
+                            tvSenderName.setText(userName);
+                            
+                            // 暂不加载用户头像，使用默认头像
+                        }
+                    });
+            } else {
+                // 如果是系统消息或发送者ID为空
+                tvSenderName.setText("系统");
+            }
             
             // 处理长消息折叠/展开
             if (message.getText().length() > 100) {
@@ -975,21 +1152,27 @@ public class ChatRoomActivity extends AppCompatActivity {
             tvAnnouncementText.setText(message.getText());
             tvTime.setText(formatDate(message.getTimestamp()));
             
-            // 获取发布者信息
-            db.collection("users").document(message.getSenderId())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    // 检查Activity是否正在结束
-                    if (isFinishing || isFinishing()) return;
-                    
-                    if (documentSnapshot.exists()) {
-                        String userName = documentSnapshot.getString("display_name");
-                        if (userName == null || userName.isEmpty()) {
-                            userName = documentSnapshot.getString("email");
+            // 获取发布者信息 - 添加空值检查
+            String senderId = message.getSenderId();
+            if (senderId != null && !senderId.isEmpty() && !"system".equals(senderId)) {
+                db.collection("users").document(senderId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        // 检查Activity是否正在结束
+                        if (isFinishing || isFinishing()) return;
+                        
+                        if (documentSnapshot.exists()) {
+                            String userName = documentSnapshot.getString("display_name");
+                            if (userName == null || userName.isEmpty()) {
+                                userName = documentSnapshot.getString("email");
+                            }
+                            tvPublisherName.setText(userName);
                         }
-                        tvPublisherName.setText(userName);
-                    }
-                });
+                    });
+            } else {
+                // 如果是系统消息或发送者ID为空
+                tvPublisherName.setText("系统");
+            }
             
             // 处理长消息折叠/展开
             if (message.getText().length() > 100) {

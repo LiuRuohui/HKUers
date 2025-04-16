@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_bottom_navigation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="#1E1E1E"
+    android:padding="8dp">
+
+    <!-- 聊天 -->
+    <Button
+        android:id="@+id/btnChat"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="聊天"
+        android:background="@android:color/transparent"
+        android:textSize="14sp"
+        android:textColor="#CCCCCC"/>
+
+    <!-- 地图 -->
+    <Button
+        android:id="@+id/btnMap"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="地图"
+        android:background="@android:color/transparent"
+        android:textSize="14sp"
+        android:textColor="#CCCCCC"/>
+
+    <!-- 个人资料 -->
+    <Button
+        android:id="@+id/btnProfile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="我的"
+        android:background="@android:color/transparent"
+        android:textSize="14sp"
+        android:textColor="#CCCCCC"/>
+
+    <!-- 课程 -->
+    <Button
+        android:id="@+id/btnCourses"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="课程"
+        android:background="@android:color/transparent"
+        android:textSize="14sp"
+        android:textColor="#CCCCCC"/>
+
+    <!-- 交易 -->
+    <Button
+        android:id="@+id/btnMarketplace"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="交易"
+        android:background="@android:color/transparent"
+        android:textSize="14sp"
+        android:textColor="#CCCCCC"/>
+</LinearLayout> 

@@ -71,11 +71,6 @@
             android:name=".features.profile.UserProfileActivity"
             android:exported="false" />
             
-        <!-- 旧的聊天页面 -->
-        <activity
-            android:name=".features.chat.ChatActivity"
-            android:exported="false" />
-
         <!-- 注册页面 -->
         <activity
             android:name=".auth.RegistrationActivity"
