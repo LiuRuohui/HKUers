@@ -45,6 +45,7 @@ import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.Message;
+import hk.hku.cs.hkuers.features.chat.MemberListActivity;
 
 public class ChatRoomActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -82,7 +83,10 @@ public class ChatRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat_room);
         
         // 测试页面是否正确显示
-        Toast.makeText(this, "正在加载聊天室: " + getIntent().getStringExtra("chatRoomName"), Toast.LENGTH_SHORT).show();
+        String displayName = getIntent().getStringExtra("chatRoomName");
+        if (displayName != null) {
+            Toast.makeText(this, "正在加载聊天室: " + displayName, Toast.LENGTH_SHORT).show();
+        }
         
         // 如果整个页面是黑色的，可能是主题问题，尝试设置背景色
         findViewById(android.R.id.content).setBackgroundColor(getResources().getColor(android.R.color.white));
@@ -108,14 +112,19 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 添加日志
         android.util.Log.d("ChatRoomActivity", "收到参数: chatRoomId=" + chatRoomId + ", chatRoomName=" + chatRoomName);
         
-        if (chatRoomId == null || chatRoomName == null) {
-            Toast.makeText(this, "聊天室信息不完整", Toast.LENGTH_SHORT).show();
+        if (chatRoomId == null) {
+            Toast.makeText(this, "聊天室ID不能为空", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
         
         // 设置聊天室名称
-        tvChatRoomName.setText(chatRoomName);
+        if (chatRoomName != null) {
+            tvChatRoomName.setText(chatRoomName);
+        } else {
+            // 如果聊天室名称为空，则使用ID的前几位字符
+            tvChatRoomName.setText("聊天室-" + chatRoomId.substring(0, Math.min(6, chatRoomId.length())));
+        }
         
         // 加载聊天室信息
         loadChatRoomInfo();
@@ -173,11 +182,33 @@ public class ChatRoomActivity extends AppCompatActivity {
                 android.util.Log.d("ChatRoomActivity", "loadChatRoomInfo: 成功获取聊天室数据");
                 
                 if (documentSnapshot.exists()) {
+                    // 记录整个数据，用于调试
+                    android.util.Log.d("ChatRoomActivity", "聊天室数据: " + documentSnapshot.getData());
+                    
                     // 获取群主ID
                     creatorId = documentSnapshot.getString("creator_id");
                     isCreator = creatorId != null && creatorId.equals(currentUser.getUid());
                     
                     android.util.Log.d("ChatRoomActivity", "聊天室创建者ID: " + creatorId + ", 当前用户是创建者: " + isCreator);
+                    
+                    // 获取聊天室名称（兼容不同的字段名）
+                    String dbChatName = null;
+                    // 尝试不同的字段名
+                    if (documentSnapshot.contains("chat_name")) {
+                        dbChatName = documentSnapshot.getString("chat_name");
+                        android.util.Log.d("ChatRoomActivity", "从chat_name字段获取聊天室名称: " + dbChatName);
+                    } else if (documentSnapshot.contains("name")) {
+                        dbChatName = documentSnapshot.getString("name");
+                        android.util.Log.d("ChatRoomActivity", "从name字段获取聊天室名称: " + dbChatName);
+                    }
+                    
+                    // 如果从数据库获取到了名称，且当前名称为空或者与数据库不同，则更新
+                    if (dbChatName != null && !dbChatName.isEmpty() && 
+                        (chatRoomName == null || !chatRoomName.equals(dbChatName))) {
+                        chatRoomName = dbChatName;
+                        tvChatRoomName.setText(chatRoomName);
+                        android.util.Log.d("ChatRoomActivity", "更新聊天室名称为: " + chatRoomName);
+                    }
                     
                     // 加载群公告
                     String announcement = documentSnapshot.getString("announcement");
@@ -461,8 +492,15 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
     
     private void showMembersDialog() {
-        // TODO: 实现查看成员列表功能
-        Toast.makeText(this, "查看成员功能待实现", Toast.LENGTH_SHORT).show();
+        // 跳转到成员列表页面
+        Intent intent = new Intent(this, MemberListActivity.class);
+        intent.putExtra("chat_room_id", chatRoomId);
+        // 额外添加聊天室名称，确保成员列表能正确返回
+        intent.putExtra("chatRoomName", chatRoomName);
+        startActivity(intent);
+        
+        // 添加平滑过渡动画
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
     
     private void showAnnouncementDialog() {
@@ -471,9 +509,14 @@ public class ChatRoomActivity extends AppCompatActivity {
             return;
         }
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // 使用深色主题的AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialog);
         View view = getLayoutInflater().inflate(R.layout.dialog_announcement, null);
         EditText etAnnouncement = view.findViewById(R.id.etAnnouncement);
+        
+        // 设置EditText文本颜色为黑色，确保在浅色背景上可见
+        etAnnouncement.setTextColor(android.graphics.Color.BLACK);
+        etAnnouncement.setHintTextColor(android.graphics.Color.GRAY);
         
         // 加载当前公告
         db.collection("chat_rooms").document(chatRoomId)
@@ -495,7 +538,8 @@ public class ChatRoomActivity extends AppCompatActivity {
                })
                .setNegativeButton("取消", null);
         
-        builder.create().show();
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
     
     private void publishAnnouncement(String announcementText) {
@@ -550,7 +594,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
     
     private void showLeaveGroupConfirmation() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.DarkAlertDialog)
             .setTitle("退出群聊")
             .setMessage("确定要退出该群聊吗？")
             .setPositiveButton("确定", (dialog, which) -> leaveGroup())
@@ -983,10 +1027,32 @@ public class ChatRoomActivity extends AppCompatActivity {
         return sdf.format(timestamp.toDate());
     }
     
+    // 在onPause方法中添加输入法管理器的清理
+    @Override
+    protected void onPause() {
+        android.util.Log.d("ChatRoomActivity", "onPause: Activity暂停");
+        // 隐藏键盘并清理输入管理器引用
+        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+                getSystemService(Context.INPUT_METHOD_SERVICE);
+        View currentFocus = getCurrentFocus();
+        if (currentFocus != null) {
+            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+        }
+        super.onPause();
+    }
+
     // 修改onDestroy方法，确保在Activity销毁时释放资源
     @Override
     protected void onDestroy() {
         android.util.Log.d("ChatRoomActivity", "onDestroy: Activity销毁");
+        
+        // 确保输入法管理器资源被清理
+        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+                getSystemService(Context.INPUT_METHOD_SERVICE);
+        View currentFocus = getCurrentFocus();
+        if (currentFocus != null) {
+            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+        }
         
         // 清理任何可能的引用
         if (adapter != null) {

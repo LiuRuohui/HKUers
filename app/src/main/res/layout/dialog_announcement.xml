@@ -3,13 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#333333">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="编辑群公告"
-        android:textColor="#333333"
+        android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -18,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="公告将显示在聊天室顶部，所有成员都能看到"
-        android:textColor="#666666"
+        android:textColor="#CCCCCC"
         android:textSize="14sp" />
 
     <EditText
@@ -32,6 +33,8 @@
         android:inputType="textMultiLine"
         android:minHeight="120dp"
         android:padding="12dp"
+        android:textColor="#333333"
+        android:textColorHint="#777777"
         android:textSize="16sp" />
 
     <TextView
@@ -39,7 +42,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="提示：留空将清除当前公告"
-        android:textColor="#888888"
+        android:textColor="#AAAAAA"
         android:textSize="12sp"
         android:textStyle="italic" />
 

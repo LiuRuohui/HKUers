@@ -61,6 +61,16 @@
             android:name=".features.chat.ChatRoomActivity"
             android:exported="false" />
             
+        <!-- 成员列表页面 -->
+        <activity
+            android:name=".features.chat.MemberListActivity"
+            android:exported="false" />
+            
+        <!-- 用户资料页面 -->
+        <activity
+            android:name=".features.profile.UserProfileActivity"
+            android:exported="false" />
+            
         <!-- 旧的聊天页面 -->
         <activity
             android:name=".features.chat.ChatActivity"
