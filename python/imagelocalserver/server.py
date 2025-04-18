@@ -36,21 +36,34 @@ def upload_file():
     if file and allowed_file(file.filename):
         # 生成安全的文件名
         filename = secure_filename(file.filename)
-        # 添加时间戳避免文件名冲突
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-        filename = timestamp + filename
         
-        # 默认上传到主文件夹
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        
-        # 检查是否是上传到指定子文件夹
+        # 检查是否是头像上传
         folder_type = request.form.get('type', '')
         if folder_type == 'avatar':
+            # 头像文件直接使用传入的文件名（不添加时间戳）
+            # 构建文件路径
             file_path = os.path.join(app.config['AVATAR_FOLDER'], filename)
+            
+            # 检查是否存在同名文件，存在则先删除
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                
+            # 保存新文件
+            file.save(file_path)
+            
             # 为了客户端兼容性，返回路径包含子文件夹
             filename = 'avatar/' + filename
-        
-        file.save(file_path)
+        else:
+            # 非头像文件添加时间戳避免文件名冲突
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+            timestamped_filename = timestamp + filename
+            
+            # 保存到默认上传文件夹
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], timestamped_filename)
+            file.save(file_path)
+            
+            # 更新返回的文件名
+            filename = timestamped_filename
         
         return jsonify({
             'message': '文件上传成功',
