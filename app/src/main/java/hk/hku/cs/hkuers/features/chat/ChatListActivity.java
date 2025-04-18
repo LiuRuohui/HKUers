@@ -57,6 +57,23 @@ public class ChatListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_list);
 
+        // 设置系统状态栏颜色为固定的深色（与顶部栏一致）
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(android.graphics.Color.parseColor("#1E1E1E"));
+        }
+
+        // 设置状态栏空间高度
+        View statusBarSpace = findViewById(R.id.statusBarSpace);
+        if (statusBarSpace != null) {
+            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                int statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+                ViewGroup.LayoutParams params = statusBarSpace.getLayoutParams();
+                params.height = statusBarHeight;
+                statusBarSpace.setLayoutParams(params);
+            }
+        }
+
         // 初始化Firebase和用户
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();

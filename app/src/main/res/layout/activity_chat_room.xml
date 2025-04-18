@@ -7,30 +7,46 @@
     android:background="#000000"
     tools:context=".features.chat.ChatRoomActivity">
 
-    <!-- 顶部工具栏 -->
-    <RelativeLayout
-        android:id="@+id/toolbarLayout"
+    <!-- 顶部安全区域，预留系统状态栏位置 -->
+    <View
+        android:id="@+id/statusBarSpace"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#1E1E1E"
-        android:elevation="4dp">
+        android:layout_height="0dp"
+        android:background="#1E1E1E" />
 
+    <!-- 彩色指示条 -->
+    <View
+        android:id="@+id/colorIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_below="@id/statusBarSpace"
+        android:background="#4CAF50" />
+
+    <!-- 标题栏 -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#1E1E1E"
+        android:elevation="4dp"
+        android:layout_below="@id/colorIndicator">
+
+        <!-- 返回按钮 -->
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="4dp"
+            android:layout_gravity="start"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="返回"
-            android:padding="12dp"
             android:src="@drawable/ic_arrow_back_white_24dp" />
 
+        <!-- 页面标题 -->
         <TextView
             android:id="@+id/tvChatRoomName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_gravity="center"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/white"
@@ -38,25 +54,33 @@
             android:textStyle="bold"
             tools:text="COMP7506-A-2023" />
 
+        <!-- 群组信息按钮 -->
         <ImageButton
             android:id="@+id/btnGroupInfo"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="4dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="群组信息"
-            android:padding="12dp"
             android:src="@drawable/ic_more_vert_white_24dp" />
-    </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- 分割线 -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_below="@id/toolbar" />
 
     <!-- 公告区域 -->
     <LinearLayout
         android:id="@+id/announcementLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/toolbarLayout"
+        android:layout_below="@id/divider"
         android:background="#FFF9E0"
         android:orientation="horizontal"
         android:padding="8dp"

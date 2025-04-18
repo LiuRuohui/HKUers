@@ -36,25 +36,4 @@ public class UserStatusHelper {
                 android.util.Log.e(TAG, "更新用户活跃状态失败: " + e.getMessage())
             );
     }
-
-    /**
-     * 更新用户未读聊天数
-     * @param unreadCount 未读聊天数
-     */
-    public static void updateUnreadChatsCount(int unreadCount) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
-            return;
-        }
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("unread_chats_count", unreadCount);
-
-        db.collection("users").document(currentUser.getUid())
-            .update(updates)
-            .addOnFailureListener(e -> 
-                android.util.Log.e(TAG, "更新未读聊天数失败: " + e.getMessage())
-            );
-    }
 } 

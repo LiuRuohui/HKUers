@@ -12,6 +12,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
@@ -40,6 +41,16 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             if (mAuth.getCurrentUser().isEmailVerified()) {
+                                if (mAuth.getCurrentUser() != null) {
+                                    FirebaseFirestore.getInstance()
+                                        .collection("users")
+                                        .document(mAuth.getCurrentUser().getUid())
+                                        .update("unread_chats_count", com.google.firebase.firestore.FieldValue.delete())
+                                        .addOnFailureListener(e -> {
+                                            // 忽略错误，如果字段不存在也没关系
+                                        });
+                                }
+                                
                                 Toast.makeText(LoginActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             } else {

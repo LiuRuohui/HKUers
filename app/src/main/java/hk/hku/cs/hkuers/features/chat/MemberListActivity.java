@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -38,13 +40,14 @@ public class MemberListActivity extends AppCompatActivity {
 
     private static final String TAG = "MemberListActivity";
     private static final int BATCH_SIZE = 15; // 每次加载的成员数量
+    private static final String SERVER_URL = "http://10.0.2.2:9000"; // 统一服务器URL
 
     // Firebase
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
     
     // UI组件
-    private RelativeLayout toolbarLayout;
+    private Toolbar toolbarLayout;
     private TextView tvTitle;
     private TextView tvMemberCount;
     private RecyclerView rvMembers;
@@ -68,6 +71,24 @@ public class MemberListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_member_list);
+        
+        // 设置系统状态栏颜色为固定的深色（与顶部栏一致）
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(android.graphics.Color.parseColor("#1E1E1E"));
+        }
+        
+        // 设置状态栏空间高度
+        View statusBarSpace = findViewById(R.id.statusBarSpace);
+        if (statusBarSpace != null) {
+            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                int statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+                ViewGroup.LayoutParams params = statusBarSpace.getLayoutParams();
+                params.height = statusBarHeight;
+                statusBarSpace.setLayoutParams(params);
+                android.util.Log.d(TAG, "设置状态栏高度: " + statusBarHeight);
+            }
+        }
         
         // 初始化Firebase
         db = FirebaseFirestore.getInstance();
@@ -205,10 +226,33 @@ public class MemberListActivity extends AppCompatActivity {
                         android.util.Log.d(TAG, "从name字段获取聊天室名称: " + chatRoomName);
                     }
                     
+                    // 获取颜色代码
                     chatRoomColor = document.getString("color");
                     if (chatRoomColor == null) {
                         chatRoomColor = document.getString("color_code");
                     }
+                    android.util.Log.d(TAG, "获取到的颜色代码: " + chatRoomColor);
+                    
+                    // 设置颜色指示条
+                    View colorIndicator = findViewById(R.id.colorIndicator);
+                    if (colorIndicator != null) {
+                        if (chatRoomColor != null && !chatRoomColor.isEmpty()) {
+                            try {
+                                int color = android.graphics.Color.parseColor(chatRoomColor);
+                                colorIndicator.setBackgroundColor(color);
+                                android.util.Log.d(TAG, "设置颜色指示条颜色: " + chatRoomColor);
+                            } catch (Exception e) {
+                                android.util.Log.e(TAG, "解析颜色代码失败: " + e.getMessage(), e);
+                                // 使用默认颜色
+                                setDefaultColorIndicator(colorIndicator);
+                            }
+                        } else {
+                            // 如果没有设置颜色，使用基于chatRoomId的默认颜色
+                            setDefaultColorIndicator(colorIndicator);
+                        }
+                    }
+                    
+                    // 获取所有者ID
                     ownerId = document.getString("ownerId");
                     if (ownerId == null) {
                         ownerId = document.getString("creator_id");
@@ -216,15 +260,6 @@ public class MemberListActivity extends AppCompatActivity {
                     
                     // 设置标题
                     tvTitle.setText(chatRoomName != null ? chatRoomName : "群成员");
-                    
-                    // 设置顶部栏颜色
-                    if (chatRoomColor != null && !chatRoomColor.isEmpty()) {
-                        try {
-                            toolbarLayout.setBackgroundColor(Color.parseColor(chatRoomColor));
-                        } catch (IllegalArgumentException e) {
-                            Log.e(TAG, "Invalid color format: " + chatRoomColor, e);
-                        }
-                    }
                     
                     // 加载成员列表
                     loadInitialMembers();
@@ -236,7 +271,35 @@ public class MemberListActivity extends AppCompatActivity {
                 Toast.makeText(MemberListActivity.this, "加载聊天室信息失败", Toast.LENGTH_SHORT).show();
                 finish();
             }
+        }).addOnFailureListener(e -> {
+            android.util.Log.e(TAG, "加载聊天室数据失败: " + e.getMessage(), e);
+            Toast.makeText(MemberListActivity.this, "加载聊天室数据失败", Toast.LENGTH_SHORT).show();
+            finish();
         });
+    }
+
+    // 设置默认的颜色指示条，基于聊天室ID
+    private void setDefaultColorIndicator(View colorIndicator) {
+        if (chatRoomId != null && !chatRoomId.isEmpty() && colorIndicator != null) {
+            try {
+                // 使用ChatListActivity中定义的GROUP_COLORS数组
+                Class<?> chatListViewHolderClass = Class.forName("hk.hku.cs.hkuers.features.chat.ChatListActivity$ChatGroupViewHolder");
+                java.lang.reflect.Field colorsField = chatListViewHolderClass.getDeclaredField("GROUP_COLORS");
+                colorsField.setAccessible(true);
+                int[] colors = (int[]) colorsField.get(null);
+                
+                if (colors != null && colors.length > 0) {
+                    int colorIndex = Math.abs(chatRoomId.hashCode()) % colors.length;
+                    int color = colors[colorIndex];
+                    colorIndicator.setBackgroundColor(color);
+                    android.util.Log.d(TAG, "设置默认颜色指示条");
+                }
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "设置默认颜色指示条失败: " + e.getMessage(), e);
+                // 反射失败时使用一个固定颜色
+                colorIndicator.setBackgroundColor(android.graphics.Color.parseColor("#4CAF50"));
+            }
+        }
     }
 
     private void loadInitialMembers() {
@@ -530,25 +593,8 @@ public class MemberListActivity extends AppCompatActivity {
                     }
                     member.setUsername(username);
                     
-                    // 尝试获取头像URL (可能在不同字段中)
-                    String avatarUrl = null;
-                    if (userDoc.contains("avatar_url")) {  // 根据RegistrationActivity中的字段名
-                        avatarUrl = userDoc.getString("avatar_url");
-                    } else if (userDoc.contains("avatar")) {
-                        avatarUrl = userDoc.getString("avatar");
-                    } else if (userDoc.contains("avatarUrl")) {
-                        avatarUrl = userDoc.getString("avatarUrl");
-                    } else if (userDoc.contains("photoUrl")) {
-                        avatarUrl = userDoc.getString("photoUrl");
-                    } else if (userDoc.contains("photo_url")) {
-                        avatarUrl = userDoc.getString("photo_url");
-                    }
-                    
-                    // 处理"default"值
-                    if ("default".equals(avatarUrl)) {
-                        avatarUrl = null; // 将使用默认头像资源
-                    }
-                    
+                    // 尝试获取头像URL
+                    String avatarUrl = userDoc.getString("avatar_url");
                     member.setAvatarUrl(avatarUrl);
                     
                     // 设置是否为群主
@@ -560,6 +606,16 @@ public class MemberListActivity extends AppCompatActivity {
                     }
                     if (userDoc.contains("department")) {
                         member.setDepartment(userDoc.getString("department"));
+                    }
+                    // 新增加的字段
+                    if (userDoc.contains("programme")) {
+                        member.setProgramme(userDoc.getString("programme"));
+                    }
+                    if (userDoc.contains("year_of_entry")) {
+                        member.setYearOfEntry(userDoc.getString("year_of_entry"));
+                    }
+                    if (userDoc.contains("signature")) {
+                        member.setSignature(userDoc.getString("signature"));
                     }
                     
                     // 默认加入时间
@@ -608,13 +664,19 @@ public class MemberListActivity extends AppCompatActivity {
     // 在onPause方法中添加输入法管理器的清理
     @Override
     protected void onPause() {
-        android.util.Log.d(TAG, "onPause: Activity暂停");
-        // 隐藏键盘并清理输入管理器引用
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null) {
-            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+        try {
+            android.util.Log.d(TAG, "onPause: Activity暂停");
+            // 隐藏键盘并清理输入管理器引用
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+                    getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                View currentFocus = getCurrentFocus();
+                if (currentFocus != null) {
+                    imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "onPause处理异常: " + e.getMessage());
         }
         super.onPause();
     }
@@ -622,13 +684,23 @@ public class MemberListActivity extends AppCompatActivity {
     // 在onDestroy方法中添加输入法管理器的清理
     @Override
     protected void onDestroy() {
-        android.util.Log.d(TAG, "onDestroy: Activity销毁");
-        // 确保输入法管理器资源被清理
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null) {
-            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+        try {
+            android.util.Log.d(TAG, "onDestroy: Activity销毁");
+            // 释放资源，避免内存泄漏
+            memberList = null;
+            memberAdapter = null;
+            
+            // 确保输入法管理器资源被清理
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+                    getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                View currentFocus = getCurrentFocus();
+                if (currentFocus != null) {
+                    imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "onDestroy处理异常: " + e.getMessage());
         }
         super.onDestroy();
     }
@@ -641,30 +713,13 @@ public class MemberListActivity extends AppCompatActivity {
     
     private void returnToChatRoom() {
         // 记录日志
-        android.util.Log.d(TAG, "returnToChatRoom: 返回到聊天室，chatRoomId=" + chatRoomId + ", chatRoomName=" + chatRoomName);
+        android.util.Log.d(TAG, "returnToChatRoom: 直接返回上一个页面");
         
-        // 返回到聊天室页面
-        Intent intent = new Intent(this, ChatRoomActivity.class);
-        // 使用正确的参数名称
-        intent.putExtra("chatRoomId", chatRoomId);
+        // 直接调用finish()，让系统处理返回上一个Activity
+        finish();
         
-        // 确保chatRoomName不为空，避免传递null值
-        if (chatRoomName != null && !chatRoomName.isEmpty()) {
-            intent.putExtra("chatRoomName", chatRoomName);
-            android.util.Log.d(TAG, "returnToChatRoom: 传递聊天室名称: " + chatRoomName);
-        } else {
-            android.util.Log.d(TAG, "returnToChatRoom: 聊天室名称为空，不传递此参数");
-        }
-        
-        // 添加FLAG_ACTIVITY_CLEAR_TOP和FLAG_ACTIVITY_NEW_TASK标志，确保创建新的Activity实例
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        
-        // 添加过渡动画效果
+        // 添加简单过渡动画
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        
-        // 延迟结束当前Activity，让动画有时间执行
-        new android.os.Handler().postDelayed(() -> finish(), 100);
     }
 
     private void updateEmptyView() {
@@ -685,6 +740,9 @@ public class MemberListActivity extends AppCompatActivity {
         private boolean isOwner;
         private String email;
         private String department;
+        private String programme;
+        private String yearOfEntry;
+        private String signature;
         private long joinedAt;
 
         public String getUserId() {
@@ -735,6 +793,30 @@ public class MemberListActivity extends AppCompatActivity {
             this.department = department;
         }
         
+        public String getProgramme() {
+            return programme;
+        }
+        
+        public void setProgramme(String programme) {
+            this.programme = programme;
+        }
+        
+        public String getYearOfEntry() {
+            return yearOfEntry;
+        }
+        
+        public void setYearOfEntry(String yearOfEntry) {
+            this.yearOfEntry = yearOfEntry;
+        }
+        
+        public String getSignature() {
+            return signature;
+        }
+        
+        public void setSignature(String signature) {
+            this.signature = signature;
+        }
+        
         public long getJoinedAt() {
             return joinedAt;
         }
@@ -777,16 +859,29 @@ public class MemberListActivity extends AppCompatActivity {
             String avatarUrl = member.getAvatarUrl();
             if (avatarUrl != null && !avatarUrl.isEmpty() && !"default".equals(avatarUrl)) {
                 Log.d(TAG, "加载头像URL: " + avatarUrl);
+                
+                // 确保头像URL正确（添加avatar/前缀如果没有）
+                if (!avatarUrl.startsWith("avatar/")) {
+                    avatarUrl = "avatar/" + avatarUrl;
+                }
+                
+                // 构建完整URL，使用与ProfileActivity相同的逻辑
+                String imageUrl = SERVER_URL + "/image/" + avatarUrl;
+                // 添加随机参数避免缓存问题
+                String uniqueParam = System.currentTimeMillis() + "_" + Math.random();
+                imageUrl = imageUrl + "?nocache=" + uniqueParam;
+                
+                Log.d(TAG, "完整头像URL: " + imageUrl);
+                
                 // 加载网络图片
                 Glide.with(context)
-                        .load(avatarUrl)
+                        .load(imageUrl)
                         .placeholder(R.drawable.default_avatar)
                         .error(R.drawable.default_avatar)
                         .centerCrop()
                         .into(holder.ivAvatar);
             } else {
                 // 使用默认头像
-                Log.d(TAG, "使用默认头像");
                 holder.ivAvatar.setImageResource(R.drawable.default_avatar);
             }
             
@@ -798,14 +893,31 @@ public class MemberListActivity extends AppCompatActivity {
             holder.itemView.setOnClickListener(v -> {
                 // 跳转到用户资料页面
                 Intent intent = new Intent(context, UserProfileActivity.class);
+                
+                // 传递用户基本信息
                 intent.putExtra("user_id", member.getUserId());
                 
-                // 额外添加可能有用的数据
+                // 传递所有可能有用的数据
                 if (member.getEmail() != null) {
                     intent.putExtra("user_email", member.getEmail());
                 }
                 if (member.getDepartment() != null) {
                     intent.putExtra("user_department", member.getDepartment());
+                }
+                if (member.getProgramme() != null) {
+                    intent.putExtra("user_programme", member.getProgramme());
+                }
+                if (member.getYearOfEntry() != null) {
+                    intent.putExtra("user_year_of_entry", member.getYearOfEntry());
+                }
+                if (member.getSignature() != null) {
+                    intent.putExtra("user_signature", member.getSignature());
+                }
+                if (member.getAvatarUrl() != null) {
+                    intent.putExtra("user_avatar_url", member.getAvatarUrl());
+                }
+                if (member.getUsername() != null) {
+                    intent.putExtra("user_name", member.getUsername());
                 }
                 
                 startActivity(intent);

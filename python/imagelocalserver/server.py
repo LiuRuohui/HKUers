@@ -106,4 +106,4 @@ def delete_file():
         return jsonify({'error': f'删除失败: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    app.run(host='0.0.0.0', port=9000, debug=True) 
