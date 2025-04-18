@@ -39,7 +39,7 @@
             android:layout_gravity="start"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="返回"
-            android:src="@drawable/ic_arrow_back_white_24dp" />
+            android:src="@drawable/ic_back" />
 
         <!-- 页面标题 -->
         <TextView
