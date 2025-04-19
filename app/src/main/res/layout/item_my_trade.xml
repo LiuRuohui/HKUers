@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardPreventCornerOverlap="true"
+    app:cardUseCompatPadding="true"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- 左侧：商品信息 -->
+        <LinearLayout
+            android:id="@+id/layoutInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/layoutActions"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="16dp">
+
+            <!-- 标题 -->
+            <TextView
+                android:id="@+id/textViewTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="iPhone 13 Pro Max" />
+
+            <!-- this is the price -->
+            <TextView
+                android:id="@+id/textViewPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                tools:text="HK$ 8,999.00" />
+
+            <!-- 标签容器 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+
+                <!-- 分类标签 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardElevation="0dp">
+                    
+                    <TextView
+                        android:id="@+id/chipCategoryText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="12sp"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        tools:text="Electronics" />
+                </androidx.cardview.widget.CardView>
+                
+                <!-- 分类标签 (保留原来的Chip但隐藏) -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                    app:chipSurfaceColor="@color/transparent"
+                    app:chipMinHeight="28dp"
+                    app:ensureMinTouchTargetSize="true"
+                    app:chipMinTouchTargetSize="0dp"
+                    app:chipStartPadding="8dp"
+                    app:chipEndPadding="8dp"
+                    app:textStartPadding="0dp"
+                    app:textEndPadding="0dp"
+                    app:chipIconVisible="false"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"
+                    android:checkable="false"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:visibility="gone"
+                    tools:text="Electronics" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 右侧：操作按钮 -->
+        <LinearLayout
+            android:id="@+id/layoutActions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:gravity="center">
+
+            <!-- 编辑按钮 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonEdit"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                style="@style/Widget.Material3.Button.IconButton"
+                app:icon="@drawable/ic_edit"
+                app:iconTint="?attr/colorPrimary"
+                app:rippleColor="?attr/colorControlHighlight"
+                android:contentDescription="@string/edit_item" />
+
+            <!-- 删除按钮 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonDelete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="8dp"
+                style="@style/Widget.Material3.Button.IconButton"
+                app:icon="@drawable/ic_delete"
+                app:iconTint="?attr/colorError"
+                app:rippleColor="?attr/colorControlHighlight"
+                android:contentDescription="@string/delete_item" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView> 
