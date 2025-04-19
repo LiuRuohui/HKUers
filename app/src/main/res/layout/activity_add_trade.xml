@@ -74,7 +74,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="功能暂未开放"
+                            android:text="点击添加商品图片"
                             android:textColor="@color/text_secondary"
                             android:textSize="16sp" />
 
@@ -82,7 +82,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="图片上传功能将在后续更新中推出"
+                            android:text="从设备存储中选择图片"
                             android:textColor="@color/text_secondary"
                             android:textSize="14sp" />
                     </LinearLayout>
