@@ -1,12 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="colorPrimary">#1976D2</color>
-    <color name="colorPrimaryDark">#1565C0</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="lightGray">#EEEEEE</color>
-    <color name="darkGray">#666666</color>
-    <color name="textPrimary">#333333</color>
-    <color name="textSecondary">#757575</color>
+    <!-- 主题颜色 -->
+    <color name="colorPrimary">@color/primary</color>
+    <color name="primary">#0073E6</color>
+    <color name="primary_variant">#004881</color>
+    <color name="primary_dark">#00325A</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#D8E6FF</color>
+    <color name="on_primary_container">#001D36</color>
+
+    <color name="secondary">#6750A4</color>
+    <color name="secondary_variant">#4F378B</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#EADDFF</color>
+    <color name="on_secondary_container">#21005E</color>
+
+    <color name="tertiary">#7E5260</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#FFD8E4</color>
+    <color name="on_tertiary_container">#31111D</color>
+
+    <color name="error">#BA1A1A</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_error_container">#410002</color>
+
+    <!-- 中性颜色 -->
+    <color name="background">#FAFAFA</color>
+    <color name="background_dark">#121212</color>
+    <color name="on_background">#1C1B1F</color>
+    <color name="surface">#FAFAFA</color>
+    <color name="on_surface">#1C1B1F</color>
+    <color name="surface_variant">#E7E0EC</color>
+    <color name="on_surface_variant">#49454F</color>
+    <color name="outline">#79747E</color>
+
+    <!-- 辅助颜色 -->
+    <color name="ripple_color">#1F000000</color>
+    <color name="scrim">#52000000</color>
+
+    <!-- 文本颜色 -->
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#49454F</color>
+    <color name="divider">#E0E0E0</color>
+    <color name="button_primary">@color/primary</color>
+
+    <!-- 状态颜色 -->
+    <color name="available">#43A047</color>
+    <color name="available_container">#C8F5C6</color>
+    <color name="sold">#E53935</color>
+    <color name="sold_container">#FFCDD2</color>
+    <color name="reserved">#FFA000</color>
+    <color name="reserved_container">#FFECB3</color>
+
+    <!-- 基础颜色 -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- 状态颜色 -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FFC107</color>
+
 </resources>

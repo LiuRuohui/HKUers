@@ -1,12 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.HKUers" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Theme.HKUers" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_variant</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_variant</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status bar and navigation colors -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Surface and background colors -->
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+
+        <!-- Error colors -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/on_error</item>
+
+        <!-- Typography -->
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.HKUers.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.HKUers.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.HKUers.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.HKUers.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.HKUers.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.HKUers.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.HKUers.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.HKUers.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.HKUers.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.HKUers.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.HKUers.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.HKUers.LabelSmall</item>
+
+        <!-- Shape appearances -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.HKUers.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.HKUers.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.HKUers.LargeComponent</item>
+
+        <!-- Material3 specific attributes -->
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowEnterTransition">@android:transition/fade</item>
+        <item name="android:windowExitTransition">@android:transition/fade</item>
+
+        <!-- Ripple effect -->
+        <item name="colorControlHighlight">@color/ripple_color</item>
     </style>
 
-    <style name="Theme.HKUers" parent="Base.Theme.HKUers" />
-    
+
     <!-- 深色对话框主题 -->
     <style name="DarkAlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="android:background">#333333</item>
@@ -15,8 +66,131 @@
         <item name="android:buttonBarButtonStyle">@style/DarkDialogButtonStyle</item>
         <item name="colorAccent">#4CAF50</item>
     </style>
-    
+
     <style name="DarkDialogButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">#4CAF50</item>
+    </style>
+    <!-- Typography styles -->
+    <style name="TextAppearance.HKUers.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">normal|bold</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">normal|bold</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal|bold</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.HKUers.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <!-- Shape styles -->
+    <style name="ShapeAppearance.HKUers.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.HKUers.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.HKUers.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- Button styles -->
+    <style name="Widget.HKUers.Button" parent="Widget.Material3.Button">
+        <item name="android:textAppearance">@style/TextAppearance.HKUers.LabelLarge</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.HKUers.SmallComponent</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:stateListAnimator">@animator/button_state_list_animator</item>
+    </style>
+
+    <!-- Card styles -->
+    <style name="Widget.HKUers.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardElevation">4dp</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="contentPadding">16dp</item>
+        <item name="cardPreventCornerOverlap">true</item>
+        <item name="cardUseCompatPadding">true</item>
+    </style>
+
+    <!-- Chip styles -->
+    <style name="Widget.HKUers.Chip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipBackgroundColor">?attr/colorSurfaceVariant</item>
+        <item name="android:textAppearance">@style/TextAppearance.HKUers.LabelMedium</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
     </style>
 </resources>

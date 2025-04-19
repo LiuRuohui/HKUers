@@ -58,4 +58,7 @@ dependencies {
     
     // 添加CircleImageView库依赖
     implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.google.firebase:firebase-storage")
+
+
 }
