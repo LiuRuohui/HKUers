@@ -13,6 +13,12 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Android 13及以上版本需要的图片访问权限 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- 持久化URI权限 -->
+    <uses-permission android:name="android.permission.PERSISTABLE_URI_PERMISSION" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
 
     <application
         android:allowBackup="true"

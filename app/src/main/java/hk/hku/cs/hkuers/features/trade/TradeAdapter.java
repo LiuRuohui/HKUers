@@ -1,13 +1,22 @@
 package hk.hku.cs.hkuers.features.trade;
 
+import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+
+import java.io.File;
 import java.util.List;
 
 import hk.hku.cs.hkuers.R;
@@ -87,6 +96,119 @@ public class TradeAdapter extends RecyclerView.Adapter<TradeItemViewHolder> {
                 Log.e(TAG, "Error setting category text", e);
                 if (holder.categoryTextView != null) {
                     holder.categoryTextView.setVisibility(View.GONE);
+                }
+            }
+            
+            // 获取商品图片
+            View itemView = holder.itemView;
+            if (itemView != null) {
+                Context context = itemView.getContext();
+                ImageView imageView = itemView.findViewById(R.id.imageView);
+                ProgressBar progressBar = itemView.findViewById(R.id.imageLoadingProgress);
+                
+                if (imageView != null && progressBar != null) {
+                    // 显示加载状态
+                    progressBar.setVisibility(View.VISIBLE);
+                    
+                    // 加载图片
+                    String imageUrl = item.getImageUrl();
+                    if (imageUrl != null && !imageUrl.isEmpty()) {
+                        // 处理不同类型的图片URI
+                        if (imageUrl.startsWith("android.resource://")) {
+                            // 处理本地drawable资源URI
+                            try {
+                                Uri resourceUri = Uri.parse(imageUrl);
+                                Glide.with(context)
+                                    .load(resourceUri)
+                                    .apply(new RequestOptions()
+                                        .placeholder(R.drawable.default_avatar)
+                                        .error(R.drawable.default_avatar))
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .into(imageView);
+                                
+                                progressBar.setVisibility(View.GONE);
+                                Log.d(TAG, "Loaded local resource image: " + imageUrl);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error loading local resource image", e);
+                                progressBar.setVisibility(View.GONE);
+                                imageView.setImageResource(R.drawable.default_avatar);
+                            }
+                        } else if (imageUrl.startsWith("content://")) {
+                            // 处理设备相册的Content URI
+                            try {
+                                Uri contentUri = Uri.parse(imageUrl);
+                                Glide.with(context)
+                                    .load(contentUri)
+                                    .apply(new RequestOptions()
+                                        .placeholder(R.drawable.default_avatar)
+                                        .error(R.drawable.default_avatar))
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .into(imageView);
+                                
+                                progressBar.setVisibility(View.GONE);
+                                Log.d(TAG, "Loaded content URI image: " + imageUrl);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error loading content URI image", e);
+                                progressBar.setVisibility(View.GONE);
+                                imageView.setImageResource(R.drawable.default_avatar);
+                            }
+                        } else if (imageUrl.startsWith("file://")) {
+                            // 处理本地文件URI (从应用私有存储读取)
+                            try {
+                                Uri fileUri = Uri.parse(imageUrl);
+                                File file = new File(fileUri.getPath());
+                                Log.d(TAG, "Loading file URI: " + fileUri.getPath() + ", exists: " + file.exists());
+                                
+                                if (file.exists()) {
+                                    Glide.with(context)
+                                        .load(file)
+                                        .apply(new RequestOptions()
+                                            .placeholder(R.drawable.default_avatar)
+                                            .error(R.drawable.default_avatar))
+                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                        .into(imageView);
+                                    
+                                    progressBar.setVisibility(View.GONE);
+                                    Log.d(TAG, "Loaded file image: " + imageUrl);
+                                } else {
+                                    Log.e(TAG, "File does not exist: " + file.getAbsolutePath());
+                                    progressBar.setVisibility(View.GONE);
+                                    imageView.setImageResource(R.drawable.default_avatar);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error loading file URI image", e);
+                                progressBar.setVisibility(View.GONE);
+                                imageView.setImageResource(R.drawable.default_avatar);
+                            }
+                        } else if (imageUrl.startsWith("http")) {
+                            // 远程URL（仅作备用，当前不使用）
+                            try {
+                                Glide.with(context)
+                                    .load(imageUrl)
+                                    .apply(new RequestOptions()
+                                        .placeholder(R.drawable.default_avatar)
+                                        .error(R.drawable.default_avatar))
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .into(imageView);
+                                
+                                progressBar.setVisibility(View.GONE);
+                                Log.d(TAG, "Loaded remote image: " + imageUrl);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error loading remote image", e);
+                                progressBar.setVisibility(View.GONE);
+                                imageView.setImageResource(R.drawable.default_avatar);
+                            }
+                        } else {
+                            // 其他未知格式的URI，显示默认图片
+                            progressBar.setVisibility(View.GONE);
+                            imageView.setImageResource(R.drawable.default_avatar);
+                            Log.w(TAG, "Unknown image URI format: " + imageUrl);
+                        }
+                    } else {
+                        // 无图片URL，显示默认图片
+                        progressBar.setVisibility(View.GONE);
+                        imageView.setImageResource(R.drawable.default_avatar);
+                    }
                 }
             }
 
