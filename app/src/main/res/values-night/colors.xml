@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 主题颜色 -->
+    <color name="primary">#9BCBFF</color>
+    <color name="primary_variant">#004881</color>
+    <color name="primary_dark">#00325A</color>
+    <color name="on_primary">#00325A</color>
+    <color name="primary_container">#004881</color>
+    <color name="on_primary_container">#D8E6FF</color>
+    
+    <color name="secondary">#CBBDFF</color>
+    <color name="secondary_variant">#4F378B</color>
+    <color name="on_secondary">#381E72</color>
+    <color name="secondary_container">#4F378B</color>
+    <color name="on_secondary_container">#E8DDFF</color>
+    
+    <color name="tertiary">#D9B9C3</color>
+    <color name="on_tertiary">#3F2A32</color>
+    <color name="tertiary_container">#5B3F4A</color>
+    <color name="on_tertiary_container">#FFD8E4</color>
+    
+    <color name="error">#FFB4AB</color>
+    <color name="on_error">#690005</color>
+    <color name="error_container">#93000A</color>
+    <color name="on_error_container">#FFDAD6</color>
+    
+    <!-- 中性颜色 -->
+    <color name="background">#1C1B1F</color>
+    <color name="on_background">#E5E1E6</color>
+    <color name="surface">#1C1B1F</color>
+    <color name="on_surface">#E5E1E6</color>
+    <color name="surface_variant">#49454F</color>
+    <color name="on_surface_variant">#CAC4D0</color>
+    <color name="outline">#928F99</color>
+    
+    <!-- 辅助颜色 -->
+    <color name="ripple_color">#33FFFFFF</color>
+    <color name="scrim">#80000000</color>
+    
+    <!-- 文本颜色 -->
+    <color name="text_primary">#E5E1E6</color>
+    <color name="text_secondary">#CAC4D0</color>
+    <color name="divider">#2F2F2F</color>
+    <color name="button_primary">@color/primary</color>
+    <color name="background_dark">#121212</color>
+    
+    <!-- 状态颜色 -->
+    <color name="available">#81C784</color>
+    <color name="available_container">#0F5B0F</color>
+    <color name="sold">#EF5350</color>
+    <color name="sold_container">#7F0000</color>
+    <color name="reserved">#FFCC80</color>
+    <color name="reserved_container">#774600</color>
+</resources> 
