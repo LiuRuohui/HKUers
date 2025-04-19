@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 主题颜色 -->
+    <color name="colorPrimary">@color/primary</color>
     <color name="primary">#0073E6</color>
     <color name="primary_variant">#004881</color>
     <color name="primary_dark">#00325A</color>
@@ -60,4 +61,5 @@
     <!-- 状态颜色 -->
     <color name="success">#4CAF50</color>
     <color name="warning">#FFC107</color>
+
 </resources>

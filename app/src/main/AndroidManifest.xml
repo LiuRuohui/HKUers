@@ -80,6 +80,21 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_GOOGLE_MAPS_API_KEY" />
-
+        <!-- 添加交易相关的Activity -->
+        <activity
+            android:name=".features.trade.TradeListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.trade.AddTradeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.trade.TradeDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.trade.MyTradeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.trade.EditTradeActivity"
+            android:exported="false" />
     </application>
 </manifest>
