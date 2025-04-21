@@ -32,8 +32,16 @@ public class MainActivity extends AppCompatActivity {
         // 设置底部导航
         BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
         
+        // 检查是否从聊天室页面跳转过来
+        boolean fromChatRoom = getIntent().getBooleanExtra("from_chat_room", false);
+        
         // 设置默认选中项为Home
         bottomNavigation.setSelectedItemId(R.id.navigation_dashboard);
+        
+        // 如果是从聊天室跳转过来，添加日志
+        if (fromChatRoom) {
+            android.util.Log.d("MainActivity", "从ChatRoom页面跳转过来，强制选中Home选项");
+        }
         
         bottomNavigation.setOnNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();

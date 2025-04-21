@@ -364,7 +364,7 @@ public class TradeDetailActivity extends AppCompatActivity {
         // 创建系统消息
         Map<String, Object> message = new HashMap<>();
         message.put("type", "system");
-        message.put("text", "关于商品 \"" + tradeItem.getTitle() + "\" 的对话已创建");
+        message.put("text", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("senderId", "system");
         
@@ -375,7 +375,7 @@ public class TradeDetailActivity extends AppCompatActivity {
             .addOnSuccessListener(documentReference -> {
                 // 更新聊天室的最后消息和时间
                 Map<String, Object> updateData = new HashMap<>();
-                updateData.put("last_message", "关于商品 \"" + tradeItem.getTitle() + "\" 的对话已创建");
+                updateData.put("last_message", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
                 updateData.put("last_message_time", new Timestamp(new Date()));
                 updateData.put("message_count", 1);
                 

@@ -95,7 +95,7 @@ public class MemberListActivity extends AppCompatActivity {
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         
         if (currentUser == null) {
-            Toast.makeText(this, "您需要登录才能查看成员列表", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You need to login to view the member list", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -109,7 +109,7 @@ public class MemberListActivity extends AppCompatActivity {
         android.util.Log.d(TAG, "onCreate: 接收到参数 chatRoomId=" + chatRoomId + ", chatRoomName=" + chatRoomName);
         
         if (chatRoomId == null || chatRoomId.isEmpty()) {
-            Toast.makeText(this, "无效的聊天室ID", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Invalid chat room ID", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -142,64 +142,6 @@ public class MemberListActivity extends AppCompatActivity {
         
         // 设置加载更多按钮
         btnLoadMore.setOnClickListener(v -> loadMoreMembers());
-        
-        // 设置底部导航栏
-        setupBottomNavigation();
-    }
-
-    private void setupBottomNavigation() {
-        // 找到底部导航栏的各个按钮
-        Button btnChat = findViewById(R.id.btnChat);
-        Button btnMap = findViewById(R.id.btnMap);
-        Button btnProfile = findViewById(R.id.btnProfile);
-        Button btnCourses = findViewById(R.id.btnCourses);
-        Button btnMarketplace = findViewById(R.id.btnMarketplace);
-        
-        // 设置点击事件
-        btnChat.setOnClickListener(v -> {
-            // 返回到聊天列表
-            Intent intent = new Intent(this, ChatListActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            finish();
-        });
-        
-        btnMap.setOnClickListener(v -> {
-            // 导航到地图页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.map.MapActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "地图功能尚未实现", Toast.LENGTH_SHORT).show();
-            }
-        });
-        
-        btnProfile.setOnClickListener(v -> {
-            // 导航到个人资料页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.MainActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "个人资料功能尚未实现", Toast.LENGTH_SHORT).show();
-            }
-        });
-        
-        btnCourses.setOnClickListener(v -> {
-            Toast.makeText(this, "课程功能尚未实现", Toast.LENGTH_SHORT).show();
-        });
-        
-        btnMarketplace.setOnClickListener(v -> {
-            // 导航到交易页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "交易功能尚未实现", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void showLoading(boolean show) {
@@ -264,16 +206,17 @@ public class MemberListActivity extends AppCompatActivity {
                     // 加载成员列表
                     loadInitialMembers();
                 } else {
-                    Toast.makeText(MemberListActivity.this, "找不到聊天室信息", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MemberListActivity.this, "Chat room information not found", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             } else {
-                Toast.makeText(MemberListActivity.this, "加载聊天室信息失败", Toast.LENGTH_SHORT).show();
+                android.util.Log.e(TAG, "加载聊天室信息失败: " + task.getException());
+                Toast.makeText(MemberListActivity.this, "Failed to load chat room information", Toast.LENGTH_SHORT).show();
                 finish();
             }
         }).addOnFailureListener(e -> {
             android.util.Log.e(TAG, "加载聊天室数据失败: " + e.getMessage(), e);
-            Toast.makeText(MemberListActivity.this, "加载聊天室数据失败", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MemberListActivity.this, "Failed to load chat room data", Toast.LENGTH_SHORT).show();
             finish();
         });
     }
@@ -420,7 +363,7 @@ public class MemberListActivity extends AppCompatActivity {
                 } else {
                     // 聊天室不存在
                     Log.e(TAG, "聊天室不存在");
-                    Toast.makeText(MemberListActivity.this, "找不到聊天室", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MemberListActivity.this, "Chat room not found", Toast.LENGTH_SHORT).show();
                     showLoading(false);
                     updateEmptyView();
                     isLoading = false;
@@ -428,7 +371,7 @@ public class MemberListActivity extends AppCompatActivity {
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "加载聊天室失败: " + e.getMessage());
-                Toast.makeText(MemberListActivity.this, "加载成员列表失败", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MemberListActivity.this, "Failed to load member list", Toast.LENGTH_SHORT).show();
                 showLoading(false);
                 updateEmptyView();
                 isLoading = false;
@@ -655,7 +598,7 @@ public class MemberListActivity extends AppCompatActivity {
     }
     
     private void showNoDataMessage() {
-        Toast.makeText(MemberListActivity.this, "无法加载成员信息", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MemberListActivity.this, "Failed to load member information", Toast.LENGTH_SHORT).show();
         updateEmptyView();
         showLoading(false);
         isLoading = false;
