@@ -116,7 +116,7 @@ public class ChatListActivity extends AppCompatActivity {
         // 添加长按创建聊天按钮的测试数据功能
         btnCreateChat.setOnLongClickListener(v -> {
             addTestData();
-            Toast.makeText(this, "已添加测试数据", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Test data added", Toast.LENGTH_SHORT).show();
             return true;
         });
     }
@@ -313,34 +313,34 @@ public class ChatListActivity extends AppCompatActivity {
         TextInputEditText etSemester = dialogView.findViewById(R.id.etSemester);
 
         // 创建对话框
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("创建课程聊天群组")
+        new AlertDialog.Builder(this)
+                .setTitle("Create Course Chat Group")
                 .setView(dialogView)
-                .setPositiveButton("创建", (dialog, which) -> {
+                .setPositiveButton("Create", (dialog, which) -> {
                     // 验证输入
                     String course = etCourse.getText().toString().trim();
                     String section = etSection.getText().toString().trim();
                     String semester = etSemester.getText().toString().trim();
                     
                     if (course.isEmpty()) {
-                        Toast.makeText(this, "请输入课程编号", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Please enter course code", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     
                     if (section.isEmpty()) {
-                        Toast.makeText(this, "请输入班级", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Please enter section", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     
                     if (semester.isEmpty()) {
-                        Toast.makeText(this, "请输入学期", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Please enter semester", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     
                     // 创建聊天群组
                     createNewChatGroup(course, section, semester);
                 })
-                .setNegativeButton("取消", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
@@ -368,13 +368,13 @@ public class ChatListActivity extends AppCompatActivity {
                     String existingChatName = queryDocumentSnapshots.getDocuments().get(0).getString("chat_name");
                     
                     new AlertDialog.Builder(ChatListActivity.this)
-                        .setTitle("聊天室已存在")
-                        .setMessage("相同课程的聊天室已存在，您想加入该聊天室吗？")
-                        .setPositiveButton("加入", (dialog, which) -> {
+                        .setTitle("Chat Room Already Exists")
+                        .setMessage("A chat room for this course already exists. Do you want to join it?")
+                        .setPositiveButton("Join", (dialog, which) -> {
                             // 用户选择加入现有聊天室
                             joinExistingChatGroup(existingChatId, existingChatName);
                         })
-                        .setNegativeButton("取消", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
                 } else {
                     // 聊天室不存在，创建新聊天室
@@ -382,7 +382,7 @@ public class ChatListActivity extends AppCompatActivity {
                 }
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "查询聊天室失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to query chat room: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
 
@@ -409,7 +409,7 @@ public class ChatListActivity extends AppCompatActivity {
         
         // 设置最后消息时间为创建时间，确保聊天室能在列表查询中显示
         chatData.put("last_message_time", now);
-        chatData.put("last_message", "聊天室已创建，开始交流吧！");
+        chatData.put("last_message", "Chat room created. Let's start communicating!");
         
         // 为聊天室生成一个随机颜色代码
         int colorIndex = Math.abs(chatId.hashCode()) % ChatGroupViewHolder.GROUP_COLORS.length;
@@ -441,7 +441,7 @@ public class ChatListActivity extends AppCompatActivity {
                     // 将用户详细信息添加到聊天室成员子集合
                     addUserToGroup(chatId, chatName);
                     
-                    Toast.makeText(this, "课程群组创建成功", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Course group created successfully", Toast.LENGTH_SHORT).show();
                     
                     // 添加一条初始消息
                     addInitialMessage(chatId);
@@ -458,7 +458,7 @@ public class ChatListActivity extends AppCompatActivity {
                     startActivity(intent);
                 })
                 .addOnFailureListener(e -> 
-                    Toast.makeText(this, "创建群组失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to create group: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
     }
 
@@ -469,7 +469,7 @@ public class ChatListActivity extends AppCompatActivity {
     private void addInitialMessage(String chatId) {
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", "system");  // 使用与Message类一致的字段名
-        message.put("text", "聊天室已创建，开始交流吧！");
+        message.put("text", "Chat room created. Let's start communicating!");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("type", "text");
         
@@ -481,7 +481,7 @@ public class ChatListActivity extends AppCompatActivity {
               db.collection("chat_rooms").document(chatId)
                 .update(
                     "message_count", 1L,
-                    "last_message", "聊天室已创建，开始交流吧！",
+                    "last_message", "Chat room created. Let's start communicating!",
                     "last_message_time", new Timestamp(new Date())
                 );
           });
@@ -502,7 +502,7 @@ public class ChatListActivity extends AppCompatActivity {
                     
                     if (memberIds != null && memberIds.contains(currentUser.getUid())) {
                         // 用户已经是成员，直接进入聊天页面
-                        Toast.makeText(this, "您已经是该群组成员", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "You are already a member of this group", Toast.LENGTH_SHORT).show();
                         openChatActivity(chatId, chatName);
                         return;
                     }
@@ -530,7 +530,7 @@ public class ChatListActivity extends AppCompatActivity {
                             
                             documentSnapshot.getReference().update(updates)
                                 .addOnSuccessListener(aVoid2 -> {
-                                    Toast.makeText(this, "成功加入聊天室", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Successfully joined the chat room", Toast.LENGTH_SHORT).show();
                                     
                                     // 添加用户加入的系统消息
                                     addUserJoinMessage(chatId);
@@ -542,7 +542,7 @@ public class ChatListActivity extends AppCompatActivity {
                 }
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "加入聊天室失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to join chat room: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
 
@@ -561,7 +561,7 @@ public class ChatListActivity extends AppCompatActivity {
         
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", "system");  // 修正字段名称，与Message类一致
-        message.put("text", finalUserName + " 加入了聊天室");
+        message.put("text", finalUserName + " joined the chat room");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("type", "text");
         
@@ -579,7 +579,7 @@ public class ChatListActivity extends AppCompatActivity {
                         
                         documentSnapshot.getReference().update(
                             "message_count", currentCount + 1,
-                            "last_message", finalUserName + " 加入了聊天室",
+                            "last_message", finalUserName + " joined the chat room",
                             "last_message_time", new Timestamp(new Date())
                         );
                     }
@@ -621,7 +621,7 @@ public class ChatListActivity extends AppCompatActivity {
             .document(currentUser.getUid())
             .set(memberData)
             .addOnFailureListener(e ->
-                Toast.makeText(this, "添加成员失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to add member: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
 

@@ -112,7 +112,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 测试页面是否正确显示
         String displayName = getIntent().getStringExtra("chatRoomName");
         if (displayName != null) {
-            Toast.makeText(this, "正在加载聊天室: " + displayName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Loading chat room: " + displayName, Toast.LENGTH_SHORT).show();
         }
         
         // 如果整个页面是黑色的，可能是主题问题，尝试设置背景色
@@ -124,7 +124,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         currentUser = auth.getCurrentUser();
         
         if (currentUser == null) {
-            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -140,7 +140,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         android.util.Log.d("ChatRoomActivity", "收到参数: chatRoomId=" + chatRoomId + ", chatRoomName=" + chatRoomName);
         
         if (chatRoomId == null) {
-            Toast.makeText(this, "聊天室ID不能为空", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Chat room ID cannot be empty", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -150,7 +150,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             tvChatRoomName.setText(chatRoomName);
         } else {
             // 如果聊天室名称为空，则使用ID的前几位字符
-            tvChatRoomName.setText("聊天室-" + chatRoomId.substring(0, Math.min(6, chatRoomId.length())));
+            tvChatRoomName.setText("Chat Room-" + chatRoomId.substring(0, Math.min(6, chatRoomId.length())));
         }
         
         // 加载聊天室信息
@@ -161,6 +161,16 @@ public class ChatRoomActivity extends AppCompatActivity {
         
         // 设置按钮点击事件
         setupClickListeners();
+        
+        // 设置底部导航栏
+        try {
+            setupBottomNavigation();
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "设置底部导航栏失败: " + e.getMessage(), e);
+            
+            // 不再尝试查找传统按钮版本，因为它们已被移除
+            android.util.Log.d("ChatRoomActivity", "不尝试使用传统底部导航栏按钮，它们已被移除");
+        }
         
         // 更新用户读取状态
         updateUserReadStatus();
@@ -182,14 +192,67 @@ public class ChatRoomActivity extends AppCompatActivity {
         btnGroupInfo = findViewById(R.id.btnGroupInfo);
         announcementLayout = findViewById(R.id.announcementLayout);
         
-        // 底部导航栏
-        bottomNavigation = findViewById(R.id.bottom_navigation);
+        // 底部导航栏 - 增加详细日志
+        try {
+            android.util.Log.d("ChatRoomActivity", "寻找底部导航栏，Android版本: " + 
+                    android.os.Build.VERSION.SDK_INT);
+            
+            bottomNavigation = findViewById(R.id.bottom_navigation);
+            if (bottomNavigation != null) {
+                android.util.Log.d("ChatRoomActivity", "成功找到底部导航栏视图: " + bottomNavigation.getClass().getName());
+                try {
+                    // 检查菜单资源是否正确加载
+                    android.view.Menu menu = bottomNavigation.getMenu();
+                    android.util.Log.d("ChatRoomActivity", "底部导航栏菜单项数量: " + menu.size());
+                    for (int i = 0; i < menu.size(); i++) {
+                        android.view.MenuItem item = menu.getItem(i);
+                        android.util.Log.d("ChatRoomActivity", "菜单项 " + i + ": id=" + item.getItemId() + ", title=" + item.getTitle());
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("ChatRoomActivity", "检查底部导航栏菜单失败: " + e.getMessage());
+                }
+            } else {
+                android.util.Log.e("ChatRoomActivity", "找不到底部导航栏视图，请检查XML布局中的ID是否为bottom_navigation");
+                // 尝试查找所有根级别的视图
+                android.view.ViewGroup rootView = (android.view.ViewGroup) findViewById(android.R.id.content);
+                dumpViewHierarchy(rootView, 0);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "初始化底部导航栏失败: " + e.getMessage(), e);
+        }
         
         // 设置RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         
         // 添加日志
         android.util.Log.d("ChatRoomActivity", "initViews: 视图初始化完成");
+    }
+    
+    // 添加用于调试的方法，输出完整视图层次结构
+    private void dumpViewHierarchy(android.view.View view, int depth) {
+        if (view == null) return;
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("--");
+        }
+        
+        String viewInfo = sb.toString() + " " + view.getClass().getSimpleName();
+        if (view.getId() != -1) {
+            try {
+                viewInfo += " id=" + getResources().getResourceEntryName(view.getId());
+            } catch (Exception e) {
+                viewInfo += " id=" + view.getId();
+            }
+        }
+        android.util.Log.d("ViewHierarchy", viewInfo);
+        
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                dumpViewHierarchy(group.getChildAt(i), depth + 1);
+            }
+        }
     }
     
     private void loadChatRoomInfo() {
@@ -279,7 +342,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 if (isFinishing || isFinishing()) return;
                 
                 android.util.Log.e("ChatRoomActivity", "加载聊天室信息失败: " + e.getMessage());
-                Toast.makeText(this, "加载聊天室信息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to load chat room info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -451,9 +514,9 @@ public class ChatRoomActivity extends AppCompatActivity {
         
         // 根据是否为群主更改按钮文字
         if (isCreator) {
-            btnLeaveGroup.setText("解散群聊");
+            btnLeaveGroup.setText("Disband Group");
         } else {
-            btnLeaveGroup.setText("退出群聊");
+            btnLeaveGroup.setText("Leave Group");
         }
         
         // 查看成员按钮
@@ -496,7 +559,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         } catch (Exception e) {
             android.util.Log.e("ChatRoomActivity", "跳转到成员列表失败: " + e.getMessage(), e);
-            Toast.makeText(this, "无法打开成员列表: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Cannot open member list: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
     
@@ -522,7 +585,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     
     private void showAnnouncementDialog() {
         if (!isCreator) {
-            Toast.makeText(this, "只有群主可以发布公告", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Only group owner can post announcements", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -548,12 +611,12 @@ public class ChatRoomActivity extends AppCompatActivity {
             });
         
         builder.setView(view)
-               .setTitle("群公告")
-               .setPositiveButton("发布", (dialog, which) -> {
+               .setTitle("Group Announcement")
+               .setPositiveButton("Post", (dialog, which) -> {
                    String announcementText = etAnnouncement.getText().toString().trim();
                    publishAnnouncement(announcementText);
                })
-               .setNegativeButton("取消", null);
+               .setNegativeButton("Cancel", null);
         
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -561,7 +624,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     
     private void publishAnnouncement(String announcementText) {
         if (!isCreator) {
-            Toast.makeText(this, "只有群主可以发布公告", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Only group owner can post announcements", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -571,10 +634,10 @@ public class ChatRoomActivity extends AppCompatActivity {
                 .update("announcement", "")
                 .addOnSuccessListener(aVoid -> {
                     announcementLayout.setVisibility(View.GONE);
-                    addAnnouncementMessage("群公告已清除");
+                    addAnnouncementMessage("Group announcement has been cleared");
                 })
                 .addOnFailureListener(e -> 
-                    Toast.makeText(this, "清除公告失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to clear announcement: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
         } else {
             // 更新公告
@@ -586,7 +649,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                     addAnnouncementMessage(announcementText);
                 })
                 .addOnFailureListener(e -> 
-                    Toast.makeText(this, "发布公告失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to post announcement: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
         }
     }
@@ -603,28 +666,28 @@ public class ChatRoomActivity extends AppCompatActivity {
             .add(message)
             .addOnSuccessListener(documentReference -> {
                 // 更新聊天室的最后消息和时间
-                updateLastMessage("【公告】" + text);
+                updateLastMessage("[Announcement] " + text);
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "发送公告失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to send announcement: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
     
     private void showLeaveGroupConfirmation() {
         new AlertDialog.Builder(this, R.style.DarkAlertDialog)
-            .setTitle("退出群聊")
-            .setMessage("确定要退出该群聊吗？")
-            .setPositiveButton("确定", (dialog, which) -> leaveGroup())
-            .setNegativeButton("取消", null)
+            .setTitle("Leave Group")
+            .setMessage("Are you sure you want to leave this group?")
+            .setPositiveButton("Confirm", (dialog, which) -> leaveGroup())
+            .setNegativeButton("Cancel", null)
             .show();
     }
     
     private void showDisbandGroupConfirmation() {
         new AlertDialog.Builder(this, R.style.DarkAlertDialog)
-            .setTitle("解散群聊")
-            .setMessage("确定要解散该群聊吗？此操作不可逆，所有聊天记录将被删除！")
-            .setPositiveButton("确定解散", (dialog, which) -> disbandGroup())
-            .setNegativeButton("取消", null)
+            .setTitle("Disband Group")
+            .setMessage("Are you sure you want to disband this group? This action cannot be undone, and all chat history will be deleted!")
+            .setPositiveButton("Confirm Disband", (dialog, which) -> disbandGroup())
+            .setNegativeButton("Cancel", null)
             .show();
     }
     
@@ -633,7 +696,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         
         // 验证不是群主才能退出
         if (isCreator) {
-            Toast.makeText(this, "群主不能退出群聊，只能解散群聊", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Group owner cannot leave, you can only disband the group", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -662,27 +725,27 @@ public class ChatRoomActivity extends AppCompatActivity {
                                 finish();
                             })
                             .addOnFailureListener(e -> 
-                                Toast.makeText(this, "退出群聊失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Failed to leave group: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                             );
                     }
                 }
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "获取群聊信息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to get group info: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
     
     private void disbandGroup() {
         // 验证是群主才能解散
         if (!isCreator) {
-            Toast.makeText(this, "只有群主可以解散群聊", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Only group owner can disband the group", Toast.LENGTH_SHORT).show();
             return;
         }
         
         // 显示进度对话框
         AlertDialog progressDialog = new AlertDialog.Builder(this)
-            .setTitle("正在解散群聊")
-            .setMessage("请稍候...")
+            .setTitle("Disbanding Group")
+            .setMessage("Please wait...")
             .setCancelable(false)
             .create();
         progressDialog.show();
@@ -701,7 +764,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "解散群聊失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to disband group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -739,7 +802,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "删除消息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to delete messages: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -768,12 +831,12 @@ public class ChatRoomActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         progressDialog.dismiss();
-                        Toast.makeText(this, "删除成员失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Failed to delete members: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "删除成员集合失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to delete member collection: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -793,7 +856,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                             // 关闭进度对话框
                             progressDialog.dismiss();
                             
-                            Toast.makeText(ChatRoomActivity.this, "群聊已解散并删除", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ChatRoomActivity.this, "Group disbanded and deleted", Toast.LENGTH_SHORT).show();
                             android.util.Log.d("ChatRoomActivity", "聊天室已完全删除: " + chatRoomNameToDelete);
                             
                             // 返回聊天列表页面
@@ -804,16 +867,16 @@ public class ChatRoomActivity extends AppCompatActivity {
                         })
                         .addOnFailureListener(e -> {
                             progressDialog.dismiss();
-                            Toast.makeText(this, "删除聊天室失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Failed to delete chat room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         });
                 } else {
                     progressDialog.dismiss();
-                    Toast.makeText(this, "聊天室不存在", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Chat room does not exist", Toast.LENGTH_SHORT).show();
                 }
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "获取聊天室信息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to get chat room info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -828,7 +891,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", "system");
-        message.put("text", finalUserName + " 退出了群聊");
+        message.put("text", finalUserName + " has left the group");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("type", "text");
         
@@ -837,14 +900,14 @@ public class ChatRoomActivity extends AppCompatActivity {
             .add(message)
             .addOnSuccessListener(documentReference -> {
                 // 更新聊天室的最后消息和时间
-                updateLastMessage(finalUserName + " 退出了群聊");
+                updateLastMessage(finalUserName + " has left the group");
             });
     }
     
     private void sendMessage() {
         String messageText = etMessage.getText().toString().trim();
         if (messageText.isEmpty()) {
-            Toast.makeText(this, "消息不能为空", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Message cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -870,7 +933,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 recyclerView.scrollToPosition(adapter.getItemCount() - 1);
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "发送失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to send: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
     
@@ -882,7 +945,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         db.collection("chat_rooms").document(chatRoomId)
             .update(updates)
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "更新最后消息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to update last message: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
     
@@ -894,7 +957,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         db.collection("chat_rooms").document(chatRoomId)
             .update(userReadStatus)
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "更新读取状态失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to update read status: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
     
@@ -1025,10 +1088,10 @@ public class ChatRoomActivity extends AppCompatActivity {
                     isExpanded = !isExpanded;
                     if (isExpanded) {
                         tvMessageText.setMaxLines(Integer.MAX_VALUE);
-                        tvExpandCollapse.setText("收起");
+                        tvExpandCollapse.setText("Collapse");
                     } else {
                         tvMessageText.setMaxLines(5);
-                        tvExpandCollapse.setText("展开更多");
+                        tvExpandCollapse.setText("Expand More");
                     }
                 });
                 tvMessageText.setMaxLines(5);
@@ -1051,7 +1114,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                         List<String> memberIds = (List<String>) documentSnapshot.get("member_ids");
                         
                         if (memberIds == null || memberIds.isEmpty()) {
-                            tvReadStatus.setText("0/0人已读");
+                            tvReadStatus.setText("0/0 read");
                             return;
                         }
                         
@@ -1092,16 +1155,16 @@ public class ChatRoomActivity extends AppCompatActivity {
                             }
                             
                             // 更新UI
-                            tvReadStatus.setText(readCount + "/" + totalReadersCount + "人已读");
+                            tvReadStatus.setText(readCount + "/" + totalReadersCount + " read");
                         } else {
                             // 默认显示
-                            tvReadStatus.setText("0/" + totalReadersCount + "人已读");
+                            tvReadStatus.setText("0/" + totalReadersCount + " read");
                         }
                     }
                 })
                 .addOnFailureListener(e -> {
                     if (isFinishing || isFinishing()) return;
-                    tvReadStatus.setText("未知已读状态");
+                    tvReadStatus.setText("Unknown read status");
                     android.util.Log.e("ChatRoomActivity", "获取已读状态失败: " + e.getMessage());
                 });
         }
@@ -1187,7 +1250,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                     });
             } else {
                 // 如果是系统消息或发送者ID为空
-                tvSenderName.setText("系统");
+                tvSenderName.setText("System");
                 ivUserAvatar.setImageResource(R.drawable.default_avatar);
             }
             
@@ -1201,10 +1264,10 @@ public class ChatRoomActivity extends AppCompatActivity {
                     isExpanded = !isExpanded;
                     if (isExpanded) {
                         tvMessageText.setMaxLines(Integer.MAX_VALUE);
-                        tvExpandCollapse.setText("收起");
+                        tvExpandCollapse.setText("Collapse");
                     } else {
                         tvMessageText.setMaxLines(5);
-                        tvExpandCollapse.setText("展开更多");
+                        tvExpandCollapse.setText("Expand More");
                     }
                 });
                 tvMessageText.setMaxLines(5);
@@ -1315,7 +1378,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                     });
             } else {
                 // 如果是系统消息或发送者ID为空
-                tvPublisherName.setText("系统");
+                tvPublisherName.setText("System");
                 if (ivUserAvatar != null) {
                     ivUserAvatar.setImageResource(R.drawable.default_avatar);
                 }
@@ -1331,10 +1394,10 @@ public class ChatRoomActivity extends AppCompatActivity {
                     isExpanded = !isExpanded;
                     if (isExpanded) {
                         tvAnnouncementText.setMaxLines(Integer.MAX_VALUE);
-                        tvExpandCollapse.setText("收起");
+                        tvExpandCollapse.setText("Collapse");
                     } else {
                         tvAnnouncementText.setMaxLines(5);
-                        tvExpandCollapse.setText("展开更多");
+                        tvExpandCollapse.setText("Expand More");
                     }
                 });
                 tvAnnouncementText.setMaxLines(5);
@@ -1405,70 +1468,93 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
-        // 设置选中Chat选项
-        bottomNavigation.setSelectedItemId(R.id.navigation_chat);
+        // 添加日志
+        android.util.Log.d("ChatRoomActivity", "setupBottomNavigation: 开始设置底部导航栏");
         
-        // 设置导航点击监听
-        bottomNavigation.setOnNavigationItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            
-            if (itemId == R.id.navigation_chat) {
-                // 返回聊天列表
-                safeNavigateTo(ChatListActivity.class);
-                return true;
-            } else if (itemId == R.id.navigation_forum) {
-                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (itemId == R.id.navigation_dashboard) {
-                safeNavigateTo(MainActivity.class);
-                return true;
-            } else if (itemId == R.id.navigation_courses) {
-                safeNavigateTo(CourseSearchActivity.class);
-                return true;
-            } else if (itemId == R.id.navigation_marketplace) {
-                safeNavigateTo(MarketplaceActivity.class);
-                return true;
-            }
-            return false;
-        });
-    }
-    
-    // 添加安全的导航方法
-    private <T extends AppCompatActivity> void safeNavigateTo(Class<T> targetActivity) {
-        // 已经在结束中，避免重复调用
-        if (isFinishing || isFinishing()) return;
-        
-        // 设置标记表示Activity正在结束
-        isFinishing = true;
-        
-        // 停止监听器和进行中的操作
-        if (adapter != null) {
-            try {
-                adapter.stopListening();
-                android.util.Log.d("ChatRoomActivity", "已停止适配器监听");
-            } catch (Exception e) {
-                android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
-            }
+        // 检查底部导航栏是否存在
+        if (bottomNavigation == null) {
+            android.util.Log.e("ChatRoomActivity", "setupBottomNavigation: 底部导航栏为null，无法设置");
+            return;
         }
         
-        // 延迟一点时间，让Firebase回调有时间处理
-        new Handler().postDelayed(() -> {
+        try {
+            // 设置选中Chat选项
+            bottomNavigation.setSelectedItemId(R.id.navigation_chat);
+            android.util.Log.d("ChatRoomActivity", "底部导航栏设置选中Chat选项");
+            
+            // 使用新API设置监听器 - 使用匿名内部类而非lambda表达式
+            bottomNavigation.setOnItemSelectedListener(new com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull android.view.MenuItem item) {
+                    android.util.Log.d("ChatRoomActivity", "底部导航栏点击: id=" + item.getItemId() + ", title=" + item.getTitle());
+                    
+                    int itemId = item.getItemId();
+                    
+                    if (itemId == R.id.navigation_chat) {
+                        // 返回聊天列表
+                        android.util.Log.d("ChatRoomActivity", "用户点击了Chat选项");
+                        directNavigateTo(ChatListActivity.class);
+                        return true;
+                    } else if (itemId == R.id.navigation_forum) {
+                        android.util.Log.d("ChatRoomActivity", "用户点击了Forum选项");
+                        Toast.makeText(ChatRoomActivity.this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                        return true;
+                    } else if (itemId == R.id.navigation_dashboard) {
+                        android.util.Log.d("ChatRoomActivity", "用户点击了Dashboard选项");
+                        directNavigateTo(MainActivity.class);
+                        return true;
+                    } else if (itemId == R.id.navigation_courses) {
+                        android.util.Log.d("ChatRoomActivity", "用户点击了Courses选项");
+                        directNavigateTo(CourseSearchActivity.class);
+                        return true;
+                    } else if (itemId == R.id.navigation_marketplace) {
+                        android.util.Log.d("ChatRoomActivity", "用户点击了Marketplace选项");
+                        directNavigateTo(MarketplaceActivity.class);
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            
+            android.util.Log.d("ChatRoomActivity", "底部导航栏设置完成");
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "setupBottomNavigation: 设置失败: " + e.getMessage(), e);
+            
+            // 尝试使用旧版API作为备选方案
             try {
-                Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-                // 设置平滑过渡
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                // 非立即结束，让过渡动画有时间执行
-                new Handler().postDelayed(() -> finish(), 100);
-            } catch (Exception e) {
-                android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
-                // 恢复标记状态，允许重试
-                isFinishing = false;
+                android.util.Log.d("ChatRoomActivity", "尝试使用旧版API设置底部导航栏");
+                // 旧版实现使用setOnNavigationItemSelectedListener
+                bottomNavigation.setOnNavigationItemSelectedListener(item -> {
+                    android.util.Log.d("ChatRoomActivity", "旧版API - 底部导航栏点击: " + item.getTitle());
+                    
+                    int itemId = item.getItemId();
+                    
+                    if (itemId == R.id.navigation_chat) {
+                        // 返回聊天列表
+                        directNavigateTo(ChatListActivity.class);
+                        return true;
+                    } else if (itemId == R.id.navigation_forum) {
+                        Toast.makeText(ChatRoomActivity.this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                        return true;
+                    } else if (itemId == R.id.navigation_dashboard) {
+                        directNavigateTo(MainActivity.class);
+                        return true;
+                    } else if (itemId == R.id.navigation_courses) {
+                        directNavigateTo(CourseSearchActivity.class);
+                        return true;
+                    } else if (itemId == R.id.navigation_marketplace) {
+                        directNavigateTo(MarketplaceActivity.class);
+                        return true;
+                    }
+                    return false;
+                });
+                android.util.Log.d("ChatRoomActivity", "使用旧版API设置底部导航栏成功");
+            } catch (Exception e2) {
+                android.util.Log.e("ChatRoomActivity", "旧版API设置底部导航栏也失败: " + e2.getMessage(), e2);
             }
-        }, 200);
+        }
     }
-     
+    
     @Override
     protected void onResume() {
         super.onResume();
@@ -1500,7 +1586,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             android.util.Log.e("ChatRoomActivity", "onResume处理异常: " + e.getMessage(), e);
         }
     }
-
+    
     // 打开用户资料页面
     private void openUserProfile(String userId, DocumentSnapshot userDoc) {
         try {
@@ -1568,7 +1654,47 @@ public class ChatRoomActivity extends AppCompatActivity {
             android.util.Log.d("ChatRoomActivity", "已打开用户资料页面，用户ID: " + userId);
         } catch (Exception e) {
             android.util.Log.e("ChatRoomActivity", "打开用户资料失败: " + e.getMessage(), e);
-            Toast.makeText(this, "无法打开用户资料: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Cannot open user profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // 添加直接导航的方法作为替代
+    private <T extends AppCompatActivity> void directNavigateTo(Class<T> targetActivity) {
+        try {
+            android.util.Log.d("ChatRoomActivity", "直接导航到: " + targetActivity.getSimpleName());
+            
+            // 标记当前Activity即将结束，避免底部导航栏回调
+            isFinishing = true;
+            
+            // 停止适配器监听，避免后台回调
+            if (adapter != null) {
+                try {
+                    adapter.stopListening();
+                } catch (Exception e) {
+                    android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
+                }
+            }
+            
+            // 创建指向目标Activity的Intent
+            Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            
+            // 添加特殊标记，让目标Activity知道是从ChatRoom过来的
+            intent.putExtra("from_chat_room", true);
+            
+            // 启动新Activity
+            startActivity(intent);
+            
+            // 使用简单的过渡动画
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            
+            // 立即结束当前Activity
+            finish();
+        } catch (Exception e) {
+            // 导航失败，恢复标记
+            isFinishing = false;
+            android.util.Log.e("ChatRoomActivity", "导航失败: " + e.getMessage(), e);
+            Toast.makeText(ChatRoomActivity.this, "Navigation failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 } 

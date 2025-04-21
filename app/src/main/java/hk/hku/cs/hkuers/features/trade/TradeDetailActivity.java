@@ -363,15 +363,10 @@ public class TradeDetailActivity extends AppCompatActivity {
         
         // 创建系统消息
         Map<String, Object> message = new HashMap<>();
-        message.put("senderId", "system");
-        message.put("text", "Discussion about \"" + tradeItem.getTitle() + "\" has been created");
+        message.put("type", "system");
+        message.put("text", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
         message.put("timestamp", new Timestamp(new Date()));
-        message.put("type", "text");
-
-        // 更新最后消息和时间
-        Map<String, Object> updateData = new HashMap<>();
-        updateData.put("last_message", "Discussion about \"" + tradeItem.getTitle() + "\" has been created");
-        updateData.put("last_message_time", new Timestamp(new Date()));
+        message.put("senderId", "system");
         
         // 添加消息
         db.collection("chat_rooms").document(chatId)
@@ -379,6 +374,9 @@ public class TradeDetailActivity extends AppCompatActivity {
             .add(message)
             .addOnSuccessListener(documentReference -> {
                 // 更新聊天室的最后消息和时间
+                Map<String, Object> updateData = new HashMap<>();
+                updateData.put("last_message", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
+                updateData.put("last_message_time", new Timestamp(new Date()));
                 updateData.put("message_count", 1);
                 
                 db.collection("chat_rooms").document(chatId)
