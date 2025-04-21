@@ -1467,6 +1467,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 isFinishing = false;
             }
         }, 200);
+    }
      
     @Override
     protected void onResume() {
