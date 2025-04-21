@@ -35,6 +35,7 @@ import java.util.Map;
 
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.profile.UserProfileActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MemberListActivity extends AppCompatActivity {
 
@@ -148,58 +149,60 @@ public class MemberListActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
-        // 找到底部导航栏的各个按钮
-        Button btnChat = findViewById(R.id.btnChat);
-        Button btnMap = findViewById(R.id.btnMap);
-        Button btnProfile = findViewById(R.id.btnProfile);
-        Button btnCourses = findViewById(R.id.btnCourses);
-        Button btnMarketplace = findViewById(R.id.btnMarketplace);
+        // 使用BottomNavigationView代替单独的按钮
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         
-        // 设置点击事件
-        btnChat.setOnClickListener(v -> {
-            // 返回到聊天列表
-            Intent intent = new Intent(this, ChatListActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            finish();
-        });
-        
-        btnMap.setOnClickListener(v -> {
-            // 导航到地图页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.map.MapActivity"));
+        // 设置菜单项选择监听器
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.navigation_chat) {
+                // 返回到聊天列表
+                Intent intent = new Intent(this, ChatListActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "地图功能尚未实现", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_forum) {
+                // 导航到地图页面
+                try {
+                    Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.map.MapActivity"));
+                    startActivity(intent);
+                    finish();
+                    return true;
+                } catch (ClassNotFoundException e) {
+                    Toast.makeText(this, "论坛功能尚未实现", Toast.LENGTH_SHORT).show();
+                }
+            } else if (itemId == R.id.navigation_dashboard) {
+                // 导航到个人资料页面
+                try {
+                    Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.MainActivity"));
+                    startActivity(intent);
+                    finish();
+                    return true;
+                } catch (ClassNotFoundException e) {
+                    Toast.makeText(this, "主页功能尚未实现", Toast.LENGTH_SHORT).show();
+                }
+            } else if (itemId == R.id.navigation_courses) {
+                Toast.makeText(this, "课程功能尚未实现", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_marketplace) {
+                // 导航到交易页面
+                try {
+                    Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity"));
+                    startActivity(intent);
+                    finish();
+                    return true;
+                } catch (ClassNotFoundException e) {
+                    Toast.makeText(this, "商店功能尚未实现", Toast.LENGTH_SHORT).show();
+                }
             }
+            
+            return false;
         });
         
-        btnProfile.setOnClickListener(v -> {
-            // 导航到个人资料页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.MainActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "个人资料功能尚未实现", Toast.LENGTH_SHORT).show();
-            }
-        });
-        
-        btnCourses.setOnClickListener(v -> {
-            Toast.makeText(this, "课程功能尚未实现", Toast.LENGTH_SHORT).show();
-        });
-        
-        btnMarketplace.setOnClickListener(v -> {
-            // 导航到交易页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "交易功能尚未实现", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // 设置当前选中项
+        bottomNavigationView.setSelectedItemId(R.id.navigation_chat);
     }
 
     private void showLoading(boolean show) {
