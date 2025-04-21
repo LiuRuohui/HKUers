@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -46,7 +46,7 @@ import hk.hku.cs.hkuers.models.Course;
 public class CourseSearchActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private TextView tvEmptyCourseState;
-    private Button btnChat, btnMap, btnProfile, btnCourses, btnMarketplace;
+    private BottomNavigationView bottomNavigation;
     private FirebaseFirestore db;
     private FirestoreRecyclerAdapter<Course, CourseSearchActivity.CourseViewHolder> adapter;
     private FirebaseUser currentUser;
@@ -68,28 +68,22 @@ public class CourseSearchActivity extends AppCompatActivity {
         tvEmptyCourseState = findViewById(R.id.tvEmptyCourseState);
         ImageButton btnAddCourse = findViewById(R.id.btnAddCourse);
         ImageButton btnBack = findViewById(R.id.btnBack);
-
-        btnChat = findViewById(R.id.btnChat);
-        btnMap = findViewById(R.id.btnMap);
-        btnProfile = findViewById(R.id.btnProfile);
-        btnCourses = findViewById(R.id.btnCourses);
-        btnMarketplace = findViewById(R.id.btnMarketplace);
+        
+        // 初始化底部导航
+        bottomNavigation = findViewById(R.id.bottom_navigation);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> {
+            bottomNavigation.setSelectedItemId(R.id.navigation_dashboard);
+            finish();
+        });
 
         btnAddCourse.setOnClickListener(v -> showAddCourseDialog());
 
         setupBottomNavigation();
 
-        btnCourses.setTextSize(16);
-        btnCourses.setTextColor(getResources().getColor(android.R.color.white));
-        btnCourses.setTextSize(16);
-        btnCourses.setTypeface(null, android.graphics.Typeface.BOLD);
-
         loadCourses();
-
     }
 
     private void showAddCourseDialog() {
@@ -143,10 +137,7 @@ public class CourseSearchActivity extends AppCompatActivity {
         });
     }
 
-
-
     private void addCourse(String courseId, String courseSemester, String courseClass) {
-
         db.collection("courses")
                 .whereEqualTo("courseId", courseId)
                 .whereEqualTo("courseSemester", courseSemester)
@@ -196,7 +187,6 @@ public class CourseSearchActivity extends AppCompatActivity {
         DocumentReference userRef = db
                 .collection("users")
                 .document(currentUser.getUid());
-
     }
 
     private void loadCourses() {
@@ -225,7 +215,6 @@ public class CourseSearchActivity extends AppCompatActivity {
                 model.setCourseClass((classFromDb == null || classFromDb.isEmpty()) ? "Unknown" : classFromDb);
 
                 holder.bind(model);
-
             }
 
             @NonNull
@@ -250,7 +239,6 @@ public class CourseSearchActivity extends AppCompatActivity {
                     tvEmptyCourseState.setVisibility(View.GONE);
                     android.util.Log.d("CoursesActivity", "Courses available, show lists");
                 }
-
             }
         };
 
@@ -258,34 +246,34 @@ public class CourseSearchActivity extends AppCompatActivity {
         android.util.Log.d("CoursesActivity", "Adapter set");
     }
 
-
     private void setupBottomNavigation() {
-        // Chat button
-        btnChat.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ChatListActivity.class);
-            startActivity(intent);
-            finish();
-        });
-        // Map button
-        btnMap.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MapActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        // Profile button
-        btnProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("openProfile", true);
-            startActivity(intent);
-            finish();
-        });
-
-        // Market button
-        btnMarketplace.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MarketplaceActivity.class);
-            startActivity(intent);
-            finish();
+        // 设置选中Courses选项
+        bottomNavigation.setSelectedItemId(R.id.navigation_courses);
+        
+        // 设置导航点击监听
+        bottomNavigation.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.navigation_chat) {
+                startActivity(new Intent(this, ChatListActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.navigation_forum) {
+                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_dashboard) {
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.navigation_courses) {
+                // 已经在课程页面，不需要操作
+                return true;
+            } else if (itemId == R.id.navigation_marketplace) {
+                startActivity(new Intent(this, MarketplaceActivity.class));
+                finish();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -350,13 +338,10 @@ public class CourseSearchActivity extends AppCompatActivity {
                         .setNegativeButton("Cancel", null)
                         .show();
             });
-
         }
     }
 
-
     private void AddNewCourseInternal(String courseId, String courseSemester, String courseClass) {
-
         String courseIdFireStore = db.collection("courses").document().getId();
 
         Map<String, Object> courseData = new HashMap<>();
@@ -382,12 +367,10 @@ public class CourseSearchActivity extends AppCompatActivity {
                     if (adapter != null) {
                         adapter.notifyDataSetChanged();
                     }
-
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failure: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
-
     }
 
     private void addUserToCourse(String courseIdFireStore) {
@@ -436,8 +419,6 @@ public class CourseSearchActivity extends AppCompatActivity {
             adapter.stopListening();
         }
     }
-
-
 }
 
 
