@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 用于下拉菜单的深色主题样式 -->
+    <style name="SpinnerTheme" parent="Widget.AppCompat.DropDownItem.Spinner">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:background">@color/surface_variant</item>
+    </style>
+    
+    <!-- 用于AlertDialog的深色主题样式 -->
+    <style name="DarkAlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="android:background">@color/surface_variant</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:windowBackground">@color/surface_variant</item>
+        <item name="colorSurface">@color/surface_variant</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/DarkDialogTitleTextStyle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/DarkDialogBodyTextStyle</item>
+        <item name="android:backgroundDimAmount">0.5</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DarkPositiveButtonStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DarkNegativeButtonStyle</item>
+        <item name="buttonBarNeutralButtonStyle">@style/DarkNeutralButtonStyle</item>
+        <item name="listItemLayout">@layout/alert_dialog_item</item>
+        <item name="singleChoiceItemLayout">@layout/alert_dialog_item</item>
+        <item name="multiChoiceItemLayout">@layout/alert_dialog_item</item>
+        <item name="android:listDivider">@color/surface_variant</item>
+    </style>
+    
+    <style name="DarkDialogTitleTextStyle" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textAppearance">?attr/textAppearanceHeadlineSmall</item>
+    </style>
+    
+    <style name="DarkDialogBodyTextStyle" parent="MaterialAlertDialog.MaterialComponents.Body.Text">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
+    </style>
+    
+    <style name="DarkPositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/primary</item>
+        <item name="rippleColor">@color/ripple_color</item>
+    </style>
+    
+    <style name="DarkNegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/error</item>
+        <item name="rippleColor">@color/ripple_color</item>
+    </style>
+    
+    <style name="DarkNeutralButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="rippleColor">@color/ripple_color</item>
+    </style>
+    
+    <!-- 自定义列表项样式用于对话框列表 -->
+    <style name="DarkListItemStyle" parent="Widget.MaterialComponents.TextView">
+        <item name="android:background">@color/surface_variant</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+    </style>
+    
+    <!-- 自定义深色Item Picker样式 -->
+    <style name="Widget.App.Popup.Dark" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@color/surface_variant</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    
+    <!-- 用于MaterialAutoCompleteTextView的样式 -->
+    <style name="Widget.App.AutoCompleteTextView.Dark" parent="Widget.Material3.AutoCompleteTextView.FilledBox">
+        <item name="android:popupBackground">@color/surface_variant</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="colorControlNormal">@color/text_primary</item>
+        <item name="colorControlActivated">@color/primary</item>
+    </style>
+    
+    <!-- 自定义商品卡片样式 -->
+    <style name="Widget.App.Card.Dark" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/surface_variant</item>
+        <item name="rippleColor">@color/ripple_color</item>
+        <item name="cardElevation">2dp</item>
+    </style>
+    
+    <!-- 自定义RecyclerView样式 -->
+    <style name="Widget.App.RecyclerView.Dark" parent="@android:style/Widget">
+        <item name="android:background">@color/background_dark</item>
+    </style>
+</resources> 

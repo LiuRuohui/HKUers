@@ -6,36 +6,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="@color/background_dark"
     tools:context=".features.trade.TradeListActivity">
 
-    <!-- 顶部应用栏 -->
+    <!-- Top App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
+        android:background="@color/background_dark"
         app:liftOnScroll="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorSurface"
+            android:background="@color/background_dark"
             android:elevation="0dp"
             app:title="@string/trade_market"
-            app:titleTextColor="?attr/colorOnSurface"
+            app:titleTextColor="@color/divider"
             app:titleCentered="false"
-            app:navigationIcon="@drawable/ic_arrow_back" />
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- 主要内容 -->
+    <!-- Main Content -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/background_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- 筛选区域 -->
+        <!-- Filter Area -->
         <LinearLayout
             android:id="@+id/filterContainer"
             android:layout_width="match_parent"
@@ -45,7 +49,7 @@
             android:paddingVertical="8dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <!-- 搜索框 -->
+            <!-- Search Box -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/searchLayout"
                 android:layout_width="match_parent"
@@ -53,12 +57,16 @@
                 android:layout_marginBottom="8dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 app:startIconDrawable="@drawable/ic_search"
+                app:startIconTint="@color/divider"
                 app:endIconMode="custom"
                 app:endIconDrawable="@drawable/ic_mic"
+                app:endIconTint="@color/divider"
                 app:boxCornerRadiusTopStart="24dp"
                 app:boxCornerRadiusTopEnd="24dp"
                 app:boxCornerRadiusBottomStart="24dp"
                 app:boxCornerRadiusBottomEnd="24dp"
+                app:boxStrokeColor="@color/divider"
+                app:hintTextColor="@color/divider"
                 app:hintEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -66,18 +74,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/search_items"
+                    android:textColorHint="@color/divider"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/divider"
                     android:inputType="text"
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 分类和排序下拉框 -->
+            <!-- Category and Sort Dropdowns -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:baselineAligned="false">
 
-                <!-- 分类下拉框 -->
+                <!-- Category Dropdown -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/categoryInputLayout"
                     android:layout_width="0dp"
@@ -88,17 +99,25 @@
                     app:boxCornerRadiusTopStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusBottomEnd="8dp">
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxStrokeColor="@color/divider"
+                    app:hintTextColor="@color/divider">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/categorySpinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/category"
+                        android:textColorHint="@color/divider"
+                        android:textColor="@color/divider"
+                        android:backgroundTint="@color/divider"
+                        android:popupBackground="@color/divider"
+                        android:dropDownSelector="@color/divider"
+                        style="@style/Widget.App.AutoCompleteTextView.Dark"
                         android:inputType="none" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- 排序下拉框 -->
+                <!-- Sort Dropdown -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/sortInputLayout"
                     android:layout_width="0dp"
@@ -108,41 +127,51 @@
                     app:boxCornerRadiusTopStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusBottomEnd="8dp">
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxStrokeColor="@color/divider"
+                    app:hintTextColor="@color/divider">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/sortSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/sort_by"
+                        android:textColorHint="@color/divider"
+                        android:textColor="@color/divider"
+                        android:backgroundTint="@color/divider"
+                        android:popupBackground="@color/divider"
+                        android:dropDownSelector="@color/divider"
+                        style="@style/Widget.App.AutoCompleteTextView.Dark"
                         android:inputType="none" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 内容区域 -->
+        <!-- Content Area -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:clipToPadding="false"
             android:paddingBottom="80dp"
+            style="@style/Widget.App.RecyclerView.Dark"
             app:layout_constraintTop_toBottomOf="@id/filterContainer"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- 加载中指示器 -->
+        <!-- Loading Indicator -->
         <androidx.core.widget.ContentLoadingProgressBar
             android:id="@+id/loadingProgressBar"
             style="?android:attr/progressBarStyleLarge"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:visibility="gone"
+            android:indeterminateTint="@color/divider"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- 无数据视图 -->
+        <!-- Empty View -->
         <LinearLayout
             android:id="@+id/emptyView"
             android:layout_width="wrap_content"
@@ -159,13 +188,15 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:src="@drawable/ic_empty_list"
-                android:contentDescription="@string/no_items_found" />
+                android:contentDescription="@string/no_items_found"
+                app:tint="@color/divider" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/no_items_found"
+                android:textColor="@color/text_primary"
                 android:textAppearance="?attr/textAppearanceTitleMedium" />
 
             <TextView
@@ -175,11 +206,11 @@
                 android:text="@string/no_items_description"
                 android:textAlignment="center"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+                android:textColor="@color/text_secondary" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 我的交易小按钮 -->
+    <!-- My Trade Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabMyTrade"
         android:layout_width="wrap_content"
@@ -190,10 +221,10 @@
         android:contentDescription="@string/my_trades"
         app:srcCompat="@drawable/ic_person"
         app:fabSize="mini"
-        app:tint="?attr/colorOnSecondaryContainer"
-        app:backgroundTint="?attr/colorSecondaryContainer" />
+        app:tint="@color/on_secondary_container"
+        app:backgroundTint="@color/secondary_container" />
 
-    <!-- 我的收藏按钮 -->
+    <!-- My Favorites Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabMyFavorites"
         android:layout_width="wrap_content"
@@ -203,10 +234,10 @@
         android:contentDescription="@string/my_favorites"
         app:srcCompat="@drawable/ic_favorite"
         app:fabSize="mini"
-        app:tint="?attr/colorOnErrorContainer"
-        app:backgroundTint="?attr/colorErrorContainer" />
+        app:tint="@color/on_error_container"
+        app:backgroundTint="@color/error_container" />
 
-    <!-- 添加商品按钮 -->
+    <!-- Add Item Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
@@ -216,7 +247,7 @@
         android:layout_marginBottom="16dp"
         android:contentDescription="@string/add_item"
         app:srcCompat="@drawable/ic_add"
-        app:tint="?attr/colorOnPrimaryContainer"
-        app:backgroundTint="?attr/colorPrimaryContainer" />
+        app:tint="@color/on_primary_container"
+        app:backgroundTint="@color/primary_container" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

@@ -388,6 +388,18 @@ public class TradeListActivity extends AppCompatActivity {
             categorySpinner = findViewById(R.id.categorySpinner);
             sortSpinner = findViewById(R.id.sortSpinner);
             
+            // 设置toolbar的返回按钮点击事件
+            androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                toolbar.setNavigationOnClickListener(v -> {
+                    // 返回到主界面
+                    Intent intent = new Intent(TradeListActivity.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
+                });
+            }
+            
             fabAdd = findViewById(R.id.fabAdd);
             if (fabAdd != null) {
                 fabAdd.setOnClickListener(v -> {
@@ -437,7 +449,7 @@ public class TradeListActivity extends AppCompatActivity {
             if (categorySpinner != null) {
                 ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
                     this,
-                    android.R.layout.simple_dropdown_item_1line,
+                    R.layout.dropdown_item_dark,
                     CATEGORIES
                 );
                 categorySpinner.setAdapter(categoryAdapter);
@@ -455,7 +467,7 @@ public class TradeListActivity extends AppCompatActivity {
             if (sortSpinner != null) {
                 ArrayAdapter<String> sortAdapter = new ArrayAdapter<>(
                     this,
-                    android.R.layout.simple_dropdown_item_1line,
+                    R.layout.dropdown_item_dark,
                     SORT_OPTIONS
                 );
                 sortSpinner.setAdapter(sortAdapter);

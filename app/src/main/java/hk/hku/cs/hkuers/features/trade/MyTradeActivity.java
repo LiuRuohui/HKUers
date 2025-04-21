@@ -19,7 +19,7 @@ import hk.hku.cs.hkuers.R;
 
 public class MyTradeActivity extends AppCompatActivity {
     private static final String TAG = "MyTradeActivity";
-    private static final String[] TAB_TITLES = new String[]{"我的发布", "我的收藏"};
+    private static final String[] TAB_TITLES = new String[]{"My Posted Items", "My Favorited Items"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

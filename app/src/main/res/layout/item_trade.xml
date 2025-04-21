@@ -7,28 +7,32 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
+    app:cardElevation="2dp"
     android:foreground="?attr/selectableItemBackground"
     app:cardPreventCornerOverlap="true"
     app:cardUseCompatPadding="true"
+    style="@style/Widget.App.Card.Dark"
+    app:cardBackgroundColor="@color/background_dark"
     app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/background_dark">
 
-        <!-- 图片占位 -->
+        <!-- Image Placeholder -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="150dp">
+            android:layout_height="150dp"
+            android:background="@drawable/image_container_background">
             
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:background="@color/primary_container"
+                android:background="@color/background_dark"
                 android:contentDescription="@string/product_image" />
                 
             <ProgressBar
@@ -36,62 +40,65 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="center"
-                android:indeterminateTint="?attr/colorPrimary"
+                android:indeterminateTint="@color/on_primary_container"
                 android:visibility="gone" />
         </FrameLayout>
 
-        <!-- 商品信息 -->
+        <!-- Product Information -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@color/background_dark">
 
-            <!-- 标题 -->
+            <!-- Title -->
             <TextView
                 android:id="@+id/textViewTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/divider"
                 android:maxLines="1"
                 android:ellipsize="end"
                 tools:text="iPhone 13 Pro Max" />
 
-            <!-- 价格 -->
+            <!-- Price -->
             <TextView
                 android:id="@+id/textViewPrice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/primary"
                 android:textStyle="bold"
                 tools:text="HK$ 8,999.00" />
 
-            <!-- 卖家名称 -->
+            <!-- Seller Name -->
             <TextView
                 android:id="@+id/textViewSeller"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="@color/divider"
                 android:maxLines="1"
                 android:ellipsize="end"
                 tools:text="John Doe" />
 
-            <!-- 分类标签容器 -->
+            <!-- Category Label Container -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                android:background="@color/background_dark">
 
-                <!-- 新的分类标签 使用CardView和TextView -->
+                <!-- New Category Label using CardView and TextView -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="wrap_content"
                     android:layout_height="28dp"
                     app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardBackgroundColor="@color/primary"
                     app:cardElevation="0dp">
                     
                     <TextView
@@ -101,21 +108,21 @@
                         android:layout_gravity="center"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textColor="@color/on_primary_container"
                         android:textSize="12sp"
                         android:textAppearance="?attr/textAppearanceLabelSmall"
                         tools:text="Electronics" />
                 </androidx.cardview.widget.CardView>
                 
-                <!-- 原有的Chip但隐藏 -->
+                <!-- Original Chip but hidden -->
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
                     android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                    android:textColor="@color/on_primary_container"
+                    app:chipBackgroundColor="@color/primary"
                     app:chipSurfaceColor="@color/transparent"
                     app:chipMinHeight="28dp"
                     app:ensureMinTouchTargetSize="false"

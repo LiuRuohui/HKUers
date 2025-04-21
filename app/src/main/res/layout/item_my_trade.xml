@@ -12,14 +12,17 @@
     android:foreground="?attr/selectableItemBackground"
     app:cardPreventCornerOverlap="true"
     app:cardUseCompatPadding="true"
+    style="@style/Widget.App.Card.Dark"
+    app:cardBackgroundColor="@color/background_dark"
     app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/background_dark">
 
-        <!-- 左侧：商品信息 -->
+        <!-- Left: Product Information -->
         <LinearLayout
             android:id="@+id/layoutInfo"
             android:layout_width="0dp"
@@ -31,40 +34,42 @@
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="16dp">
 
-            <!-- 标题 -->
+            <!-- Title -->
             <TextView
                 android:id="@+id/textViewTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/divider"
                 android:maxLines="1"
                 android:ellipsize="end"
                 tools:text="iPhone 13 Pro Max" />
 
-            <!-- this is the price -->
+            <!-- Price -->
             <TextView
                 android:id="@+id/textViewPrice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/primary"
                 android:textStyle="bold"
                 tools:text="HK$ 8,999.00" />
 
-            <!-- 标签容器 -->
+            <!-- Label Container -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:background="@color/background_dark">
 
-                <!-- 分类标签 -->
+                <!-- Category Label -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="wrap_content"
                     android:layout_height="28dp"
                     app:cardCornerRadius="14dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                    app:cardBackgroundColor="@color/primary"
                     app:cardElevation="0dp">
                     
                     <TextView
@@ -74,21 +79,21 @@
                         android:layout_gravity="center"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textColor="@color/on_primary_container"
                         android:textSize="12sp"
                         android:textAppearance="?attr/textAppearanceLabelSmall"
                         tools:text="Electronics" />
                 </androidx.cardview.widget.CardView>
                 
-                <!-- 分类标签 (保留原来的Chip但隐藏) -->
+                <!-- Category Label (Original Chip but hidden) -->
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
                     android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                    android:textColor="@color/on_primary_container"
+                    app:chipBackgroundColor="@color/primary"
                     app:chipSurfaceColor="@color/transparent"
                     app:chipMinHeight="28dp"
                     app:ensureMinTouchTargetSize="true"
@@ -109,29 +114,30 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 右侧：操作按钮 -->
+        <!-- Right: Action Buttons -->
         <LinearLayout
             android:id="@+id/layoutActions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:background="@color/background_dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:gravity="center">
 
-            <!-- 编辑按钮 -->
+            <!-- Edit Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonEdit"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 style="@style/Widget.Material3.Button.IconButton"
                 app:icon="@drawable/ic_edit"
-                app:iconTint="?attr/colorPrimary"
-                app:rippleColor="?attr/colorControlHighlight"
+                app:iconTint="@color/primary"
+                app:rippleColor="@color/ripple_color"
                 android:contentDescription="@string/edit_item" />
 
-            <!-- 删除按钮 -->
+            <!-- Delete Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonDelete"
                 android:layout_width="40dp"
@@ -139,8 +145,8 @@
                 android:layout_marginTop="8dp"
                 style="@style/Widget.Material3.Button.IconButton"
                 app:icon="@drawable/ic_delete"
-                app:iconTint="?attr/colorError"
-                app:rippleColor="?attr/colorControlHighlight"
+                app:iconTint="@color/error"
+                app:rippleColor="@color/ripple_color"
                 android:contentDescription="@string/delete_item" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

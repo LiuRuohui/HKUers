@@ -2,7 +2,8 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background_dark">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -14,15 +15,17 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/background_dark"
-            app:title="编辑商品"
-            app:titleTextColor="@color/text_primary"
-            app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel" />
+            app:title="Edit Item"
+            app:titleTextColor="@color/divider"
+            app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
+            app:navigationIconTint="@color/divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/background_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -37,13 +40,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="商品标题">
+                android:hint="Item Title"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/primary" 
+                app:hintTextColor="@color/text_primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/surface_variant" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -53,7 +61,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="商品描述">
+                android:hint="Item Description"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/primary" 
+                app:hintTextColor="@color/text_primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextDescription"
@@ -61,7 +72,9 @@
                     android:layout_height="wrap_content"
                     android:gravity="top"
                     android:inputType="textMultiLine"
-                    android:lines="5" />
+                    android:lines="5"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/surface_variant" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -71,13 +84,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="价格 (HK$)">
+                android:hint="Price (HK$)"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/primary" 
+                app:hintTextColor="@color/text_primary"
+                app:prefixTextColor="@color/text_primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextPrice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/surface_variant" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -87,13 +106,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="类别">
+                android:hint="Category"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/primary" 
+                app:hintTextColor="@color/text_primary">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/spinnerCategory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none" />
+                    android:inputType="none"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/surface_variant" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -107,10 +131,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:text="保存"
-        android:textColor="@color/white"
-        app:backgroundTint="@color/button_primary"
+        android:text="Save"
+        android:textColor="@color/on_primary"
+        app:backgroundTint="@color/primary"
         app:icon="@android:drawable/ic_menu_save"
-        app:iconTint="@color/white" />
+        app:iconTint="@color/on_primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

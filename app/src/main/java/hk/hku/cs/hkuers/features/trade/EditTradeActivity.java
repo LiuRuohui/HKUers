@@ -98,7 +98,7 @@ public class EditTradeActivity extends AppCompatActivity {
     private void setupSpinners() {
         // 设置类别下拉菜单
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, CATEGORIES);
+                this, R.layout.dropdown_item_dark, CATEGORIES);
         categorySpinner.setAdapter(categoryAdapter);
     }
 

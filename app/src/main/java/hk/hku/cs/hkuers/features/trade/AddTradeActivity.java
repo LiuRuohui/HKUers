@@ -283,7 +283,7 @@ public class AddTradeActivity extends AppCompatActivity {
         List<String> categories = Arrays.asList(CATEGORIES);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, categories
+                this, R.layout.dropdown_item_dark, categories
         );
         categoryAutoCompleteTextView.setAdapter(adapter);
     }
@@ -347,30 +347,45 @@ public class AddTradeActivity extends AppCompatActivity {
      * 显示图片选择对话框
      */
     private void showImageSelectionDialog(String title, String description, double price, String category) {
-        String[] options = new String[]{"从设备相册选择", "使用应用内图片", "使用默认图片 (mac.jpeg)"};
+        // 创建自定义对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_image_source_selection, null);
+        builder.setView(dialogView);
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择图片来源")
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            // 从设备相册选择
-                            Toast.makeText(this, "图片将直接使用本地URI，不会上传到服务器", Toast.LENGTH_SHORT).show();
-                            checkAndRequestPermission();
-                            break;
-                        case 1:
-                            // 使用应用内图片
-                            showDrawableResourcesDialog(title, description, price, category);
-                            break;
-                        case 2:
-                            // 使用默认图片
-                            setDefaultLocalImage();
-                            continueAddTrade(title, description, price, category);
-                            break;
-                    }
-                })
-                .setCancelable(true)
-                .show();
+        // 创建对话框
+        AlertDialog dialog = builder.create();
+        
+        // 设置点击事件
+        View galleryOption = dialogView.findViewById(R.id.gallery_option);
+        View builtinOption = dialogView.findViewById(R.id.builtin_option);
+        View defaultOption = dialogView.findViewById(R.id.default_option);
+        MaterialButton cancelButton = dialogView.findViewById(R.id.btn_cancel);
+        
+        // 从设备相册选择
+        galleryOption.setOnClickListener(v -> {
+            Toast.makeText(this, "Select from Gallery", Toast.LENGTH_SHORT).show();
+            checkAndRequestPermission();
+            dialog.dismiss();
+        });
+        
+        // 使用应用内图片
+        builtinOption.setOnClickListener(v -> {
+            showDrawableResourcesDialog(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // 使用默认图片
+        defaultOption.setOnClickListener(v -> {
+            setDefaultLocalImage();
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // 取消按钮
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 显示对话框
+        dialog.show();
     }
     
     /**
@@ -386,25 +401,181 @@ public class AddTradeActivity extends AppCompatActivity {
                 R.drawable.ic_person
         };
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择应用资源图片")
-                .setItems(drawableResources, (dialog, which) -> {
-                    // 设置选中的drawable资源
-                    int resourceId = drawableResourceIds[which];
-                    productImageView.setImageResource(resourceId);
-                    productImageView.setVisibility(View.VISIBLE);
-                    uploadImageLayout.setVisibility(View.GONE);
-                    
-                    // 记录已选择的资源URI
-                    selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-                    Log.d(TAG, "Selected drawable resource: " + drawableResources[which] + ", URI: " + selectedImageUri);
-                    Toast.makeText(this, "已选择图片: " + drawableResources[which], Toast.LENGTH_SHORT).show();
-                    
-                    // 继续添加商品流程
-                    continueAddTrade(title, description, price, category);
-                })
-                .setCancelable(true)
-                .show();
+        // 创建自定义对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_app_images_selection, null);
+        builder.setView(dialogView);
+        
+        // 创建对话框
+        AlertDialog dialog = builder.create();
+        
+        // 查找图片卡片视图
+        View macImage = dialogView.findViewById(R.id.image_mac);
+        View avatarImage = dialogView.findViewById(R.id.image_avatar);
+        View emptyListImage = dialogView.findViewById(R.id.image_empty_list);
+        View personImage = dialogView.findViewById(R.id.image_person);
+        
+        // 找到取消按钮
+        View cancelButton = dialogView.findViewById(R.id.btn_app_images_cancel);
+        
+        // Mac图片
+        macImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[0];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[0] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[0], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // Avatar图片
+        avatarImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[1];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[1] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[1], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // Empty List图片
+        emptyListImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[2];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[2] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[2], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // Person图片
+        personImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[3];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[3] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[3], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // 取消按钮
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 显示对话框
+        dialog.show();
+    }
+    
+    /**
+     * 显示简单的drawable资源选择对话框（不带商品信息参数）
+     */
+    private void showSimpleDrawableResourcesDialog() {
+        // 可用的资源名称列表 (不包含扩展名)
+        final String[] drawableResources = {"mac", "default_avatar", "ic_empty_list", "ic_person"};
+        final int[] drawableResourceIds = {
+                R.drawable.mac,
+                R.drawable.default_avatar,
+                R.drawable.ic_empty_list,
+                R.drawable.ic_person
+        };
+        
+        // 创建自定义对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_app_images_selection, null);
+        builder.setView(dialogView);
+        
+        // 创建对话框
+        AlertDialog dialog = builder.create();
+        
+        // 查找图片卡片视图
+        View macImage = dialogView.findViewById(R.id.image_mac);
+        View avatarImage = dialogView.findViewById(R.id.image_avatar);
+        View emptyListImage = dialogView.findViewById(R.id.image_empty_list);
+        View personImage = dialogView.findViewById(R.id.image_person);
+        
+        // 找到取消按钮
+        View cancelButton = dialogView.findViewById(R.id.btn_app_images_cancel);
+        
+        // Mac图片
+        macImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[0];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[0] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[0], Toast.LENGTH_SHORT).show();
+            
+            dialog.dismiss();
+        });
+        
+        // Avatar图片
+        avatarImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[1];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[1] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[1], Toast.LENGTH_SHORT).show();
+            
+            dialog.dismiss();
+        });
+        
+        // Empty List图片
+        emptyListImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[2];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[2] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[2], Toast.LENGTH_SHORT).show();
+            
+            dialog.dismiss();
+        });
+        
+        // Person图片
+        personImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[3];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[3] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[3], Toast.LENGTH_SHORT).show();
+            
+            dialog.dismiss();
+        });
+        
+        // 取消按钮
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 显示对话框
+        dialog.show();
     }
     
     /**
@@ -521,60 +692,44 @@ public class AddTradeActivity extends AppCompatActivity {
      * 显示简单的图片选择对话框（不带商品信息参数）
      */
     private void showSimpleImageSelectionDialog() {
-        String[] options = new String[]{"从设备相册选择", "使用应用内图片", "使用默认图片 (mac.jpeg)"};
+        // 创建自定义对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_image_source_selection, null);
+        builder.setView(dialogView);
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择图片来源")
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            // 从设备相册选择
-                            Toast.makeText(this, "选择图片", Toast.LENGTH_SHORT).show();
-                            checkAndRequestPermission();
-                            break;
-                        case 1:
-                            // 使用应用内图片
-                            showSimpleDrawableResourcesDialog();
-                            break;
-                        case 2:
-                            // 使用默认图片
-                            setDefaultLocalImage();
-                            break;
-                    }
-                })
-                .setCancelable(true)
-                .show();
-    }
-    
-    /**
-     * 显示简单的drawable资源选择对话框（不带商品信息参数）
-     */
-    private void showSimpleDrawableResourcesDialog() {
-        // 可用的资源名称列表 (不包含扩展名)
-        final String[] drawableResources = {"mac", "default_avatar", "ic_empty_list", "ic_person"};
-        final int[] drawableResourceIds = {
-                R.drawable.mac,
-                R.drawable.default_avatar,
-                R.drawable.ic_empty_list,
-                R.drawable.ic_person
-        };
+        // 创建对话框
+        AlertDialog dialog = builder.create();
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择应用资源图片")
-                .setItems(drawableResources, (dialog, which) -> {
-                    // 设置选中的drawable资源
-                    int resourceId = drawableResourceIds[which];
-                    productImageView.setImageResource(resourceId);
-                    productImageView.setVisibility(View.VISIBLE);
-                    uploadImageLayout.setVisibility(View.GONE);
-                    
-                    // 记录已选择的资源URI
-                    selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-                    Log.d(TAG, "Selected drawable resource: " + drawableResources[which] + ", URI: " + selectedImageUri);
-                    Toast.makeText(this, "已选择图片: " + drawableResources[which], Toast.LENGTH_SHORT).show();
-                })
-                .setCancelable(true)
-                .show();
+        // 设置点击事件
+        View galleryOption = dialogView.findViewById(R.id.gallery_option);
+        View builtinOption = dialogView.findViewById(R.id.builtin_option);
+        View defaultOption = dialogView.findViewById(R.id.default_option);
+        MaterialButton cancelButton = dialogView.findViewById(R.id.btn_cancel);
+        
+        // 从设备相册选择
+        galleryOption.setOnClickListener(v -> {
+            Toast.makeText(this, "Select from Gallery", Toast.LENGTH_SHORT).show();
+            checkAndRequestPermission();
+            dialog.dismiss();
+        });
+        
+        // 使用应用内图片
+        builtinOption.setOnClickListener(v -> {
+            showSimpleDrawableResourcesDialog();
+            dialog.dismiss();
+        });
+        
+        // 使用默认图片
+        defaultOption.setOnClickListener(v -> {
+            setDefaultLocalImage();
+            dialog.dismiss();
+        });
+        
+        // 取消按钮
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 显示对话框
+        dialog.show();
     }
 
     @Override
