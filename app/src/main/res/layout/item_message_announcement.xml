@@ -12,7 +12,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_gravity="center_vertical"
-        android:contentDescription="Announcement"
+        android:contentDescription="公告"
         android:src="@drawable/ic_announcement_24dp" />
 
     <LinearLayout
@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
-            android:text="Group Announcement"
+            android:text="群公告"
             android:textColor="#FF6D00"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginTop="4dp"
-            android:text="Show more"
+            android:text="展开更多"
             android:textColor="#888888"
             android:textSize="12sp"
             android:visibility="gone" />
