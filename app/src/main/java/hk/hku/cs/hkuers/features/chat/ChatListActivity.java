@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import hk.hku.cs.hkuers.MainActivity;
+import hk.hku.cs.hkuers.ProfileActivity;
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
@@ -47,7 +49,7 @@ public class ChatListActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private TextView tvEmptyState;
-    private Button btnChat, btnMap, btnProfile, btnCourses, btnMarketplace;
+    private BottomNavigationView bottomNavigation;
     private FirebaseFirestore db;
     private FirestoreRecyclerAdapter<ChatGroup, ChatGroupViewHolder> adapter;
     private FirebaseUser currentUser;
@@ -90,30 +92,23 @@ public class ChatListActivity extends AppCompatActivity {
         ImageButton btnCreateChat = findViewById(R.id.btnCreateChat);
         ImageButton btnBack = findViewById(R.id.btnBack);
         
-        // 初始化底部导航按钮
-        btnChat = findViewById(R.id.btnChat);
-        btnMap = findViewById(R.id.btnMap);
-        btnProfile = findViewById(R.id.btnProfile);
-        btnCourses = findViewById(R.id.btnCourses);
-        btnMarketplace = findViewById(R.id.btnMarketplace);
+        // 初始化底部导航
+        bottomNavigation = findViewById(R.id.bottom_navigation);
 
         // 设置布局管理器
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // 设置返回按钮点击事件
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> {
+            bottomNavigation.setSelectedItemId(R.id.navigation_dashboard);
+            finish();
+        });
 
         // 设置创建聊天按钮点击事件
         btnCreateChat.setOnClickListener(v -> showCreateChatDialog());
 
-        // 设置底部导航点击事件
+        // 设置底部导航
         setupBottomNavigation();
-        
-        // 高亮当前选中的聊天按钮
-        btnChat.setTextSize(16);
-        btnChat.setTextColor(getResources().getColor(android.R.color.white));
-        btnChat.setTextSize(16);
-        btnChat.setTypeface(null, android.graphics.Typeface.BOLD);
 
         // 加载聊天列表
         loadChatGroups();
@@ -127,38 +122,39 @@ public class ChatListActivity extends AppCompatActivity {
     }
 
     /**
-     * 设置底部导航按钮的点击事件
+     * 设置底部导航
      */
     private void setupBottomNavigation() {
-        // 聊天按钮已经在当前页面，不需要处理
+        // 设置选中Chat选项
+        bottomNavigation.setSelectedItemId(R.id.navigation_chat);
         
-        // 地图按钮
-        btnMap.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MapActivity.class);
-            startActivity(intent);
-            finish();
-        });
-        
-        // 个人资料按钮
-        btnProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("openProfile", true);
-            startActivity(intent);
-            finish();
-        });
-        
-        // 课程按钮
-        btnCourses.setOnClickListener(v -> {
-            Intent intent = new Intent(this, CourseSearchActivity.class);
-            startActivity(intent);
-            finish();
-        });
-        
-        // 市场按钮
-        btnMarketplace.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MarketplaceActivity.class);
-            startActivity(intent);
-            finish();
+        // 设置导航点击监听
+        bottomNavigation.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.navigation_chat) {
+                // 已经在聊天页面，不需要操作
+                return true;
+            } else if (itemId == R.id.navigation_forum) {
+                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_dashboard) {
+                // 跳转到主页
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.navigation_courses) {
+                // 跳转到课程页面
+                startActivity(new Intent(this, CourseSearchActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.navigation_marketplace) {
+                // 跳转到市场页面
+                startActivity(new Intent(this, MarketplaceActivity.class));
+                finish();
+                return true;
+            }
+            return false;
         });
     }
 
