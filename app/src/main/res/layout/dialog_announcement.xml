@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Edit Group Announcement"
+        android:text="编辑群公告"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold" />
@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="The announcement will be displayed at the top of the chat room for all members to see"
+        android:text="公告将显示在聊天室顶部，所有成员都能看到"
         android:textColor="#CCCCCC"
         android:textSize="14sp" />
 
@@ -29,7 +29,7 @@
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_edit_text_rounded"
         android:gravity="top"
-        android:hint="Enter announcement content..."
+        android:hint="请输入公告内容..."
         android:inputType="textMultiLine"
         android:minHeight="120dp"
         android:padding="12dp"
@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Tip: Leave blank to clear current announcement"
+        android:text="提示：留空将清除当前公告"
         android:textColor="#AAAAAA"
         android:textSize="12sp"
         android:textStyle="italic" />

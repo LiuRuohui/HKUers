@@ -32,7 +32,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -410,7 +409,7 @@ public class ChatListActivity extends AppCompatActivity {
         
         // 设置最后消息时间为创建时间，确保聊天室能在列表查询中显示
         chatData.put("last_message_time", now);
-        chatData.put("last_message", "Chat room created, start chatting!");
+        chatData.put("last_message", "聊天室已创建，开始交流吧！");
         
         // 为聊天室生成一个随机颜色代码
         int colorIndex = Math.abs(chatId.hashCode()) % ChatGroupViewHolder.GROUP_COLORS.length;
@@ -423,7 +422,7 @@ public class ChatListActivity extends AppCompatActivity {
         chatData.put("member_ids", memberIds);
         
         // 初始化消息计数
-        chatData.put("message_count", 1L);
+        chatData.put("message_count", 0L);
         
         // 初始化用户读取状态
         Map<String, Object> userReadStatus = new HashMap<>();
@@ -470,7 +469,7 @@ public class ChatListActivity extends AppCompatActivity {
     private void addInitialMessage(String chatId) {
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", "system");  // 使用与Message类一致的字段名
-        message.put("text", "Chat room created, start chatting!");
+        message.put("text", "聊天室已创建，开始交流吧！");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("type", "text");
         
@@ -482,7 +481,7 @@ public class ChatListActivity extends AppCompatActivity {
               db.collection("chat_rooms").document(chatId)
                 .update(
                     "message_count", 1L,
-                    "last_message", "Chat room created, start chatting!",
+                    "last_message", "聊天室已创建，开始交流吧！",
                     "last_message_time", new Timestamp(new Date())
                 );
           });

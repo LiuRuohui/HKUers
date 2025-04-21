@@ -31,7 +31,7 @@
         android:drawablePadding="16dp"
         android:gravity="start|center_vertical"
         android:padding="16dp"
-        android:text="View Members"
+        android:text="查看成员"
         android:textColor="#333333"
         android:textSize="16sp" />
 
@@ -49,7 +49,7 @@
         android:drawablePadding="16dp"
         android:gravity="start|center_vertical"
         android:padding="16dp"
-        android:text="Publish Announcement"
+        android:text="发布公告"
         android:textColor="#333333"
         android:textSize="16sp" />
 
@@ -67,7 +67,7 @@
         android:drawablePadding="16dp"
         android:gravity="start|center_vertical"
         android:padding="16dp"
-        android:text="Leave Group"
+        android:text="退出群聊"
         android:textColor="#E53935"
         android:textSize="16sp" />
 
