@@ -89,7 +89,7 @@ public class UserProfileActivity extends AppCompatActivity {
         tvSignature = findViewById(R.id.tvSignature);
         
         // 设置返回按钮
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> safeReturn());
     }
     
     private void loadUserProfile() {
@@ -333,5 +333,43 @@ public class UserProfileActivity extends AppCompatActivity {
             android.util.Log.d(TAG, "使用默认头像，avatarUrl为空或default");
             ivAvatar.setImageResource(R.drawable.default_avatar);
         }
+    }
+
+    // 添加安全返回方法，确保返回聊天室时重新创建ChatRoomActivity
+    private void safeReturn() {
+        android.util.Log.d(TAG, "安全返回上一个页面");
+        
+        // 检查是否是从聊天室打开的个人资料
+        String fromChatRoom = getIntent().getStringExtra("from_chat_room");
+        String chatRoomId = getIntent().getStringExtra("chat_room_id");
+        String chatRoomName = getIntent().getStringExtra("chat_room_name");
+        
+        if ("true".equals(fromChatRoom) && chatRoomId != null && !chatRoomId.isEmpty()) {
+            // 如果是从聊天室打开的，创建新的聊天室Intent
+            android.util.Log.d(TAG, "从聊天室打开的个人资料，返回聊天室 ID: " + chatRoomId);
+            
+            Intent intent = new Intent(this, hk.hku.cs.hkuers.features.chat.ChatRoomActivity.class);
+            intent.putExtra("chatRoomId", chatRoomId);
+            if (chatRoomName != null && !chatRoomName.isEmpty()) {
+                intent.putExtra("chatRoomName", chatRoomName);
+            }
+            // 设置标志确保聊天室Activity完全重建
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            
+            // 添加过渡动画
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            finish();
+        } else {
+            // 正常结束
+            finish();
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        }
+    }
+    
+    @Override
+    public void onBackPressed() {
+        // 使用安全返回方法
+        safeReturn();
     }
 } 

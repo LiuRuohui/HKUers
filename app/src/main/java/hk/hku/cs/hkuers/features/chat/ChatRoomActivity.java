@@ -417,18 +417,20 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 设置标记表示Activity正在结束
         isFinishing = true;
         
-        // 停止监听器和进行中的操作
+        // 停止监听器
         if (adapter != null) {
             try {
                 adapter.stopListening();
-                adapter = null; // 彻底解除引用
-                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并清除引用");
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听");
             } catch (Exception e) {
                 android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
             }
         }
         
-        // 不使用延迟，立即跳转到ChatListActivity
+        // 清空适配器和回收视图，彻底释放资源
+        recyclerView.setAdapter(null);
+        
+        // 立即跳转到ChatListActivity
         Intent intent = new Intent(this, ChatListActivity.class);
         // 使用FLAG_ACTIVITY_NEW_TASK和FLAG_ACTIVITY_CLEAR_TOP清除任务栈
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -437,13 +439,9 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 使用简单动画
         overridePendingTransition(0, 0);
         
-        // 立即释放资源
-        recyclerView.setAdapter(null);
-        
         // 直接调用finish()
         finish();
         
-        // 不要再使用此Activity的任何功能
         android.util.Log.d("ChatRoomActivity", "已启动ChatListActivity并finish当前Activity");
     }
     
@@ -455,32 +453,33 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 设置标记表示Activity正在结束
         isFinishing = true;
         
-        // 停止监听器和进行中的操作
+        // 停止监听器
         if (adapter != null) {
             try {
                 adapter.stopListening();
-                android.util.Log.d("ChatRoomActivity", "已停止适配器监听");
+                adapter = null; // 彻底解除引用
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并清除引用");
             } catch (Exception e) {
                 android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
             }
         }
         
-        // 延迟一点时间，让Firebase回调有时间处理
-        new Handler().postDelayed(() -> {
-            try {
-                Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-                // 设置平滑过渡
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                // 非立即结束，让过渡动画有时间执行
-                new Handler().postDelayed(() -> finish(), 100);
-            } catch (Exception e) {
-                android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
-                // 恢复标记状态，允许重试
-                isFinishing = false;
-            }
-        }, 200);
+        // 清空适配器和回收视图，彻底释放资源
+        recyclerView.setAdapter(null);
+        
+        try {
+            Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            // 设置平滑过渡
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            // 立即结束当前Activity
+            finish();
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
+            // 恢复标记状态，允许重试
+            isFinishing = false;
+        }
     }
     
     private void showGroupInfoDialog() {
@@ -959,7 +958,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         android.util.Log.d("ChatRoomActivity", "onStop: Activity停止");
-        // 提前释放适配器资源
+        // 彻底释放适配器资源
         if (adapter != null) {
             try {
                 adapter.stopListening();
@@ -976,6 +975,8 @@ public class ChatRoomActivity extends AppCompatActivity {
     public void onBackPressed() {
         // 使用我们的安全返回方法而不是默认行为
         safeFinishActivity();
+        // 调用父类方法
+        super.onBackPressed();
     }
     
     // 添加显示键盘的方法
@@ -1406,42 +1407,38 @@ public class ChatRoomActivity extends AppCompatActivity {
     // 在onPause方法中添加输入法管理器的清理
     @Override
     protected void onPause() {
-        android.util.Log.d("ChatRoomActivity", "onPause: Activity暂停");
-        // 隐藏键盘并清理输入管理器引用
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null) {
-            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
-        }
         super.onPause();
+        android.util.Log.d("ChatRoomActivity", "onPause: Activity暂停");
+        
+        // 在onPause中停止adapter监听，避免在恢复时出现问题
+        if (adapter != null) {
+            try {
+                adapter.stopListening();
+                android.util.Log.d("ChatRoomActivity", "onPause中停止适配器监听");
+            } catch (Exception e) {
+                android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
+            }
+        }
     }
 
     // 修改onDestroy方法，确保在Activity销毁时释放资源
     @Override
     protected void onDestroy() {
-        android.util.Log.d("ChatRoomActivity", "onDestroy: Activity销毁");
+        android.util.Log.d("ChatRoomActivity", "onDestroy: 开始销毁Activity");
         
-        // 确保输入法管理器资源被清理
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null) {
-            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
-        }
-        
-        // 清理任何可能的引用
+        // 停止所有异步操作
         if (adapter != null) {
             try {
                 adapter.stopListening();
-                android.util.Log.d("ChatRoomActivity", "onDestroy中停止适配器监听");
+                adapter = null; // 彻底解除引用
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并在onDestroy中清除引用");
             } catch (Exception e) {
                 android.util.Log.e("ChatRoomActivity", "onDestroy中停止适配器监听失败: " + e.getMessage());
             }
         }
         
-        // 清空视图引用以避免内存泄漏
-        recyclerView = null;
+        // 解除绑定，避免内存泄漏和异常
+        recyclerView.setAdapter(null);
         etMessage = null;
         tvChatRoomName = null;
         tvAnnouncement = null;
@@ -1463,6 +1460,12 @@ public class ChatRoomActivity extends AppCompatActivity {
         super.onResume();
         android.util.Log.d("ChatRoomActivity", "onResume: Activity恢复");
         
+        // 在onResume时重新设置适配器，避免恢复状态时的IndexOutOfBoundsException
+        if (recyclerView != null && recyclerView.getAdapter() == null) {
+            android.util.Log.d("ChatRoomActivity", "onResume: 重新设置消息适配器");
+            setupMessageAdapter();
+        }
+        
         try {
             // 确保适配器开始监听
             if (adapter != null && !isFinishing && !isFinishing()) {
@@ -1471,7 +1474,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 
                 // 触发滚动到最新消息
                 new Handler().postDelayed(() -> {
-                    if (adapter.getItemCount() > 0 && !isFinishing && !isFinishing()) {
+                    if (adapter != null && adapter.getItemCount() > 0 && !isFinishing && !isFinishing()) {
                         recyclerView.scrollToPosition(adapter.getItemCount() - 1);
                     }
                 }, 300);
@@ -1480,7 +1483,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             // 更新用户读取状态
             updateUserReadStatus();
         } catch (Exception e) {
-            android.util.Log.e("ChatRoomActivity", "onResume处理异常: " + e.getMessage());
+            android.util.Log.e("ChatRoomActivity", "onResume处理异常: " + e.getMessage(), e);
         }
     }
 
@@ -1492,6 +1495,11 @@ public class ChatRoomActivity extends AppCompatActivity {
             
             // 传递必要的用户ID
             intent.putExtra("user_id", userId);
+            
+            // 传递聊天室返回信息，用于正确处理返回逻辑
+            intent.putExtra("from_chat_room", "true");
+            intent.putExtra("chat_room_id", chatRoomId);
+            intent.putExtra("chat_room_name", chatRoomName);
             
             // 如果有文档，传递更多用户信息，减少下一个页面的查询
             if (userDoc != null) {

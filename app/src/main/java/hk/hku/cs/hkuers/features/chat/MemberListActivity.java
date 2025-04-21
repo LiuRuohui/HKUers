@@ -713,13 +713,24 @@ public class MemberListActivity extends AppCompatActivity {
     
     private void returnToChatRoom() {
         // 记录日志
-        android.util.Log.d(TAG, "returnToChatRoom: 直接返回上一个页面");
+        android.util.Log.d(TAG, "returnToChatRoom: 返回聊天室 chatRoomId=" + chatRoomId);
         
-        // 直接调用finish()，让系统处理返回上一个Activity
-        finish();
+        // 通过创建新的ChatRoomActivity Intent来返回聊天室，确保完全重建
+        Intent intent = new Intent(this, ChatRoomActivity.class);
+        intent.putExtra("chatRoomId", chatRoomId);
+        if (chatRoomName != null && !chatRoomName.isEmpty()) {
+            intent.putExtra("chatRoomName", chatRoomName);
+        }
         
-        // 添加简单过渡动画
+        // 设置标志确保聊天室Activity完全重建
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        
+        // 添加平滑过渡动画
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        
+        // 结束当前Activity
+        finish();
     }
 
     private void updateEmptyView() {
@@ -897,7 +908,15 @@ public class MemberListActivity extends AppCompatActivity {
                 // 传递用户基本信息
                 intent.putExtra("user_id", member.getUserId());
                 
-                // 传递所有可能有用的数据
+                // 传递聊天室返回信息，用于正确处理返回逻辑
+                intent.putExtra("from_chat_room", "true");
+                intent.putExtra("chat_room_id", chatRoomId);
+                intent.putExtra("chat_room_name", chatRoomName);
+                
+                // 传递已有的用户数据，避免重复查询
+                if (member.getUsername() != null) {
+                    intent.putExtra("user_name", member.getUsername());
+                }
                 if (member.getEmail() != null) {
                     intent.putExtra("user_email", member.getEmail());
                 }
@@ -916,14 +935,12 @@ public class MemberListActivity extends AppCompatActivity {
                 if (member.getAvatarUrl() != null) {
                     intent.putExtra("user_avatar_url", member.getAvatarUrl());
                 }
-                if (member.getUsername() != null) {
-                    intent.putExtra("user_name", member.getUsername());
-                }
                 
-                startActivity(intent);
+                // 启动Activity
+                context.startActivity(intent);
                 
-                // 添加过渡动画效果
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                // 设置过渡动画
+                context.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             });
         }
 
