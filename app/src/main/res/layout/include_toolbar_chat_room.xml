@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/toolbarLayout"
+    android:id="@+id/toolbar"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
+    android:layout_height="?attr/actionBarSize"
     android:background="#1E1E1E"
     android:elevation="4dp">
 
+    <!-- 返回按钮 -->
     <ImageButton
         android:id="@+id/btnBack"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="4dp"
+        android:layout_gravity="start"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="返回"
-        android:padding="12dp"
         android:src="@drawable/ic_arrow_back_white_24dp" />
 
+    <!-- 页面标题 -->
     <TextView
         android:id="@+id/tvChatRoomName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_gravity="center"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/white"
@@ -30,15 +30,14 @@
         android:textStyle="bold"
         tools:text="COMP7506-A-2023" />
 
+    <!-- 群组信息按钮 -->
     <ImageButton
         android:id="@+id/btnGroupInfo"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="4dp"
+        android:layout_gravity="end"
+        android:layout_marginEnd="8dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="群组信息"
-        android:padding="12dp"
         android:src="@drawable/ic_more_vert_white_24dp" />
-</RelativeLayout> 
+</androidx.appcompat.widget.Toolbar> 
