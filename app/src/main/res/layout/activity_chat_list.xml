@@ -12,8 +12,8 @@
         android:id="@+id/statusBarSpace"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHeight_percent="0.025" />
+        android:background="#1E1E1E"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 标题栏 -->
     <androidx.appcompat.widget.Toolbar
@@ -31,9 +31,8 @@
             android:layout_height="48dp"
             android:layout_gravity="start"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back to previous page"
-            android:src="@android:drawable/ic_menu_revert"
-            android:tint="#FFFFFF" />
+            android:contentDescription="返回"
+            android:src="@drawable/ic_back" />
 
         <!-- 页面标题 -->
         <TextView
@@ -41,8 +40,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Your Chats"
-            android:textSize="20sp"
+            android:text="聊天"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF" />
 

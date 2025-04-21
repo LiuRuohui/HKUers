@@ -6,42 +6,51 @@
     android:layout_height="match_parent"
     android:background="#121212">
 
-    <!-- 顶部标题栏 -->
-    <RelativeLayout
+    <!-- 顶部安全区域，预留系统状态栏位置 -->
+    <View
+        android:id="@+id/statusBarSpace"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#1E1E1E"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 顶部导航栏 -->
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="?attr/actionBarSize"
         android:background="#1E1E1E"
         android:elevation="4dp"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/statusBarSpace">
 
+        <!-- 返回按钮 -->
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="4dp"
+            android:layout_gravity="start"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="返回"
-            android:padding="12dp"
             android:src="@drawable/ic_back" />
 
+        <!-- 页面标题 -->
         <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_gravity="center"
             android:text="用户资料"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
-    </RelativeLayout>
+    </androidx.appcompat.widget.Toolbar>
 
     <!-- 分割线 -->
     <View
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#2C2C2C"
+        android:background="#E0E0E0"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <!-- 用户信息卡片 -->
@@ -94,18 +103,62 @@
                 android:textSize="14sp"
                 tools:text="user@connect.hku.hk" />
 
+            <!-- 个性签名 -->
+            <TextView
+                android:id="@+id/tvSignature"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:textColor="#D8D8D8"
+                android:textSize="14sp"
+                android:textStyle="italic"
+                tools:text="&quot;Hello, I am a HKUer&quot;" />
+
+            <!-- 分割线 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:background="#2C2C2C" />
+
             <!-- 院系 -->
             <TextView
                 android:id="@+id/tvDepartment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
+                android:drawablePadding="8dp"
                 android:gravity="center"
                 android:textColor="#CCCCCC"
                 android:textSize="14sp"
-                tools:text="计算机科学系" />
+                tools:text="School of Computer Science" />
 
-            <!-- 更多信息可以在这里添加 -->
+            <!-- 专业 -->
+            <TextView
+                android:id="@+id/tvProgramme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:textColor="#CCCCCC"
+                android:textSize="14sp"
+                tools:text="Computer Science (Multimedia Computing)" />
+
+            <!-- 入学年份 -->
+            <TextView
+                android:id="@+id/tvYearOfEntry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:textColor="#CCCCCC"
+                android:textSize="14sp"
+                tools:text="入学年份: 2024" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

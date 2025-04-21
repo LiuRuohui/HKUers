@@ -52,7 +52,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     // 常量定义
     private static final String TAG = "ProfileActivity";
-    private static final String SERVER_URL = "http://10.0.2.2:5000";
+    private static final String SERVER_URL = "http://10.0.2.2:9000";
     private static final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
     private static final int MAX_AVATAR_LOAD_RETRIES = 3;
 

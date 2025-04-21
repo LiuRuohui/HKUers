@@ -46,6 +46,7 @@ import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.Message;
 import hk.hku.cs.hkuers.features.chat.MemberListActivity;
+import com.bumptech.glide.Glide;
 
 public class ChatRoomActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -70,8 +71,13 @@ public class ChatRoomActivity extends AppCompatActivity {
     private static final int VIEW_TYPE_SYSTEM = 3;
     private static final int VIEW_TYPE_ANNOUNCEMENT = 4;
     
+    // 服务器URL常量
+    private static final String SERVER_URL = "http://10.0.2.2:9000";
+    
     // 在类的顶部添加一个标志变量，表示Activity是否正在结束
     private boolean isFinishing = false;
+    
+    private static final int REQUEST_CODE_VIEW_MEMBERS = 1001;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +87,24 @@ public class ChatRoomActivity extends AppCompatActivity {
         android.util.Log.d("ChatRoomActivity", "onCreate: 开始创建ChatRoomActivity");
         
         setContentView(R.layout.activity_chat_room);
+        
+        // 设置系统状态栏颜色为固定的深色（与顶部栏一致）
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(android.graphics.Color.parseColor("#1E1E1E"));
+        }
+        
+        // 设置状态栏空间高度
+        View statusBarSpace = findViewById(R.id.statusBarSpace);
+        if (statusBarSpace != null) {
+            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                int statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+                ViewGroup.LayoutParams params = statusBarSpace.getLayoutParams();
+                params.height = statusBarHeight;
+                statusBarSpace.setLayoutParams(params);
+                android.util.Log.d("ChatRoomActivity", "设置状态栏高度: " + statusBarHeight);
+            }
+        }
         
         // 测试页面是否正确显示
         String displayName = getIntent().getStringExtra("chatRoomName");
@@ -221,28 +245,31 @@ public class ChatRoomActivity extends AppCompatActivity {
                         android.util.Log.d("ChatRoomActivity", "没有群公告");
                     }
                     
-                    // 获取并设置顶部栏颜色
+                    // 获取并设置颜色指示条的颜色
                     String colorCode = documentSnapshot.getString("color_code");
                     if (colorCode != null && !colorCode.isEmpty()) {
                         try {
                             int color = android.graphics.Color.parseColor(colorCode);
-                            // 设置顶部栏颜色
-                            View toolbarLayout = findViewById(R.id.toolbarLayout);
-                            if (toolbarLayout != null) { // 检查视图是否存在
-                                toolbarLayout.setBackgroundColor(color);
-                                
-                                // 设置状态栏颜色（Android 5.0+）
-                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                                    getWindow().setStatusBarColor(color);
-                                }
-                                
-                                android.util.Log.d("ChatRoomActivity", "设置顶部栏颜色: " + colorCode);
+                            // 设置颜色指示条的颜色
+                            View colorIndicator = findViewById(R.id.colorIndicator);
+                            if (colorIndicator != null) {
+                                colorIndicator.setBackgroundColor(color);
+                                android.util.Log.d("ChatRoomActivity", "设置颜色指示条颜色: " + colorCode);
                             }
                         } catch (Exception e) {
                             android.util.Log.e("ChatRoomActivity", "解析颜色码失败: " + e.getMessage());
                         }
                     } else {
                         android.util.Log.d("ChatRoomActivity", "未找到聊天室颜色，使用默认颜色");
+                        // 如果没有设置颜色，根据聊天室ID生成一个固定的颜色
+                        if (chatRoomId != null && !chatRoomId.isEmpty()) {
+                            View colorIndicator = findViewById(R.id.colorIndicator);
+                            if (colorIndicator != null) {
+                                int colorIndex = Math.abs(chatRoomId.hashCode()) % ChatListActivity.ChatGroupViewHolder.GROUP_COLORS.length;
+                                int color = ChatListActivity.ChatGroupViewHolder.GROUP_COLORS[colorIndex];
+                                colorIndicator.setBackgroundColor(color);
+                            }
+                        }
                     }
                 } else {
                     android.util.Log.e("ChatRoomActivity", "聊天室数据不存在!");
@@ -390,18 +417,20 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 设置标记表示Activity正在结束
         isFinishing = true;
         
-        // 停止监听器和进行中的操作
+        // 停止监听器
         if (adapter != null) {
             try {
                 adapter.stopListening();
-                adapter = null; // 彻底解除引用
-                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并清除引用");
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听");
             } catch (Exception e) {
                 android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
             }
         }
         
-        // 不使用延迟，立即跳转到ChatListActivity
+        // 清空适配器和回收视图，彻底释放资源
+        recyclerView.setAdapter(null);
+        
+        // 立即跳转到ChatListActivity
         Intent intent = new Intent(this, ChatListActivity.class);
         // 使用FLAG_ACTIVITY_NEW_TASK和FLAG_ACTIVITY_CLEAR_TOP清除任务栈
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -410,13 +439,9 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 使用简单动画
         overridePendingTransition(0, 0);
         
-        // 立即释放资源
-        recyclerView.setAdapter(null);
-        
         // 直接调用finish()
         finish();
         
-        // 不要再使用此Activity的任何功能
         android.util.Log.d("ChatRoomActivity", "已启动ChatListActivity并finish当前Activity");
     }
     
@@ -428,32 +453,33 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 设置标记表示Activity正在结束
         isFinishing = true;
         
-        // 停止监听器和进行中的操作
+        // 停止监听器
         if (adapter != null) {
             try {
                 adapter.stopListening();
-                android.util.Log.d("ChatRoomActivity", "已停止适配器监听");
+                adapter = null; // 彻底解除引用
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并清除引用");
             } catch (Exception e) {
                 android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
             }
         }
         
-        // 延迟一点时间，让Firebase回调有时间处理
-        new Handler().postDelayed(() -> {
-            try {
-                Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-                // 设置平滑过渡
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                // 非立即结束，让过渡动画有时间执行
-                new Handler().postDelayed(() -> finish(), 100);
-            } catch (Exception e) {
-                android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
-                // 恢复标记状态，允许重试
-                isFinishing = false;
-            }
-        }, 200);
+        // 清空适配器和回收视图，彻底释放资源
+        recyclerView.setAdapter(null);
+        
+        try {
+            Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            // 设置平滑过渡
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            // 立即结束当前Activity
+            finish();
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
+            // 恢复标记状态，允许重试
+            isFinishing = false;
+        }
     }
     
     private void showGroupInfoDialog() {
@@ -504,15 +530,41 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
     
     private void showMembersDialog() {
-        // 跳转到成员列表页面
-        Intent intent = new Intent(this, MemberListActivity.class);
-        intent.putExtra("chat_room_id", chatRoomId);
-        // 额外添加聊天室名称，确保成员列表能正确返回
-        intent.putExtra("chatRoomName", chatRoomName);
-        startActivity(intent);
+        try {
+            // 简单直接的跳转实现
+            Intent intent = new Intent(this, MemberListActivity.class);
+            intent.putExtra("chat_room_id", chatRoomId);
+            if (chatRoomName != null && !chatRoomName.isEmpty()) {
+                intent.putExtra("chatRoomName", chatRoomName);
+            }
+            // 使用startActivityForResult而不是startActivity
+            startActivityForResult(intent, REQUEST_CODE_VIEW_MEMBERS);
+            // 简单的过渡动画
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "跳转到成员列表失败: " + e.getMessage(), e);
+            Toast.makeText(this, "无法打开成员列表: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         
-        // 添加平滑过渡动画
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        // 处理从成员列表页面返回的结果
+        if (requestCode == REQUEST_CODE_VIEW_MEMBERS) {
+            android.util.Log.d("ChatRoomActivity", "从成员列表返回");
+            
+            // 确保适配器开始监听
+            if (adapter != null && !isFinishing && !isFinishing()) {
+                try {
+                    adapter.startListening();
+                    android.util.Log.d("ChatRoomActivity", "从成员列表返回后恢复适配器监听");
+                } catch (Exception e) {
+                    android.util.Log.e("ChatRoomActivity", "恢复适配器监听失败: " + e.getMessage());
+                }
+            }
+        }
     }
     
     private void showAnnouncementDialog() {
@@ -906,7 +958,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         android.util.Log.d("ChatRoomActivity", "onStop: Activity停止");
-        // 提前释放适配器资源
+        // 彻底释放适配器资源
         if (adapter != null) {
             try {
                 adapter.stopListening();
@@ -923,6 +975,8 @@ public class ChatRoomActivity extends AppCompatActivity {
     public void onBackPressed() {
         // 使用我们的安全返回方法而不是默认行为
         safeFinishActivity();
+        // 调用父类方法
+        super.onBackPressed();
     }
     
     // 添加显示键盘的方法
@@ -958,7 +1012,55 @@ public class ChatRoomActivity extends AppCompatActivity {
             // 动态获取已读状态
             updateReadStatus(message);
             
-            // 暂不加载用户头像，使用默认头像
+            // 加载当前用户头像
+            String currentUserId = currentUser.getUid();
+            db.collection("users").document(currentUserId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (isFinishing || isFinishing()) return;
+                    
+                    if (documentSnapshot.exists()) {
+                        // 加载头像
+                        String avatarUrl = documentSnapshot.getString("avatar_url");
+                        if (avatarUrl != null && !avatarUrl.isEmpty() && !"default".equals(avatarUrl)) {
+                            // 确保头像URL正确（添加avatar/前缀如果没有）
+                            if (!avatarUrl.startsWith("avatar/")) {
+                                avatarUrl = "avatar/" + avatarUrl;
+                            }
+                            
+                            // 使用统一的服务器URL格式
+                            String imageUrl = SERVER_URL + "/image/" + avatarUrl;
+                            // 添加随机参数避免缓存问题
+                            String uniqueParam = System.currentTimeMillis() + "_" + Math.random();
+                            imageUrl = imageUrl + "?nocache=" + uniqueParam;
+                            
+                            // 使用Glide加载头像
+                            Glide.with(ChatRoomActivity.this)
+                                .load(imageUrl)
+                                .placeholder(R.drawable.default_avatar)
+                                .error(R.drawable.default_avatar)
+                                .into(ivUserAvatar);
+                            
+                            // 添加日志记录
+                            android.util.Log.d("ChatRoomActivity", "加载头像URL: " + imageUrl);
+                        } else {
+                            // 使用默认头像
+                            ivUserAvatar.setImageResource(R.drawable.default_avatar);
+                        }
+                        
+                        // 添加点击头像查看用户资料的功能
+                        final DocumentSnapshot userDoc = documentSnapshot;
+                        ivUserAvatar.setOnClickListener(v -> {
+                            android.util.Log.d("ChatRoomActivity", "用户点击自己的头像，打开资料页面");
+                            openUserProfile(currentUserId, userDoc);
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (isFinishing || isFinishing()) return;
+                    // 使用默认头像
+                    ivUserAvatar.setImageResource(R.drawable.default_avatar);
+                });
             
             // 处理长消息折叠/展开
             if (message.getText().length() > 100) {
@@ -1081,18 +1183,59 @@ public class ChatRoomActivity extends AppCompatActivity {
                         if (isFinishing || isFinishing()) return;
                         
                         if (documentSnapshot.exists()) {
-                            String userName = documentSnapshot.getString("display_name");
+                            // 设置用户名 - 优先使用uname字段
+                            String userName = documentSnapshot.getString("uname");
                             if (userName == null || userName.isEmpty()) {
+                                // 备选显示字段
                                 userName = documentSnapshot.getString("email");
+                                if (userName != null && userName.contains("@")) {
+                                    // 显示邮箱前缀作为名称
+                                    userName = userName.substring(0, userName.indexOf('@'));
+                                }
                             }
                             tvSenderName.setText(userName);
                             
-                            // 暂不加载用户头像，使用默认头像
+                            // 加载头像
+                            String avatarUrl = documentSnapshot.getString("avatar_url");
+                            if (avatarUrl != null && !avatarUrl.isEmpty() && !"default".equals(avatarUrl)) {
+                                // 确保头像URL正确（添加avatar/前缀如果没有）
+                                if (!avatarUrl.startsWith("avatar/")) {
+                                    avatarUrl = "avatar/" + avatarUrl;
+                                }
+                                
+                                // 使用统一的服务器URL格式
+                                String imageUrl = SERVER_URL + "/image/" + avatarUrl;
+                                // 添加随机参数避免缓存问题
+                                String uniqueParam = System.currentTimeMillis() + "_" + Math.random();
+                                imageUrl = imageUrl + "?nocache=" + uniqueParam;
+                                
+                                // 添加日志记录
+                                android.util.Log.d("ChatRoomActivity", "加载其他用户头像URL: " + imageUrl);
+                                
+                                // 使用Glide加载头像
+                                Glide.with(ChatRoomActivity.this)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_avatar)
+                                    .error(R.drawable.default_avatar)
+                                    .into(ivUserAvatar);
+                            } else {
+                                // 使用默认头像
+                                ivUserAvatar.setImageResource(R.drawable.default_avatar);
+                            }
+                            
+                            // 添加点击头像查看用户资料的功能
+                            final String finalSenderId = senderId;
+                            final DocumentSnapshot userDoc = documentSnapshot;
+                            ivUserAvatar.setOnClickListener(v -> {
+                                android.util.Log.d("ChatRoomActivity", "用户点击他人的头像，用户ID: " + finalSenderId);
+                                openUserProfile(finalSenderId, userDoc);
+                            });
                         }
                     });
             } else {
                 // 如果是系统消息或发送者ID为空
                 tvSenderName.setText("系统");
+                ivUserAvatar.setImageResource(R.drawable.default_avatar);
             }
             
             // 处理长消息折叠/展开
@@ -1138,6 +1281,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     // 公告消息的ViewHolder
     public class AnnouncementViewHolder extends RecyclerView.ViewHolder {
         private TextView tvAnnouncementText, tvTime, tvPublisherName, tvExpandCollapse;
+        private CircleImageView ivUserAvatar;
         private boolean isExpanded = false;
         
         public AnnouncementViewHolder(@NonNull View itemView) {
@@ -1146,6 +1290,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             tvTime = itemView.findViewById(R.id.tvTime);
             tvPublisherName = itemView.findViewById(R.id.tvPublisherName);
             tvExpandCollapse = itemView.findViewById(R.id.tvExpandCollapse);
+            ivUserAvatar = itemView.findViewById(R.id.ivUserAvatar);
         }
         
         public void bind(Message message) {
@@ -1162,16 +1307,65 @@ public class ChatRoomActivity extends AppCompatActivity {
                         if (isFinishing || isFinishing()) return;
                         
                         if (documentSnapshot.exists()) {
-                            String userName = documentSnapshot.getString("display_name");
+                            // 设置用户名 - 优先使用uname字段
+                            String userName = documentSnapshot.getString("uname");
                             if (userName == null || userName.isEmpty()) {
+                                // 备选显示字段
                                 userName = documentSnapshot.getString("email");
+                                if (userName != null && userName.contains("@")) {
+                                    // 显示邮箱前缀作为名称
+                                    userName = userName.substring(0, userName.indexOf('@'));
+                                }
                             }
                             tvPublisherName.setText(userName);
+                            
+                            // 加载头像
+                            String avatarUrl = documentSnapshot.getString("avatar_url");
+                            if (avatarUrl != null && !avatarUrl.isEmpty() && !"default".equals(avatarUrl)) {
+                                // 确保头像URL正确（添加avatar/前缀如果没有）
+                                if (!avatarUrl.startsWith("avatar/")) {
+                                    avatarUrl = "avatar/" + avatarUrl;
+                                }
+                                
+                                // 使用统一的服务器URL格式
+                                String imageUrl = SERVER_URL + "/image/" + avatarUrl;
+                                // 添加随机参数避免缓存问题
+                                String uniqueParam = System.currentTimeMillis() + "_" + Math.random();
+                                imageUrl = imageUrl + "?nocache=" + uniqueParam;
+                                
+                                // 添加日志记录
+                                android.util.Log.d("ChatRoomActivity", "加载公告发布者头像URL: " + imageUrl);
+                                
+                                // 使用Glide加载头像
+                                if (ivUserAvatar != null) {
+                                    Glide.with(ChatRoomActivity.this)
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.default_avatar)
+                                        .error(R.drawable.default_avatar)
+                                        .into(ivUserAvatar);
+                                }
+                            } else if (ivUserAvatar != null) {
+                                // 使用默认头像
+                                ivUserAvatar.setImageResource(R.drawable.default_avatar);
+                            }
+                            
+                            // 添加点击头像查看用户资料的功能
+                            if (ivUserAvatar != null) {
+                                final String finalSenderId = senderId;
+                                final DocumentSnapshot userDoc = documentSnapshot;
+                                ivUserAvatar.setOnClickListener(v -> {
+                                    android.util.Log.d("ChatRoomActivity", "用户点击他人的头像，用户ID: " + finalSenderId);
+                                    openUserProfile(finalSenderId, userDoc);
+                                });
+                            }
                         }
                     });
             } else {
                 // 如果是系统消息或发送者ID为空
                 tvPublisherName.setText("系统");
+                if (ivUserAvatar != null) {
+                    ivUserAvatar.setImageResource(R.drawable.default_avatar);
+                }
             }
             
             // 处理长消息折叠/展开
@@ -1213,42 +1407,38 @@ public class ChatRoomActivity extends AppCompatActivity {
     // 在onPause方法中添加输入法管理器的清理
     @Override
     protected void onPause() {
-        android.util.Log.d("ChatRoomActivity", "onPause: Activity暂停");
-        // 隐藏键盘并清理输入管理器引用
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null) {
-            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
-        }
         super.onPause();
+        android.util.Log.d("ChatRoomActivity", "onPause: Activity暂停");
+        
+        // 在onPause中停止adapter监听，避免在恢复时出现问题
+        if (adapter != null) {
+            try {
+                adapter.stopListening();
+                android.util.Log.d("ChatRoomActivity", "onPause中停止适配器监听");
+            } catch (Exception e) {
+                android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
+            }
+        }
     }
 
     // 修改onDestroy方法，确保在Activity销毁时释放资源
     @Override
     protected void onDestroy() {
-        android.util.Log.d("ChatRoomActivity", "onDestroy: Activity销毁");
+        android.util.Log.d("ChatRoomActivity", "onDestroy: 开始销毁Activity");
         
-        // 确保输入法管理器资源被清理
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        View currentFocus = getCurrentFocus();
-        if (currentFocus != null) {
-            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
-        }
-        
-        // 清理任何可能的引用
+        // 停止所有异步操作
         if (adapter != null) {
             try {
                 adapter.stopListening();
-                android.util.Log.d("ChatRoomActivity", "onDestroy中停止适配器监听");
+                adapter = null; // 彻底解除引用
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并在onDestroy中清除引用");
             } catch (Exception e) {
                 android.util.Log.e("ChatRoomActivity", "onDestroy中停止适配器监听失败: " + e.getMessage());
             }
         }
         
-        // 清空视图引用以避免内存泄漏
-        recyclerView = null;
+        // 解除绑定，避免内存泄漏和异常
+        recyclerView.setAdapter(null);
         etMessage = null;
         tvChatRoomName = null;
         tvAnnouncement = null;
@@ -1263,5 +1453,108 @@ public class ChatRoomActivity extends AppCompatActivity {
         btnMarketplace = null;
         
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        android.util.Log.d("ChatRoomActivity", "onResume: Activity恢复");
+        
+        // 在onResume时重新设置适配器，避免恢复状态时的IndexOutOfBoundsException
+        if (recyclerView != null && recyclerView.getAdapter() == null) {
+            android.util.Log.d("ChatRoomActivity", "onResume: 重新设置消息适配器");
+            setupMessageAdapter();
+        }
+        
+        try {
+            // 确保适配器开始监听
+            if (adapter != null && !isFinishing && !isFinishing()) {
+                adapter.startListening();
+                android.util.Log.d("ChatRoomActivity", "onResume中启动适配器监听");
+                
+                // 触发滚动到最新消息
+                new Handler().postDelayed(() -> {
+                    if (adapter != null && adapter.getItemCount() > 0 && !isFinishing && !isFinishing()) {
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                    }
+                }, 300);
+            }
+            
+            // 更新用户读取状态
+            updateUserReadStatus();
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "onResume处理异常: " + e.getMessage(), e);
+        }
+    }
+
+    // 打开用户资料页面
+    private void openUserProfile(String userId, DocumentSnapshot userDoc) {
+        try {
+            // 创建Intent
+            Intent intent = new Intent(this, hk.hku.cs.hkuers.features.profile.UserProfileActivity.class);
+            
+            // 传递必要的用户ID
+            intent.putExtra("user_id", userId);
+            
+            // 传递聊天室返回信息，用于正确处理返回逻辑
+            intent.putExtra("from_chat_room", "true");
+            intent.putExtra("chat_room_id", chatRoomId);
+            intent.putExtra("chat_room_name", chatRoomName);
+            
+            // 如果有文档，传递更多用户信息，减少下一个页面的查询
+            if (userDoc != null) {
+                // 传递用户基本信息
+                if (userDoc.contains("uname") || userDoc.contains("name")) {
+                    String username = userDoc.getString("uname");
+                    if (username == null || username.isEmpty()) {
+                        username = userDoc.getString("name");
+                    }
+                    if (username != null && !username.isEmpty()) {
+                        intent.putExtra("user_name", username);
+                    }
+                }
+                
+                if (userDoc.contains("email")) {
+                    intent.putExtra("user_email", userDoc.getString("email"));
+                }
+                
+                // 添加调试信息，验证头像URL是否存在和正确
+                android.util.Log.d("ChatRoomActivity", "用户文档是否包含avatar_url: " + userDoc.contains("avatar_url"));
+                if (userDoc.contains("avatar_url")) {
+                    String avatarUrl = userDoc.getString("avatar_url");
+                    intent.putExtra("user_avatar_url", avatarUrl);
+                    android.util.Log.d("ChatRoomActivity", "传递给UserProfileActivity的avatarUrl: " + avatarUrl);
+                }
+                
+                if (userDoc.contains("department")) {
+                    intent.putExtra("user_department", userDoc.getString("department"));
+                }
+                
+                if (userDoc.contains("programme")) {
+                    intent.putExtra("user_programme", userDoc.getString("programme"));
+                }
+                
+                if (userDoc.contains("year_of_entry")) {
+                    intent.putExtra("user_year_of_entry", userDoc.getString("year_of_entry"));
+                }
+                
+                if (userDoc.contains("signature")) {
+                    intent.putExtra("user_signature", userDoc.getString("signature"));
+                }
+            } else {
+                android.util.Log.d("ChatRoomActivity", "userDoc为空，无用户数据传递");
+            }
+            
+            // 启动活动
+            startActivity(intent);
+            
+            // 添加过渡动画
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            
+            android.util.Log.d("ChatRoomActivity", "已打开用户资料页面，用户ID: " + userId);
+        } catch (Exception e) {
+            android.util.Log.e("ChatRoomActivity", "打开用户资料失败: " + e.getMessage(), e);
+            Toast.makeText(this, "无法打开用户资料: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 } 
