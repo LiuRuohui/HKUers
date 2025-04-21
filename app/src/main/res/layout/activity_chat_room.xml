@@ -39,7 +39,7 @@
             android:layout_height="48dp"
             android:layout_gravity="start"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="返回"
+            android:contentDescription="Back"
             android:src="@drawable/ic_back" />
 
         <!-- 页面标题 -->
@@ -63,7 +63,7 @@
             android:layout_gravity="end"
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="群组信息"
+            android:contentDescription="Group Info"
             android:src="@drawable/ic_more_vert_white_24dp" />
 
     </androidx.appcompat.widget.Toolbar>
@@ -91,7 +91,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="center_vertical"
-            android:contentDescription="公告"
+            android:contentDescription="Announcement"
             android:src="@drawable/ic_announcement_24dp" />
 
         <TextView
@@ -103,7 +103,7 @@
             android:maxLines="2"
             android:textColor="#FF6D00"
             android:textSize="14sp"
-            tools:text="这是群公告内容" />
+            tools:text="This is a group announcement" />
     </LinearLayout>
 
     <!-- 消息列表 -->
@@ -136,7 +136,7 @@
             android:background="@drawable/bg_edit_text_rounded"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:hint="输入消息..."
+            android:hint="Enter message..."
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:minHeight="40dp"
@@ -151,7 +151,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_button_primary"
-            android:text="发送"
+            android:text="Send"
             android:textColor="@color/white" />
     </LinearLayout>
 
