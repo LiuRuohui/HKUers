@@ -64,6 +64,7 @@
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Group Info"
+
             android:src="@drawable/ic_more_vert_white_24dp" />
 
     </androidx.appcompat.widget.Toolbar>
@@ -104,6 +105,7 @@
             android:textColor="#FF6D00"
             android:textSize="14sp"
             tools:text="This is a group announcement" />
+
     </LinearLayout>
 
     <!-- 消息列表 -->
@@ -137,6 +139,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:hint="Enter message..."
+
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:minHeight="40dp"

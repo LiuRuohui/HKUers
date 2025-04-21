@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1E1E1E"
-    android:fitsSystemWindows="true"> <!-- 整体背景改成深色 -->
+    android:fitsSystemWindows="true">
 
     <!-- 标题栏 -->
     <androidx.appcompat.widget.Toolbar
@@ -32,20 +32,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Your Chats"
+            android:text="Courses"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold" />
 
         <!-- 新建聊天室按钮 -->
         <ImageButton
-            android:id="@+id/btnCreateChat"
+            android:id="@+id/btnAddCourse"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="end"
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Create new chat"
+            android:contentDescription="Add new course"
             android:src="@android:drawable/ic_input_add"
             app:tint="#2196F3" />
 
@@ -61,29 +61,29 @@
 
     <!-- 群组列表 -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerChatGroups"
+        android:id="@+id/recyclerCourses"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/divider"
         android:layout_above="@id/bottom_navigation"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
         android:background="#121212"
+        android:clipToPadding="false"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_chat_group" />
 
     <!-- 空列表提示 -->
     <TextView
-        android:id="@+id/tvEmptyState"
+        android:id="@+id/tvEmptyCourseState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="No chats yet. Create your first chat!"
-        android:textSize="16sp"
+        android:text="No Courses."
         android:textColor="#757575"
+        android:textSize="16sp"
         android:visibility="gone" />
 
     <!-- 底部分割线 -->
