@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +43,7 @@ import java.util.Map;
 import de.hdodenhof.circleimageview.CircleImageView;
 import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
+import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.Message;
@@ -52,7 +54,8 @@ public class ChatRoomActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private EditText etMessage;
     private TextView tvChatRoomName, tvAnnouncement;
-    private Button btnSend, btnChat, btnMap, btnProfile, btnCourses, btnMarketplace;
+    private Button btnSend;
+    private BottomNavigationView bottomNavigation;
     private ImageButton btnBack, btnGroupInfo;
     private LinearLayout announcementLayout;
     
@@ -180,11 +183,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         announcementLayout = findViewById(R.id.announcementLayout);
         
         // 底部导航栏
-        btnChat = findViewById(R.id.btnChat);
-        btnMap = findViewById(R.id.btnMap);
-        btnProfile = findViewById(R.id.btnProfile);
-        btnCourses = findViewById(R.id.btnCourses);
-        btnMarketplace = findViewById(R.id.btnMarketplace);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
         
         // 设置RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -395,15 +394,6 @@ public class ChatRoomActivity extends AppCompatActivity {
             etMessage.requestFocus();
             showKeyboard(etMessage);
         });
-        
-        // 底部导航栏 - 所有导航按钮使用安全的Activity转换
-        btnProfile.setOnClickListener(v -> safeNavigateTo(MainActivity.class));
-        btnChat.setOnClickListener(v -> safeFinishActivity());
-        btnMap.setOnClickListener(v -> safeNavigateTo(MapActivity.class));
-        btnCourses.setOnClickListener(v -> {
-            Toast.makeText(this, "课程功能待实现", Toast.LENGTH_SHORT).show();
-        });
-        btnMarketplace.setOnClickListener(v -> safeNavigateTo(MarketplaceActivity.class));
     }
     
     // 修改safeFinishActivity方法，改为明确跳转到ChatListActivity
@@ -443,43 +433,6 @@ public class ChatRoomActivity extends AppCompatActivity {
         finish();
         
         android.util.Log.d("ChatRoomActivity", "已启动ChatListActivity并finish当前Activity");
-    }
-    
-    // 添加安全的导航方法
-    private <T extends AppCompatActivity> void safeNavigateTo(Class<T> targetActivity) {
-        // 已经在结束中，避免重复调用
-        if (isFinishing || isFinishing()) return;
-        
-        // 设置标记表示Activity正在结束
-        isFinishing = true;
-        
-        // 停止监听器
-        if (adapter != null) {
-            try {
-                adapter.stopListening();
-                adapter = null; // 彻底解除引用
-                android.util.Log.d("ChatRoomActivity", "已停止适配器监听并清除引用");
-            } catch (Exception e) {
-                android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
-            }
-        }
-        
-        // 清空适配器和回收视图，彻底释放资源
-        recyclerView.setAdapter(null);
-        
-        try {
-            Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            // 设置平滑过渡
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            // 立即结束当前Activity
-            finish();
-        } catch (Exception e) {
-            android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
-            // 恢复标记状态，允许重试
-            isFinishing = false;
-        }
     }
     
     private void showGroupInfoDialog() {
@@ -1446,15 +1399,75 @@ public class ChatRoomActivity extends AppCompatActivity {
         btnBack = null;
         btnGroupInfo = null;
         announcementLayout = null;
-        btnChat = null;
-        btnMap = null;
-        btnProfile = null;
-        btnCourses = null;
-        btnMarketplace = null;
+        bottomNavigation = null;
         
         super.onDestroy();
     }
 
+    private void setupBottomNavigation() {
+        // 设置选中Chat选项
+        bottomNavigation.setSelectedItemId(R.id.navigation_chat);
+        
+        // 设置导航点击监听
+        bottomNavigation.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.navigation_chat) {
+                // 返回聊天列表
+                safeNavigateTo(ChatListActivity.class);
+                return true;
+            } else if (itemId == R.id.navigation_forum) {
+                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_dashboard) {
+                safeNavigateTo(MainActivity.class);
+                return true;
+            } else if (itemId == R.id.navigation_courses) {
+                safeNavigateTo(CourseSearchActivity.class);
+                return true;
+            } else if (itemId == R.id.navigation_marketplace) {
+                safeNavigateTo(MarketplaceActivity.class);
+                return true;
+            }
+            return false;
+        });
+    }
+    
+    // 添加安全的导航方法
+    private <T extends AppCompatActivity> void safeNavigateTo(Class<T> targetActivity) {
+        // 已经在结束中，避免重复调用
+        if (isFinishing || isFinishing()) return;
+        
+        // 设置标记表示Activity正在结束
+        isFinishing = true;
+        
+        // 停止监听器和进行中的操作
+        if (adapter != null) {
+            try {
+                adapter.stopListening();
+                android.util.Log.d("ChatRoomActivity", "已停止适配器监听");
+            } catch (Exception e) {
+                android.util.Log.e("ChatRoomActivity", "停止适配器监听失败: " + e.getMessage());
+            }
+        }
+        
+        // 延迟一点时间，让Firebase回调有时间处理
+        new Handler().postDelayed(() -> {
+            try {
+                Intent intent = new Intent(ChatRoomActivity.this, targetActivity);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                // 设置平滑过渡
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                // 非立即结束，让过渡动画有时间执行
+                new Handler().postDelayed(() -> finish(), 100);
+            } catch (Exception e) {
+                android.util.Log.e("ChatRoomActivity", "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
+                // 恢复标记状态，允许重试
+                isFinishing = false;
+            }
+        }, 200);
+     
     @Override
     protected void onResume() {
         super.onResume();

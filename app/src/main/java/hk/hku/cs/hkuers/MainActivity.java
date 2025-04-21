@@ -2,9 +2,11 @@ package hk.hku.cs.hkuers;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import hk.hku.cs.hkuers.features.chat.ChatListActivity;
 import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
@@ -18,19 +20,47 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 初始化按钮
-        Button btnChat = findViewById(R.id.btnChat);
-        Button btnMap = findViewById(R.id.btnMap);
-        Button btnProfile = findViewById(R.id.btnProfile);
-        Button btnCourses = findViewById(R.id.btnCourses);
-        Button btnMarketplace = findViewById(R.id.btnMarketplace);
-
-        // 设置点击事件
-        btnChat.setOnClickListener(v -> openChat());
-        btnMap.setOnClickListener(v -> openMap());
+        // 设置顶部工具栏
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false); // 隐藏默认标题
+        
+        // 设置右上角个人资料按钮
+        ImageButton btnProfile = findViewById(R.id.btnProfile);
         btnProfile.setOnClickListener(v -> openProfile());
-        btnCourses.setOnClickListener(v -> openCourses());
-        btnMarketplace.setOnClickListener(v -> openMarketplace());
+
+        // 设置底部导航
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
+        
+        // 设置默认选中项为Home
+        bottomNavigation.setSelectedItemId(R.id.navigation_dashboard);
+        
+        bottomNavigation.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.navigation_chat) {
+                // 处理聊天按钮点击
+                openChat();
+                return true;
+            } else if (itemId == R.id.navigation_forum) {
+                // 处理论坛按钮点击
+                Toast.makeText(MainActivity.this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_dashboard) {
+                // 主页已经是当前页面，不需要额外操作
+                return true;
+            } else if (itemId == R.id.navigation_courses) {
+                // 处理课程按钮点击
+                openCourses();
+                return true;
+            } else if (itemId == R.id.navigation_marketplace) {
+                // 处理市场按钮点击
+                openMarketplace();
+                return true;
+            }
+            
+            return false;
+        });
     }
 
     private void openChat() {
