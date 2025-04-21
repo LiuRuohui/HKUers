@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
+    android:background="#1E1E1E"
+    android:fitsSystemWindows="true"
     tools:context=".features.chat.ChatRoomActivity">
 
     <!-- 顶部工具栏 -->
@@ -88,6 +89,7 @@
         android:layout_height="match_parent"
         android:layout_above="@id/inputLayout"
         android:layout_below="@id/announcementLayout"
+        android:background="#121212"
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:paddingBottom="8dp" />
@@ -97,7 +99,7 @@
         android:id="@+id/inputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/bottomNavLayout"
+        android:layout_above="@id/bottom_navigation"
         android:background="#1E1E1E"
         android:orientation="horizontal"
         android:padding="8dp">
@@ -108,6 +110,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/bg_edit_text_rounded"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:hint="输入消息..."
             android:inputType="textMultiLine"
             android:maxLines="4"
@@ -115,9 +119,7 @@
             android:padding="8dp"
             android:textColor="#CCCCCC"
             android:textColorHint="#777777"
-            android:textSize="16sp"
-            android:focusable="true"
-            android:focusableInTouchMode="true" />
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btnSend"
@@ -130,66 +132,15 @@
     </LinearLayout>
 
     <!-- 底部导航栏 -->
-    <LinearLayout
-        android:id="@+id/bottomNavLayout"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="#1E1E1E"
-        android:padding="8dp"
-        android:orientation="horizontal">
-
-        <!-- 聊天 (高亮显示) -->
-        <Button
-            android:id="@+id/btnChat"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="聊天"
-            android:background="@android:color/transparent"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"/>
-
-        <!-- 地图 -->
-        <Button
-            android:id="@+id/btnMap"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="地图"
-            android:background="@android:color/transparent"
-            android:textColor="#FFFFFF"/>
-
-        <!-- 个人资料 -->
-        <Button
-            android:id="@+id/btnProfile"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="我的"
-            android:background="@android:color/transparent"
-            android:textColor="#FFFFFF"/>
-
-        <!-- 课程 -->
-        <Button
-            android:id="@+id/btnCourses"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="课程"
-            android:background="@android:color/transparent"
-            android:textColor="#FFFFFF"/>
-
-        <!-- 交易 -->
-        <Button
-            android:id="@+id/btnMarketplace"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="交易"
-            android:background="@android:color/transparent"
-            android:textColor="#FFFFFF"/>
-    </LinearLayout>
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/white"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout> 
