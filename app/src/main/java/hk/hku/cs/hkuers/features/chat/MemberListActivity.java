@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,7 +35,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
+import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
+import hk.hku.cs.hkuers.features.map.MapActivity;
+import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.features.profile.UserProfileActivity;
 
 public class MemberListActivity extends AppCompatActivity {
@@ -55,6 +61,7 @@ public class MemberListActivity extends AppCompatActivity {
     private FloatingActionButton fabAddMember;
     private ProgressBar progressBar;
     private TextView tvEmptyList;
+    private BottomNavigationView bottomNavigation;
     
     // 数据
     private String chatRoomId;
@@ -130,6 +137,7 @@ public class MemberListActivity extends AppCompatActivity {
         fabAddMember = findViewById(R.id.fab_add_member);
         progressBar = findViewById(R.id.progress_bar);
         tvEmptyList = findViewById(R.id.tv_empty_list);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
         
         // 设置返回按钮
         findViewById(R.id.btnBack).setOnClickListener(v -> returnToChatRoom());
@@ -148,58 +156,53 @@ public class MemberListActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
-        // 找到底部导航栏的各个按钮
-        Button btnChat = findViewById(R.id.btnChat);
-        Button btnMap = findViewById(R.id.btnMap);
-        Button btnProfile = findViewById(R.id.btnProfile);
-        Button btnCourses = findViewById(R.id.btnCourses);
-        Button btnMarketplace = findViewById(R.id.btnMarketplace);
+        // 设置选中Chat选项
+        bottomNavigation.setSelectedItemId(R.id.navigation_chat);
         
-        // 设置点击事件
-        btnChat.setOnClickListener(v -> {
-            // 返回到聊天列表
-            Intent intent = new Intent(this, ChatListActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            finish();
-        });
-        
-        btnMap.setOnClickListener(v -> {
-            // 导航到地图页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.map.MapActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "地图功能尚未实现", Toast.LENGTH_SHORT).show();
+        // 设置导航点击监听
+        bottomNavigation.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.navigation_chat) {
+                // 返回聊天列表
+                safeNavigateTo(ChatListActivity.class);
+                return true;
+            } else if (itemId == R.id.navigation_forum) {
+                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.navigation_dashboard) {
+                safeNavigateTo(MainActivity.class);
+                return true;
+            } else if (itemId == R.id.navigation_courses) {
+                safeNavigateTo(CourseSearchActivity.class);
+                return true;
+            } else if (itemId == R.id.navigation_marketplace) {
+                safeNavigateTo(MarketplaceActivity.class);
+                return true;
             }
+            return false;
         });
+    }
+
+    // 添加安全的导航方法
+    private <T extends AppCompatActivity> void safeNavigateTo(Class<T> targetActivity) {
+        // 已经在结束中，避免重复调用
+        if (isFinishing()) return;
         
-        btnProfile.setOnClickListener(v -> {
-            // 导航到个人资料页面
+        // 延迟一点时间，让Firebase回调有时间处理
+        new Handler().postDelayed(() -> {
             try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.MainActivity"));
+                Intent intent = new Intent(MemberListActivity.this, targetActivity);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "个人资料功能尚未实现", Toast.LENGTH_SHORT).show();
+                // 设置平滑过渡
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                // 非立即结束，让过渡动画有时间执行
+                new Handler().postDelayed(() -> finish(), 100);
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "导航到" + targetActivity.getSimpleName() + "失败: " + e.getMessage());
             }
-        });
-        
-        btnCourses.setOnClickListener(v -> {
-            Toast.makeText(this, "课程功能尚未实现", Toast.LENGTH_SHORT).show();
-        });
-        
-        btnMarketplace.setOnClickListener(v -> {
-            // 导航到交易页面
-            try {
-                Intent intent = new Intent(this, Class.forName("hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity"));
-                startActivity(intent);
-                finish();
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "交易功能尚未实现", Toast.LENGTH_SHORT).show();
-            }
-        });
+        }, 200);
     }
 
     private void showLoading(boolean show) {
@@ -712,25 +715,21 @@ public class MemberListActivity extends AppCompatActivity {
     }
     
     private void returnToChatRoom() {
-        // 记录日志
-        android.util.Log.d(TAG, "returnToChatRoom: 返回聊天室 chatRoomId=" + chatRoomId);
-        
-        // 通过创建新的ChatRoomActivity Intent来返回聊天室，确保完全重建
-        Intent intent = new Intent(this, ChatRoomActivity.class);
-        intent.putExtra("chatRoomId", chatRoomId);
-        if (chatRoomName != null && !chatRoomName.isEmpty()) {
-            intent.putExtra("chatRoomName", chatRoomName);
+        // 如果有聊天室ID，返回到对应的聊天室
+        if (chatRoomId != null && !chatRoomId.isEmpty()) {
+            Intent intent = new Intent(this, ChatRoomActivity.class);
+            intent.putExtra("chatRoomId", chatRoomId);
+            if (chatRoomName != null && !chatRoomName.isEmpty()) {
+                intent.putExtra("chatRoomName", chatRoomName);
+            }
+            startActivity(intent);
+            finish();
+        } else {
+            // 否则返回到聊天列表
+            Intent intent = new Intent(this, ChatListActivity.class);
+            startActivity(intent);
+            finish();
         }
-        
-        // 设置标志确保聊天室Activity完全重建
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        
-        // 添加平滑过渡动画
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        
-        // 结束当前Activity
-        finish();
     }
 
     private void updateEmptyView() {
