@@ -1,54 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 主题颜色 -->
-    <color name="primary">#9BCBFF</color>
-    <color name="primary_variant">#004881</color>
-    <color name="primary_dark">#00325A</color>
-    <color name="on_primary">#00325A</color>
-    <color name="primary_container">#004881</color>
+    <!-- 深色主题颜色 -->
+    <color name="colorPrimary">@color/primary</color>
+    <color name="primary">#90CAF9</color>
+    <color name="primary_variant">#64B5F6</color>
+    <color name="primary_dark">#2196F3</color>
+    <color name="on_primary">#000000</color>
+    <color name="primary_container">#0A2742</color>
     <color name="on_primary_container">#D8E6FF</color>
-    
-    <color name="secondary">#CBBDFF</color>
-    <color name="secondary_variant">#4F378B</color>
-    <color name="on_secondary">#381E72</color>
+
+    <color name="secondary">#BB86FC</color>
+    <color name="secondary_variant">#7C4DFF</color>
+    <color name="on_secondary">#000000</color>
     <color name="secondary_container">#4F378B</color>
-    <color name="on_secondary_container">#E8DDFF</color>
-    
-    <color name="tertiary">#D9B9C3</color>
-    <color name="on_tertiary">#3F2A32</color>
-    <color name="tertiary_container">#5B3F4A</color>
+    <color name="on_secondary_container">#EADDFF</color>
+
+    <color name="tertiary">#EFB8C8</color>
+    <color name="on_tertiary">#000000</color>
+    <color name="tertiary_container">#633B48</color>
     <color name="on_tertiary_container">#FFD8E4</color>
-    
-    <color name="error">#FFB4AB</color>
-    <color name="on_error">#690005</color>
-    <color name="error_container">#93000A</color>
+
+    <color name="error">#CF6679</color>
+    <color name="on_error">#000000</color>
+    <color name="error_container">#8C001F</color>
     <color name="on_error_container">#FFDAD6</color>
-    
+
     <!-- 中性颜色 -->
-    <color name="background">#1C1B1F</color>
-    <color name="on_background">#E5E1E6</color>
-    <color name="surface">#1C1B1F</color>
-    <color name="on_surface">#E5E1E6</color>
-    <color name="surface_variant">#49454F</color>
+    <color name="background">#121212</color>
+    <color name="background_dark">#000000</color>
+    <color name="on_background">#E6E1E5</color>
+    <color name="surface">#121212</color>
+    <color name="on_surface">#E6E1E5</color>
+    <color name="surface_variant">#3F3F3F</color>
     <color name="on_surface_variant">#CAC4D0</color>
-    <color name="outline">#928F99</color>
-    
+    <color name="outline">#9E9E9E</color>
+
     <!-- 辅助颜色 -->
     <color name="ripple_color">#33FFFFFF</color>
-    <color name="scrim">#80000000</color>
-    
+    <color name="scrim">#52000000</color>
+
     <!-- 文本颜色 -->
-    <color name="text_primary">#E5E1E6</color>
+    <color name="text_primary">#E6E1E5</color>
     <color name="text_secondary">#CAC4D0</color>
-    <color name="divider">#2F2F2F</color>
+    <color name="divider">#2D2D2D</color>
     <color name="button_primary">@color/primary</color>
-    <color name="background_dark">#121212</color>
-    
+
     <!-- 状态颜色 -->
     <color name="available">#81C784</color>
-    <color name="available_container">#0F5B0F</color>
+    <color name="available_container">#1E3620</color>
     <color name="sold">#EF5350</color>
-    <color name="sold_container">#7F0000</color>
-    <color name="reserved">#FFCC80</color>
-    <color name="reserved_container">#774600</color>
+    <color name="sold_container">#3E1C1B</color>
+    <color name="reserved">#FFD54F</color>
+    <color name="reserved_container">#3D3011</color>
+
+    <!-- 基础颜色 -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- 状态颜色 -->
+    <color name="success">#81C784</color>
+    <color name="warning">#FFD54F</color>
 </resources> 

@@ -5,27 +5,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/background_dark"
     tools:context=".features.trade.AddTradeActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/background">
+        android:background="@color/background_dark">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="发布商品"
-            app:titleTextColor="@color/text_primary"
-            app:navigationIcon="@drawable/ic_back" />
+            app:title="Post Item"
+            app:titleTextColor="@color/divider"
+            app:navigationIcon="@drawable/ic_back"
+            app:navigationIconTint="@color/divider" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/background_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -41,7 +43,8 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/divider"
+                app:cardBackgroundColor="@color/on_surface_variant"
+                app:strokeColor="@color/outline"
                 app:strokeWidth="1dp">
 
                 <RelativeLayout
@@ -67,23 +70,23 @@
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:src="@drawable/ic_add_photo"
-                            android:alpha="0.5"
-                            app:tint="@color/text_secondary" />
+                            android:alpha="0.7"
+                            app:tint="@color/on_surface_variant" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="点击添加商品图片"
-                            android:textColor="@color/text_secondary"
+                            android:text="Tap to add product image"
+                            android:textColor="@color/divider"
                             android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="从设备存储中选择图片"
-                            android:textColor="@color/text_secondary"
+                            android:text="Select an image from your device"
+                            android:textColor="@color/divider"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </RelativeLayout>
@@ -95,7 +98,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="商品标题"
+                android:hint="Item Title"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/on_surface_variant"
+                app:hintTextColor="@color/on_surface_variant"
                 app:errorEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -103,6 +109,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/divider"
                     android:maxLength="50" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -112,7 +120,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="商品描述"
+                android:hint="Item Description"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/text_primary"
                 app:errorEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -121,6 +132,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="top"
                     android:inputType="textMultiLine"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/divider"
                     android:minLines="3"
                     android:maxLength="500" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -131,15 +144,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="价格 (HK$)"
+                android:hint="Price (HK$)"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/text_primary"
                 app:errorEnabled="true"
-                app:prefixText="HK$">
+                app:prefixText="HK$"
+                app:prefixTextColor="@color/text_primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/priceEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/divider"
+                    android:backgroundTint="@color/divider" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -148,14 +167,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="分类"
+                android:hint="Category"
+                android:textColorHint="@color/text_secondary"
+                app:boxStrokeColor="@color/divider"
+                app:hintTextColor="@color/divider"
                 app:errorEnabled="true">
 
                 <AutoCompleteTextView
                     android:id="@+id/categoryAutoCompleteTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none" />
+                    android:inputType="none"
+                    android:textColor="@color/text_primary"
+                    android:backgroundTint="@color/surface_variant" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -163,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="80dp"
-                android:text="发布须知：请确保商品信息真实有效，违规内容可能导致账号被封禁。"
+                android:text="Notice: Please ensure the item information is accurate and valid. Inappropriate content may result in account suspension."
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -174,6 +198,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:backgroundTint="@color/on_surface_variant"
         app:fabCradleMargin="8dp"
         app:fabCradleRoundedCornerRadius="32dp"
         app:hideOnScroll="true">
@@ -185,8 +210,8 @@
             android:layout_margin="8dp"
             android:backgroundTint="@color/primary"
             android:padding="12dp"
-            android:text="发布"
-            android:textColor="@android:color/white"
+            android:text="Post"
+            android:textColor="@color/on_primary"
             android:textSize="16sp"
             app:cornerRadius="8dp" />
     </com.google.android.material.bottomappbar.BottomAppBar>

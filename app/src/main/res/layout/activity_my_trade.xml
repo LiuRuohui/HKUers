@@ -4,36 +4,38 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="@color/background_dark"
     tools:context=".features.trade.MyTradeActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
+        android:background="@color/divider"
         app:liftOnScroll="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorSurface"
+            android:background="@color/background_dark"
             android:elevation="0dp"
             app:navigationIcon="@drawable/ic_back"
-            app:title="我的交易"
+            app:navigationIconTint="@color/divider"
+            app:title="My Trades"
             app:titleCentered="true"
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
-            app:titleTextColor="?attr/colorOnSurface" />
+            app:titleTextColor="@color/divider" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
+            android:background="@color/background_dark"
             app:tabGravity="fill"
             app:tabIndicator="@drawable/tab_indicator"
             app:tabIndicatorAnimationMode="elastic"
-            app:tabIndicatorColor="?attr/colorPrimary"
+            app:tabIndicatorColor="@color/divider"
             app:tabIndicatorFullWidth="false"
             app:tabIndicatorGravity="bottom"
             app:tabIndicatorHeight="3dp"
@@ -41,10 +43,10 @@
             app:tabMode="fixed"
             app:tabPaddingEnd="16dp"
             app:tabPaddingStart="16dp"
-            app:tabRippleColor="@color/ripple_color"
-            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabRippleColor="@color/divider"
+            app:tabSelectedTextColor="@color/divider"
             app:tabTextAppearance="@style/TextAppearance.Material3.BodyMedium"
-            app:tabTextColor="?attr/colorOnSurfaceVariant" />
+            app:tabTextColor="@color/divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -52,10 +54,10 @@
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorSurfaceVariant"
+        android:background="@color/background_dark"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <!-- 阴影效果 -->
+    <!-- Shadow Effect -->
     <View
         android:layout_width="match_parent"
         android:layout_height="6dp"
