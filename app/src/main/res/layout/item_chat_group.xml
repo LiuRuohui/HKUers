@@ -36,13 +36,13 @@
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
             android:textColor="#FFFFFF"
-            android:textSize="9sp"
+            android:textSize="10sp"
             android:textStyle="bold"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/tvGroupName"
             app:layout_constraintStart_toEndOf="@id/colorIndicator"
             app:layout_constraintTop_toTopOf="@id/tvGroupName"
-            tools:text="99+"
+            tools:text="!"
             tools:visibility="visible" />
 
         <!-- 已读对勾图标 -->

@@ -273,24 +273,51 @@ public class ChatListActivity extends AppCompatActivity {
                 
                 // 计算未读消息数
                 int unreadCount = 0;
-                Map<String, Object> readCounts = (Map<String, Object>) snapshot.get("read_counts");
                 Map<String, Object> userReadStatus = (Map<String, Object>) snapshot.get("user_read_status");
+                Timestamp lastMessageTime = snapshot.getTimestamp("last_message_time");
                 
-                if (readCounts != null && userReadStatus != null) {
-                    Long messageCount = snapshot.getLong("message_count");
-                    if (messageCount == null) messageCount = 0L;
+                if (userReadStatus != null && lastMessageTime != null) {
+                    // 获取当前用户的最后读取时间
+                    Object userReadTimeObj = userReadStatus.get(currentUser.getUid());
                     
-                    // 获取当前用户的已读消息数
-                    Long userReadCount = 0L;
-                    Object userReadCountObj = readCounts.get(currentUser.getUid());
-                    if (userReadCountObj instanceof Long) {
-                        userReadCount = (Long) userReadCountObj;
+                    if (userReadTimeObj instanceof Timestamp) {
+                        Timestamp userReadTime = (Timestamp) userReadTimeObj;
+                        
+                        // 如果用户最后读取时间早于最后消息时间，说明有未读消息
+                        if (userReadTime.compareTo(lastMessageTime) < 0) {
+                            // 如果需要显示确切的未读消息数量，可以查询时间段内的消息数
+                            // 目前简化为有未读消息时显示数字1
+                            unreadCount = 1;
+                        }
+                    } else {
+                        // 如果用户没有读取记录，认为有未读消息
+                        unreadCount = 1;
                     }
-                    
-                    // 计算未读消息数
-                    unreadCount = (int)(messageCount - userReadCount);
-                    model.setUnreadCount(unreadCount);
+                } else if (lastMessageTime != null) {
+                    // 如果没有用户读取记录但有最后消息时间，也认为有未读消息
+                    unreadCount = 1;
                 }
+                
+                // 为了兼容旧代码，也可以保留基于read_counts的计算方式作为备选
+                if (unreadCount == 0) {
+                    Map<String, Object> readCounts = (Map<String, Object>) snapshot.get("read_counts");
+                    Long messageCount = snapshot.getLong("message_count");
+                    
+                    if (readCounts != null && messageCount != null) {
+                        Long userReadCount = 0L;
+                        Object userReadCountObj = readCounts.get(currentUser.getUid());
+                        if (userReadCountObj instanceof Long) {
+                            userReadCount = (Long) userReadCountObj;
+                        }
+                        
+                        // 如果基于计数的方式显示有未读，则也设置为1
+                        if (messageCount > userReadCount) {
+                            unreadCount = 1;
+                        }
+                    }
+                }
+                
+                model.setUnreadCount(unreadCount);
                 
                 // 如果筛选条件为仅显示未读且当前项没有未读消息，则跳过这个项
                 if (showUnreadOnly && unreadCount <= 0) {
@@ -1245,31 +1272,68 @@ public class ChatListActivity extends AppCompatActivity {
                 
                 // 遍历所有聊天室
                 for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                    // 获取消息总数和用户已读数
-                    Long messageCount = document.getLong("message_count");
-                    if (messageCount == null) messageCount = 0L;
+                    // 获取最后消息时间
+                    Timestamp lastMessageTime = document.getTimestamp("last_message_time");
                     
-                    // 获取用户已读数
-                    Map<String, Object> readCounts = (Map<String, Object>) document.get("read_counts");
-                    if (readCounts != null) {
-                        Long userReadCount = 0L;
-                        Object userReadCountObj = readCounts.get(user.getUid());
-                        if (userReadCountObj instanceof Long) {
-                            userReadCount = (Long) userReadCountObj;
+                    // 获取用户读取状态
+                    Map<String, Object> userReadStatus = (Map<String, Object>) document.get("user_read_status");
+                    
+                    boolean chatHasUnread = false;
+                    
+                    // 使用时间戳比较判断是否有未读消息
+                    if (lastMessageTime != null) {
+                        if (userReadStatus != null) {
+                            Object userReadTimeObj = userReadStatus.get(user.getUid());
+                            
+                            if (userReadTimeObj instanceof Timestamp) {
+                                Timestamp userReadTime = (Timestamp) userReadTimeObj;
+                                
+                                // 如果用户最后读取时间早于最后消息时间，说明有未读消息
+                                if (userReadTime.compareTo(lastMessageTime) < 0) {
+                                    chatHasUnread = true;
+                                    totalUnread++;
+                                }
+                            } else {
+                                // 没有读取记录但有消息，算作未读
+                                chatHasUnread = true;
+                                totalUnread++;
+                            }
+                        } else {
+                            // 没有用户读取状态记录，算作未读
+                            chatHasUnread = true;
+                            totalUnread++;
                         }
+                    }
+                    
+                    // 如果基于时间戳判断没有未读，可以备用基于计数的方式（向后兼容）
+                    if (!chatHasUnread) {
+                        Long messageCount = document.getLong("message_count");
+                        if (messageCount == null) messageCount = 0L;
                         
-                        // 计算未读数
-                        long unreadCount = messageCount - userReadCount;
-                        if (unreadCount > 0) {
-                            hasUnread = true;
-                            totalUnread += unreadCount;
+                        // 获取用户已读数
+                        Map<String, Object> readCounts = (Map<String, Object>) document.get("read_counts");
+                        if (readCounts != null) {
+                            Long userReadCount = 0L;
+                            Object userReadCountObj = readCounts.get(user.getUid());
+                            if (userReadCountObj instanceof Long) {
+                                userReadCount = (Long) userReadCountObj;
+                            }
+                            
+                            // 计算未读数
+                            if (messageCount > userReadCount) {
+                                chatHasUnread = true;
+                                totalUnread++;
+                            }
+                        } else if (messageCount > 0) {
+                            // 如果readCounts为空，则认为有未读消息
+                            chatHasUnread = true;
+                            totalUnread++;
                         }
-                    } else {
-                        // 如果readCounts为空，则认为有未读消息
-                        if (messageCount > 0) {
-                            hasUnread = true;
-                            totalUnread += messageCount;
-                        }
+                    }
+                    
+                    // 更新总状态
+                    if (chatHasUnread) {
+                        hasUnread = true;
                     }
                 }
                 
@@ -1440,10 +1504,11 @@ public class ChatListActivity extends AppCompatActivity {
             // 设置未读消息数
             int unreadCount = group.getUnreadCount();
             if (unreadCount > 0) {
-                tvUnreadCount.setText(String.valueOf(unreadCount));
+                // 使用"!"符号作为未读消息指示器，更加简洁，尺寸与对勾匹配
+                tvUnreadCount.setText("!");
                 tvUnreadCount.setVisibility(View.VISIBLE);
                 ivReadMark.setVisibility(View.GONE);
-                } else {
+            } else {
                 tvUnreadCount.setVisibility(View.GONE);
                 ivReadMark.setVisibility(View.VISIBLE);
             }
