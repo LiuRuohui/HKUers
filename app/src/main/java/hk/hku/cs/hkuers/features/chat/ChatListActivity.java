@@ -134,6 +134,12 @@ public class ChatListActivity extends AppCompatActivity {
             Toast.makeText(this, "Test data added", Toast.LENGTH_SHORT).show();
             return true;
         });
+        
+        // 加载聊天列表时，同时检查更新用户的未读消息状态
+        checkUnreadMessages(currentUser, db, hasUnread -> {
+            // 未读状态已在 Firestore 更新，不需要在此处理
+            android.util.Log.d("ChatListActivity", "未读消息状态更新: " + hasUnread);
+        });
     }
 
     /**
@@ -415,6 +421,11 @@ public class ChatListActivity extends AppCompatActivity {
                             android.util.Log.e("ChatListActivity", "标记已读失败: " + e.getMessage()));
                 }
             });
+            
+        // 更新完标记后，检查更新未读消息总体状态
+        checkUnreadMessages(currentUser, db, hasUnread -> {
+            android.util.Log.d("ChatListActivity", "标记已读后更新未读状态: " + hasUnread);
+        });
     }
 
     /**
@@ -1209,11 +1220,139 @@ public class ChatListActivity extends AppCompatActivity {
             .show();
     }
 
+    /**
+     * 检查用户是否有未读消息并更新标志
+     * 可从任何地方静态调用，以检查当前用户是否有未读消息
+     * 
+     * @param callback 接收检查结果的回调（true表示有未读消息，false表示没有）
+     */
+    public static void checkUnreadMessages(FirebaseUser user, FirebaseFirestore firestore, OnUnreadMessagesCheckListener callback) {
+        // 验证用户已登录
+        if (user == null) {
+            if (callback != null) {
+                callback.onResult(false);
+            }
+            return;
+        }
+        
+        // 查询当前用户参与的所有聊天室
+        firestore.collection("chat_rooms")
+            .whereArrayContains("member_ids", user.getUid())
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                boolean hasUnread = false;
+                int totalUnread = 0;
+                
+                // 遍历所有聊天室
+                for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                    // 获取消息总数和用户已读数
+                    Long messageCount = document.getLong("message_count");
+                    if (messageCount == null) messageCount = 0L;
+                    
+                    // 获取用户已读数
+                    Map<String, Object> readCounts = (Map<String, Object>) document.get("read_counts");
+                    if (readCounts != null) {
+                        Long userReadCount = 0L;
+                        Object userReadCountObj = readCounts.get(user.getUid());
+                        if (userReadCountObj instanceof Long) {
+                            userReadCount = (Long) userReadCountObj;
+                        }
+                        
+                        // 计算未读数
+                        long unreadCount = messageCount - userReadCount;
+                        if (unreadCount > 0) {
+                            hasUnread = true;
+                            totalUnread += unreadCount;
+                        }
+                    } else {
+                        // 如果readCounts为空，则认为有未读消息
+                        if (messageCount > 0) {
+                            hasUnread = true;
+                            totalUnread += messageCount;
+                        }
+                    }
+                }
+                
+                // 在用户数据中存储是否有未读消息的标志
+                updateUserUnreadMessagesFlag(user.getUid(), firestore, hasUnread, totalUnread);
+                
+                // 通过回调返回结果
+                if (callback != null) {
+                    callback.onResult(hasUnread);
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("ChatListActivity", "检查未读消息失败: " + e.getMessage());
+                if (callback != null) {
+                    callback.onResult(false);
+                }
+            });
+    }
+    
+    /**
+     * 更新用户的未读消息标志
+     * 
+     * @param userId 用户ID
+     * @param firestore Firestore实例
+     * @param hasUnread 是否有未读消息
+     * @param totalUnread 未读消息总数
+     */
+    private static void updateUserUnreadMessagesFlag(String userId, FirebaseFirestore firestore, boolean hasUnread, int totalUnread) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("has_unread_messages", hasUnread);
+        updates.put("unread_messages_count", totalUnread);
+        updates.put("last_unread_check", new Timestamp(new Date()));
+        
+        // 先检查用户文档是否存在
+        firestore.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    // 用户文档存在，直接更新
+                    documentSnapshot.getReference().update(updates)
+                        .addOnFailureListener(e -> 
+                            android.util.Log.e("ChatListActivity", "更新用户未读消息标志失败: " + e.getMessage())
+                        );
+                } else {
+                    // 用户文档不存在，创建新文档
+                    Map<String, Object> userData = new HashMap<>(updates);
+                    // 添加用户ID，确保文档中有这个字段
+                    userData.put("user_id", userId);
+                    
+                    documentSnapshot.getReference().set(userData)
+                        .addOnFailureListener(e -> 
+                            android.util.Log.e("ChatListActivity", "创建用户未读消息标志失败: " + e.getMessage())
+                        );
+                }
+            })
+            .addOnFailureListener(e -> 
+                android.util.Log.e("ChatListActivity", "检查用户文档失败: " + e.getMessage())
+            );
+    }
+    
+    /**
+     * 未读消息检查监听器接口
+     */
+    public interface OnUnreadMessagesCheckListener {
+        /**
+         * 检查结果回调
+         * @param hasUnread 是否有未读消息
+         */
+        void onResult(boolean hasUnread);
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         if (adapter != null) {
             adapter.startListening();
+        }
+        
+        // 每次活动重新可见时，更新未读消息状态
+        if (currentUser != null) {
+            checkUnreadMessages(currentUser, db, hasUnread -> {
+                android.util.Log.d("ChatListActivity", "onStart 未读消息状态更新: " + hasUnread);
+            });
         }
     }
 
