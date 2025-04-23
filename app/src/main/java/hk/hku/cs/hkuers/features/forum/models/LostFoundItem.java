@@ -1,6 +1,8 @@
 package hk.hku.cs.hkuers.features.forum.models;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.HashMap;
 
 public class LostFoundItem {
     private String id;

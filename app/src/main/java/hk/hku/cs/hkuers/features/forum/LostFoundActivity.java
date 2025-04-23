@@ -19,6 +19,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -169,8 +170,10 @@ public class LostFoundActivity extends AppCompatActivity {
     }
 
     private void openNewLostFoundActivity() {
-        Intent intent = new Intent(this, NewLostFoundActivity.class);
-        startActivityForResult(intent, REQUEST_CODE_NEW_LOST_FOUND);
+        // 暂时注释掉，等待实现NewLostFoundActivity
+        // Intent intent = new Intent(this, NewLostFoundActivity.class);
+        // startActivityForResult(intent, REQUEST_CODE_NEW_LOST_FOUND);
+        Toast.makeText(this, "此功能尚未实现", Toast.LENGTH_SHORT).show();
     }
 
     @Override
