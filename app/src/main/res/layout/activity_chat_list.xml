@@ -37,13 +37,25 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <!-- 筛选按钮 -->
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Filter chats"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            app:tint="#FFFFFF" />
+
         <!-- 新建聊天室按钮 -->
         <ImageButton
             android:id="@+id/btnCreateChat"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="end"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="56dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Create new chat"
             android:src="@android:drawable/ic_input_add"
