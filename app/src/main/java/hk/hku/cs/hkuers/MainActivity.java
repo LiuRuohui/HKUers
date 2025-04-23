@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                         // 添加未读消息通知
                         NotificationItem notification = new NotificationItem(
                             "Chat",
-                            "You have " + unreadCount + " unread message" + ((unreadCount > 1)? "s" : ""),
+                            "You have unread messages",
                                 R.drawable.ic_chat_active_24dp,  // 这里应替换为相应的聊天图标
                             () -> openChat()
                         );
