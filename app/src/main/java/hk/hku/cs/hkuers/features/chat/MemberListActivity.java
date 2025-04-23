@@ -35,6 +35,7 @@ import java.util.Map;
 
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.profile.UserProfileActivity;
+import hk.hku.cs.hkuers.features.profile.UserProfileManager;
 
 public class MemberListActivity extends AppCompatActivity {
 
@@ -845,45 +846,25 @@ public class MemberListActivity extends AppCompatActivity {
             
             // 设置点击事件
             holder.itemView.setOnClickListener(v -> {
-                // 跳转到用户资料页面
-                Intent intent = new Intent(context, UserProfileActivity.class);
-                
-                // 传递用户基本信息
-                intent.putExtra("user_id", member.getUserId());
-                
-                // 传递聊天室返回信息，用于正确处理返回逻辑
-                intent.putExtra("from_chat_room", "true");
-                intent.putExtra("chat_room_id", chatRoomId);
-                intent.putExtra("chat_room_name", chatRoomName);
-                
-                // 传递已有的用户数据，避免重复查询
-                if (member.getUsername() != null) {
-                    intent.putExtra("user_name", member.getUsername());
-                }
-                if (member.getEmail() != null) {
-                    intent.putExtra("user_email", member.getEmail());
-                }
-                if (member.getDepartment() != null) {
-                    intent.putExtra("user_department", member.getDepartment());
-                }
-                if (member.getProgramme() != null) {
-                    intent.putExtra("user_programme", member.getProgramme());
-                }
-                if (member.getYearOfEntry() != null) {
-                    intent.putExtra("user_year_of_entry", member.getYearOfEntry());
-                }
-                if (member.getSignature() != null) {
-                    intent.putExtra("user_signature", member.getSignature());
-                }
-                if (member.getAvatarUrl() != null) {
-                    intent.putExtra("user_avatar_url", member.getAvatarUrl());
-                }
-                
-                // 启动Activity
-                context.startActivity(intent);
-                
-                // 设置过渡动画
-                context.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                // 获取用户数据
+                db.collection("users").document(member.getUserId())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        // 使用UserProfileManager显示资料浮窗
+                        UserProfileManager.getInstance().showUserProfile(
+                                context, 
+                                holder.itemView,
+                                member.getUserId(),
+                                documentSnapshot,
+                                chatRoomId,
+                                chatRoomName);
+                        
+                        Log.d(TAG, "已打开用户资料浮窗，用户ID: " + member.getUserId());
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "获取用户数据失败: " + e.getMessage(), e);
+                        Toast.makeText(context, "无法加载用户资料: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
             });
         }
 
