@@ -29,6 +29,8 @@ import com.google.firebase.storage.UploadTask;
 
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.chat.ChatRoomActivity;
+import hk.hku.cs.hkuers.features.chat.ChatListActivity;
+import hk.hku.cs.hkuers.models.ChatGroup;
 import hk.hku.cs.hkuers.auth.LoginActivity;
 
 import java.util.ArrayList;
@@ -229,65 +231,60 @@ public class TradeDetailActivity extends AppCompatActivity {
 
     private void contactSeller() {
         if (tradeItem == null || tradeItem.getSellerId() == null) {
-            Toast.makeText(this, "无法获取卖家信息", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Unable to get seller information", Toast.LENGTH_SHORT).show();
             return;
         }
         
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
             return;
         }
         
         String sellerId = tradeItem.getSellerId();
         String currentUserId = currentUser.getUid();
         
-        // 不能给自己发消息
+        // Can't message yourself
         if (sellerId.equals(currentUserId)) {
-            Toast.makeText(this, "这是您自己的商品", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "This is your own product", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        // 显示进度对话框
+        // Show progress dialog
         AlertDialog progressDialog = new AlertDialog.Builder(this)
-            .setTitle("正在连接聊天")
-            .setMessage("请稍候...")
+            .setTitle("Connecting to chat")
+            .setMessage("Please wait...")
             .setCancelable(false)
             .create();
         progressDialog.show();
         
-        // 生成私聊群组ID（两个用户ID按字母顺序排序并拼接，确保唯一性）
-        String chatId;
-        if (sellerId.compareTo(currentUserId) < 0) {
-            chatId = "private_" + sellerId + "_" + currentUserId;
-        } else {
-            chatId = "private_" + currentUserId + "_" + sellerId;
-        }
+        // Create a unique chat ID for this specific item and user combination
+        String chatId = "trade_" + tradeItem.getId() + "_" + currentUserId + "_" + sellerId;
         
-        // 检查私聊是否已存在
+        // Check if chat for this specific item already exists
         db.collection("chat_rooms").document(chatId).get()
             .addOnSuccessListener(documentSnapshot -> {
                 progressDialog.dismiss();
                 
                 if (documentSnapshot.exists()) {
-                    // 聊天已存在，直接打开
+                    // Chat already exists, open it
                     String chatName = tradeItem.getSellerName() + " - " + tradeItem.getTitle();
                     openChatRoom(chatId, chatName);
                 } else {
-                    // 聊天不存在，创建新的聊天
+                    // Chat doesn't exist, create a new one
                     createPrivateChat(chatId, sellerId);
                 }
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "联系卖家失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to contact seller: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
     /**
-     * 创建私聊聊天室
-     * @param chatId 聊天室ID
-     * @param sellerId 卖家ID
+     * Create a private trade chat room
+     * @param chatId Chat room ID
+     * @param sellerId Seller ID
      */
     private void createPrivateChat(String chatId, String sellerId) {
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -296,22 +293,23 @@ public class TradeDetailActivity extends AppCompatActivity {
         String currentUserId = currentUser.getUid();
         String chatName = tradeItem.getSellerName() + " - " + tradeItem.getTitle();
         
-        // 准备聊天室数据
+        // Prepare chat room data
         Map<String, Object> chatData = new HashMap<>();
         chatData.put("chat_name", chatName);
-        chatData.put("creator_id", currentUserId);
+        chatData.put("creator_id", "system"); // No owner for trade chats
         chatData.put("created_at", new Timestamp(new Date()));
         chatData.put("is_private", true);
         chatData.put("item_id", tradeItem.getId());
         chatData.put("item_title", tradeItem.getTitle());
+        chatData.put("group_type", ChatGroup.TYPE_TRADE); // Set as trade chat type
         
-        // 将双方都添加为成员
+        // Add both parties as members
         List<String> memberIds = new ArrayList<>();
         memberIds.add(currentUserId);
         memberIds.add(sellerId);
         chatData.put("member_ids", memberIds);
         
-        // 初始化已读状态
+        // Initialize read status
         Map<String, Object> readCounts = new HashMap<>();
         readCounts.put(currentUserId, 0);
         readCounts.put(sellerId, 0);
@@ -322,37 +320,42 @@ public class TradeDetailActivity extends AppCompatActivity {
         userReadStatus.put(sellerId, 0);
         chatData.put("user_read_status", userReadStatus);
         
-        // 设置最后消息和时间
+        // Set last message and time
         chatData.put("last_message", "");
         chatData.put("last_message_time", new Timestamp(new Date()));
         chatData.put("message_count", 0);
         
-        // 显示进度对话框
+        // Generate a random color code for the chat room
+        int colorIndex = Math.abs(chatId.hashCode()) % ChatListActivity.ChatGroupViewHolder.GROUP_COLORS.length;
+        String colorCode = String.format("#%06X", (0xFFFFFF & ChatListActivity.ChatGroupViewHolder.GROUP_COLORS[colorIndex]));
+        chatData.put("color_code", colorCode);
+        
+        // Show progress dialog
         AlertDialog progressDialog = new AlertDialog.Builder(this)
-            .setTitle("正在创建聊天")
-            .setMessage("请稍候...")
+            .setTitle("Creating chat")
+            .setMessage("Please wait...")
             .setCancelable(false)
             .create();
         progressDialog.show();
         
-        // 创建聊天室
+        // Create chat room
         db.collection("chat_rooms").document(chatId)
             .set(chatData)
             .addOnSuccessListener(aVoid -> {
-                // 添加系统消息
+                // Add system message
                 addInitialMessage(chatId, sellerId, progressDialog);
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "创建聊天失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to create chat: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
     /**
-     * 添加聊天初始消息
-     * @param chatId 聊天室ID
-     * @param sellerId 卖家ID
-     * @param progressDialog 进度对话框
+     * Add initial message to the chat
+     * @param chatId Chat room ID
+     * @param sellerId Seller ID
+     * @param progressDialog Progress dialog
      */
     private void addInitialMessage(String chatId, String sellerId, AlertDialog progressDialog) {
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -361,19 +364,19 @@ public class TradeDetailActivity extends AppCompatActivity {
             return;
         }
         
-        // 创建系统消息
+        // Create system message
         Map<String, Object> message = new HashMap<>();
         message.put("type", "system");
         message.put("text", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("senderId", "system");
         
-        // 添加消息
+        // Add message
         db.collection("chat_rooms").document(chatId)
             .collection("messages")
             .add(message)
             .addOnSuccessListener(documentReference -> {
-                // 更新聊天室的最后消息和时间
+                // Update chat room's last message and time
                 Map<String, Object> updateData = new HashMap<>();
                 updateData.put("last_message", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
                 updateData.put("last_message_time", new Timestamp(new Date()));
@@ -383,18 +386,18 @@ public class TradeDetailActivity extends AppCompatActivity {
                     .update(updateData)
                     .addOnSuccessListener(aVoid -> {
                         progressDialog.dismiss();
-                        // 打开聊天室
+                        // Open chat room
                         String chatName = tradeItem.getSellerName() + " - " + tradeItem.getTitle();
                         openChatRoom(chatId, chatName);
                     })
                     .addOnFailureListener(e -> {
                         progressDialog.dismiss();
-                        Toast.makeText(this, "更新聊天室失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Failed to update chat room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "添加消息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to add message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 

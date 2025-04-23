@@ -1,5 +1,6 @@
 package hk.hku.cs.hkuers.features.courses;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -39,8 +40,10 @@ import java.util.Map;
 import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.chat.ChatListActivity;
+import hk.hku.cs.hkuers.features.chat.ChatRoomActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
+import hk.hku.cs.hkuers.models.ChatGroup;
 import hk.hku.cs.hkuers.models.Course;
 
 public class CourseSearchActivity extends AppCompatActivity {
@@ -319,6 +322,19 @@ public class CourseSearchActivity extends AppCompatActivity {
                 colorIndicator.setBackgroundColor(COURSE_COLORS[0]);
             }
 
+            // 添加整个课程项的点击事件，提示用户是否加入课程群聊
+            itemView.setOnClickListener(v -> {
+                Context context = itemView.getContext();
+                if (context instanceof CourseSearchActivity) {
+                    CourseSearchActivity activity = (CourseSearchActivity) context;
+                    activity.checkAndPromptJoinCourseChat(
+                            course.getCourseId(), 
+                            course.getCourseClass(), 
+                            course.getCourseSemester()
+                    );
+                }
+            });
+
             btnDelete.setOnClickListener(v -> {
                 new MaterialAlertDialogBuilder(itemView.getContext())
                         .setTitle("Delete confirmation")
@@ -391,17 +407,387 @@ public class CourseSearchActivity extends AppCompatActivity {
                             .document(currentUser.getUid())
                             .update("courses", FieldValue.arrayUnion(courseIdFireStore))
                             .addOnSuccessListener(__ -> {
-                                Toast.makeText(this, "Add course successfully",
+                                Toast.makeText(this, "Course added successfully",
                                                 Toast.LENGTH_SHORT).show();
+                                
+                                // Get course details to check/create course chat
+                                db.collection("courses").document(courseIdFireStore)
+                                    .get()
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        if (documentSnapshot.exists()) {
+                                            String courseId = documentSnapshot.getString("courseId");
+                                            String courseClass = documentSnapshot.getString("courseClass");
+                                            String courseSemester = documentSnapshot.getString("courseSemester");
+                                            
+                                            if (courseId != null && courseClass != null && courseSemester != null) {
+                                                // Check if course chat exists, create if not
+                                                checkAndCreateCourseChat(courseId, courseClass, courseSemester);
+                                            }
+                                        }
+                                    });
                             })
                             .addOnFailureListener(e -> Toast.makeText(this,
-                                                    "Update course failure: " + e.getMessage(),
+                                                    "Failed to update course: " + e.getMessage(),
                                                     Toast.LENGTH_SHORT).show()
                             );
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failure to add course: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Failed to add course: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
+    }
+    
+    /**
+     * Check if a course chat exists and create it if not
+     * @param courseId Course ID
+     * @param courseClass Course class
+     * @param courseSemester Course semester
+     */
+    private void checkAndCreateCourseChat(String courseId, String courseClass, String courseSemester) {
+        // Generate chat room name format: courseId-class-semester
+        String chatName = courseId + "-" + courseClass + "-" + courseSemester;
+        
+        // Check if the chat room already exists
+        db.collection("chat_rooms")
+            .whereEqualTo("chat_name", chatName)
+            .whereEqualTo("group_type", ChatGroup.TYPE_COURSE)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    // Course chat already exists, check if user is already a member
+                    DocumentReference existingChatRef = queryDocumentSnapshots.getDocuments().get(0).getReference();
+                    String existingChatId = existingChatRef.getId();
+                    
+                    // Check if user is already a member
+                    existingChatRef.get().addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            List<String> memberIds = (List<String>) documentSnapshot.get("member_ids");
+                            
+                            if (memberIds != null && !memberIds.contains(currentUser.getUid())) {
+                                // User is not a member, automatically add them to the chat
+                                joinCourseChatGroup(existingChatId, chatName);
+                            }
+                        }
+                    });
+                } else {
+                    // Course chat doesn't exist, create one
+                    createCourseChatGroup(courseId, courseClass, courseSemester);
+                }
+            });
+    }
+    
+    /**
+     * Check if a course chat exists and prompt the user to join
+     * @param courseId Course ID
+     * @param courseClass Course class
+     * @param courseSemester Course semester
+     */
+    public void checkAndPromptJoinCourseChat(String courseId, String courseClass, String courseSemester) {
+        // Generate chat room name format: courseId-class-semester
+        String chatName = courseId + "-" + courseClass + "-" + courseSemester;
+        
+        // Check if the chat room already exists
+        db.collection("chat_rooms")
+            .whereEqualTo("chat_name", chatName)
+            .whereEqualTo("group_type", ChatGroup.TYPE_COURSE)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    // Course chat already exists, check if user is already a member
+                    DocumentReference existingChatRef = queryDocumentSnapshots.getDocuments().get(0).getReference();
+                    String existingChatId = existingChatRef.getId();
+                    
+                    // Check if user is already a member
+                    existingChatRef.get().addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            List<String> memberIds = (List<String>) documentSnapshot.get("member_ids");
+                            
+                            if (memberIds != null && memberIds.contains(currentUser.getUid())) {
+                                // User is already a member, ask if they want to enter the chat
+                                new AlertDialog.Builder(this)
+                                    .setTitle("Course Chat")
+                                    .setMessage("Would you like to enter the chat room for " + courseId + "?")
+                                    .setPositiveButton("Enter", (dialog, which) -> {
+                                        openChatActivity(existingChatId, chatName);
+                                    })
+                                    .setNegativeButton("Not now", null)
+                                    .show();
+                            } else {
+                                // User is not a member, ask if they want to join
+                                new AlertDialog.Builder(this)
+                                    .setTitle("Join Course Chat")
+                                    .setMessage("Would you like to join the chat room for " + courseId + "?")
+                                    .setPositiveButton("Join", (dialog, which) -> {
+                                        joinCourseChatGroup(existingChatId, chatName);
+                                    })
+                                    .setNegativeButton("No thanks", null)
+                                    .show();
+                            }
+                        }
+                    });
+                } else {
+                    // This case shouldn't happen anymore since we create chats automatically
+                    // But just in case, we'll handle it
+                    new AlertDialog.Builder(this)
+                        .setTitle("Course Chat Not Found")
+                        .setMessage("No chat room found for this course. Creating one now...")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            createCourseChatGroup(courseId, courseClass, courseSemester);
+                        })
+                        .show();
+                }
+            });
+    }
+    
+    /**
+     * 创建课程群聊
+     * @param courseId 课程ID
+     * @param courseClass 课程班级
+     * @param courseSemester 课程学期
+     */
+    private void createCourseChatGroup(String courseId, String courseClass, String courseSemester) {
+        // 生成聊天室名称 格式: 课程-班级-学期
+        String chatName = courseId + "-" + courseClass + "-" + courseSemester;
+        
+        // 获取当前时间
+        Timestamp now = new Timestamp(new Date());
+        
+        // 生成唯一ID
+        String chatId = db.collection("chat_rooms").document().getId();
+        
+        // 在Firestore中创建聊天室文档
+        Map<String, Object> chatData = new HashMap<>();
+        chatData.put("chat_id", chatId);
+        chatData.put("chat_name", chatName);
+        chatData.put("courseId", courseId);
+        chatData.put("courseClass", courseClass);
+        chatData.put("courseSemester", courseSemester);
+        chatData.put("creator_id", "system"); // 系统创建，没有群主
+        chatData.put("created_at", now);
+        chatData.put("is_active", true);
+        chatData.put("group_type", ChatGroup.TYPE_COURSE); // 设置为课程群聊类型
+        
+        // 设置最后消息时间为创建时间，确保聊天室能在列表查询中显示
+        chatData.put("last_message_time", now);
+        chatData.put("last_message", "Course chat created. Welcome to discuss!");
+        
+        // 为聊天室生成一个随机颜色代码
+        int colorIndex = Math.abs(chatId.hashCode()) % 15; // 与Chat列表颜色保持一致
+        String colorCode = String.format("#%06X", (0xFFFFFF & ChatListActivity.ChatGroupViewHolder.GROUP_COLORS[colorIndex]));
+        chatData.put("color_code", colorCode);
+        
+        // 初始化成员列表
+        List<String> memberIds = new ArrayList<>();
+        memberIds.add(currentUser.getUid());
+        chatData.put("member_ids", memberIds);
+        
+        // 初始化消息计数
+        chatData.put("message_count", 0L);
+        
+        // 初始化用户读取状态
+        Map<String, Object> userReadStatus = new HashMap<>();
+        userReadStatus.put(currentUser.getUid(), now);
+        chatData.put("user_read_status", userReadStatus);
+        
+        // 初始化读取计数
+        Map<String, Object> readCounts = new HashMap<>();
+        readCounts.put(currentUser.getUid(), 0L);
+        chatData.put("read_counts", readCounts);
+
+        // 保存聊天室数据
+        db.collection("chat_rooms").document(chatId)
+                .set(chatData)
+                .addOnSuccessListener(documentReference -> {
+                    // 将用户添加到成员列表
+                    addUserToChatGroup(chatId, chatName);
+                    
+                    // 添加一条初始消息
+                    addInitialMessage(chatId, courseId, courseClass, courseSemester);
+                    
+                    // 提示用户
+                    Toast.makeText(this, "Course chat created successfully", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> 
+                    android.util.Log.e("CourseSearchActivity", "Failed to create course chat: " + e.getMessage())
+                );
+    }
+    
+    /**
+     * 加入课程群聊
+     * @param chatId 聊天室ID
+     * @param chatName 聊天室名称
+     */
+    private void joinCourseChatGroup(String chatId, String chatName) {
+        // 检查用户是否已经是群组成员
+        db.collection("chat_rooms").document(chatId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> memberIds = (List<String>) documentSnapshot.get("member_ids");
+                    
+                    if (memberIds != null && memberIds.contains(currentUser.getUid())) {
+                        // 用户已经是成员，直接提示
+                        Toast.makeText(this, "You are already a member of this chat", Toast.LENGTH_SHORT).show();
+                        
+                        // 询问是否立即进入聊天
+                        new AlertDialog.Builder(this)
+                            .setTitle("Enter Chat")
+                            .setMessage("Would you like to enter the course chat now?")
+                            .setPositiveButton("Enter", (dialog, which) -> {
+                                openChatActivity(chatId, chatName);
+                            })
+                            .setNegativeButton("Later", null)
+                            .show();
+                        return;
+                    }
+                    
+                    // 用户不是成员，添加用户到成员列表
+                    memberIds.add(currentUser.getUid());
+                    
+                    // 更新聊天室文档
+                    documentSnapshot.getReference().update("member_ids", memberIds)
+                        .addOnSuccessListener(aVoid -> {
+                            // 添加用户详细信息到成员子集合
+                            addUserToChatGroup(chatId, chatName);
+                            
+                            // 更新用户读取状态
+                            Timestamp now = new Timestamp(new Date());
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("user_read_status." + currentUser.getUid(), now);
+                            
+                            // 获取当前消息计数
+                            Long messageCount = documentSnapshot.getLong("message_count");
+                            if (messageCount == null) messageCount = 0L;
+                            
+                            // 更新用户读取计数
+                            updates.put("read_counts." + currentUser.getUid(), messageCount);
+                            
+                            documentSnapshot.getReference().update(updates)
+                                .addOnSuccessListener(aVoid2 -> {
+                                    Toast.makeText(this, "Successfully joined course chat", Toast.LENGTH_SHORT).show();
+                                    
+                                    // 添加用户加入的系统消息
+                                    addUserJoinMessage(chatId);
+                                    
+                                    // 询问是否立即进入聊天
+                                    new AlertDialog.Builder(this)
+                                        .setTitle("Enter Chat")
+                                        .setMessage("Would you like to enter the course chat now?")
+                                        .setPositiveButton("Enter", (dialog, which) -> {
+                                            openChatActivity(chatId, chatName);
+                                        })
+                                        .setNegativeButton("Later", null)
+                                        .show();
+                                });
+                        });
+                }
+            })
+            .addOnFailureListener(e -> 
+                Toast.makeText(this, "Failed to join course chat: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+            );
+    }
+    
+    /**
+     * 将用户添加到群聊成员列表
+     * @param chatId 聊天室ID
+     * @param chatName 聊天室名称
+     */
+    private void addUserToChatGroup(String chatId, String chatName) {
+        // 添加用户详细信息到聊天室成员子集合
+        Map<String, Object> memberData = new HashMap<>();
+        memberData.put("user_id", currentUser.getUid());
+        memberData.put("email", currentUser.getEmail());
+        memberData.put("display_name", currentUser.getDisplayName());
+        memberData.put("joined_at", new Timestamp(new Date()));
+        memberData.put("is_admin", false);  // 课程群聊中用户不是管理员
+        memberData.put("is_active", true);
+        
+        // 保存到聊天室的成员子集合
+        db.collection("chat_rooms")
+            .document(chatId)
+            .collection("members")
+            .document(currentUser.getUid())
+            .set(memberData);
+    }
+    
+    /**
+     * 添加用户加入的系统消息
+     * @param chatId 聊天室ID
+     */
+    private void addUserJoinMessage(String chatId) {
+        String userName = currentUser.getDisplayName();
+        if (userName == null || userName.isEmpty()) {
+            userName = currentUser.getEmail();
+        }
+        
+        // 创建final变量以便在lambda表达式中使用
+        final String finalUserName = userName;
+        
+        Map<String, Object> message = new HashMap<>();
+        message.put("senderId", "system");
+        message.put("text", finalUserName + " joined the chat");
+        message.put("timestamp", new Timestamp(new Date()));
+        message.put("type", "text");
+        
+        db.collection("chat_rooms").document(chatId)
+          .collection("messages")
+          .add(message)
+          .addOnSuccessListener(documentReference -> {
+              // 更新聊天室的消息计数和最后消息时间
+              db.collection("chat_rooms").document(chatId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Long currentCount = documentSnapshot.getLong("message_count");
+                        if (currentCount == null) currentCount = 0L;
+                        
+                        documentSnapshot.getReference().update(
+                            "message_count", currentCount + 1,
+                            "last_message", finalUserName + " joined the chat",
+                            "last_message_time", new Timestamp(new Date())
+                        );
+                    }
+                });
+          });
+    }
+    
+    /**
+     * 添加初始消息到聊天室
+     * @param chatId 聊天室ID
+     * @param courseId 课程ID
+     * @param courseClass 课程班级
+     * @param courseSemester 课程学期
+     */
+    private void addInitialMessage(String chatId, String courseId, String courseClass, String courseSemester) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("senderId", "system");
+        message.put("text", courseId + "-" + courseClass + "-" + courseSemester + " course chat created. Welcome to discuss!");
+        message.put("timestamp", new Timestamp(new Date()));
+        message.put("type", "text");
+        
+        db.collection("chat_rooms").document(chatId)
+          .collection("messages")
+          .add(message)
+          .addOnSuccessListener(documentReference -> {
+              // 更新聊天室的消息计数和最后消息时间
+              db.collection("chat_rooms").document(chatId)
+                .update(
+                    "message_count", 1L,
+                    "last_message", courseId + "-" + courseClass + "-" + courseSemester + " course chat created. Welcome to discuss!",
+                    "last_message_time", new Timestamp(new Date())
+                );
+          });
+    }
+    
+    /**
+     * 打开聊天页面
+     * @param chatId 聊天室ID
+     * @param chatName 聊天室名称
+     */
+    private void openChatActivity(String chatId, String chatName) {
+        Intent intent = new Intent(CourseSearchActivity.this, ChatRoomActivity.class);
+        intent.putExtra("chatRoomId", chatId);
+        intent.putExtra("chatRoomName", chatName);
+        startActivity(intent);
     }
 
     @Override
