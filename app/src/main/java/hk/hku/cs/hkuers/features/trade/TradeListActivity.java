@@ -502,18 +502,7 @@ public class TradeListActivity extends AppCompatActivity {
                 });
             }
             
-            fabMyFavorites = findViewById(R.id.fabMyFavorites);
-            if (fabMyFavorites != null) {
-                fabMyFavorites.setOnClickListener(v -> {
-                    try {
-                        toggleFavorites();
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error toggling favorites", e);
-                        Toast.makeText(this, "无法切换收藏显示: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-            
+
         } catch (Exception e) {
             Log.e(TAG, "初始化视图失败", e);
             Toast.makeText(this, "初始化视图失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
