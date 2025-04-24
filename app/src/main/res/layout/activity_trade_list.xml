@@ -225,6 +225,17 @@
         app:backgroundTint="@color/secondary_container" />
 
     <!-- My Favorites Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabMyFavorites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/my_favorites"
+        app:srcCompat="@drawable/ic_favorite"
+        app:fabSize="mini"
+        app:tint="@color/on_error_container"
+        app:backgroundTint="@color/error_container" />
 
     <!-- Add Item Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton

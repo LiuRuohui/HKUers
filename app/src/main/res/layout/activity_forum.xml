@@ -61,19 +61,12 @@
 
                 <Button
                     android:id="@+id/btnDiscussion"
-                    android:text="学习讨论"
+                    android:text="校园生活"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"/>
 
-                <Button
-                    android:id="@+id/btnFun"
-                    android:text="校内趣闻"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"/>
 
                 <Button
                     android:id="@+id/btnLostFound"
