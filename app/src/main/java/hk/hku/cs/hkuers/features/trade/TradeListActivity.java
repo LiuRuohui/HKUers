@@ -504,7 +504,7 @@ public class TradeListActivity extends AppCompatActivity {
             
 
         } catch (Exception e) {
-            Log.e(TAG, "初始化视图失败", e);
+            Log.e(TAG, "初始化视图失败了", e);
             Toast.makeText(this, "初始化视图失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
