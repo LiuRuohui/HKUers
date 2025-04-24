@@ -1,5 +1,6 @@
 package hk.hku.cs.hkuers.features.forum;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -49,6 +50,13 @@ public class ForumBoardActivity extends AppCompatActivity {
         postAdapter = new PostAdapter(postList);
         recyclerView.setAdapter(postAdapter);
 
+        // 设置发布新帖子按钮的点击事件
+        findViewById(R.id.fabNewPost).setOnClickListener(v -> {
+            Intent intent = new Intent(this, NewForumBoardActivity.class);
+            intent.putExtra("board_type", boardType);
+            startActivity(intent);
+        });
+
         // 加载对应版块的帖子
         loadPosts();
     }
@@ -61,37 +69,40 @@ public class ForumBoardActivity extends AppCompatActivity {
         if ("discussion".equals(boardType)) {
             // 添加学习讨论相关的示例帖子
             postList.add(new Post(
-                    "discussion1",
-                    "数据结构课程讨论",
-                    "关于本周数据结构课程的内容讨论",
-                    "CS Student",
-                    "2024-03-20",
-                    25,
-                    50,
-                    "discussion"
+                    "discussion1", // id
+                    "数据结构课程讨论", // title
+                    "关于本周数据结构课程的内容讨论", // content
+                    "CS Student", // author
+                    "cs1", // authorId
+                    "2024-03-20", // timestamp
+                    "25", // likes
+                    "50", // comments
+                    "discussion" // boardType
             ));
 
             postList.add(new Post(
-                    "discussion2",
-                    "算法作业求助",
-                    "关于动态规划算法的实现问题",
-                    "Math Student",
-                    "2024-03-19",
-                    15,
-                    30,
-                    "discussion"
+                    "discussion2", // id
+                    "算法作业求助", // title
+                    "关于动态规划算法的实现问题", // content
+                    "Math Student", // author
+                    "math1", // authorId
+                    "2024-03-19", // timestamp
+                    "15", // likes
+                    "30", // comments
+                    "discussion" // boardType
             ));
         } else if ("fun".equals(boardType)) {
             // 添加校内趣闻相关的示例帖子
             postList.add(new Post(
-                    "fun1",
-                    "校园趣事分享",
-                    "今天在图书馆遇到的有趣事情",
-                    "Funny Student",
-                    "2024-03-20",
-                    40,
-                    80,
-                    "fun"
+                    "fun1", // id
+                    "校园趣事分享", // title
+                    "今天在图书馆遇到的有趣事情", // content
+                    "Funny Student", // author
+                    "fun1", // authorId
+                    "2024-03-20", // timestamp
+                    "40", // likes
+                    "80", // comments
+                    "fun" // boardType
             ));
         }
 

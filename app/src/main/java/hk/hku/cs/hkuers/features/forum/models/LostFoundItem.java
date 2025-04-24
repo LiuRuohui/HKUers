@@ -1,8 +1,8 @@
 package hk.hku.cs.hkuers.features.forum.models;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class LostFoundItem {
     private String id;
@@ -15,12 +15,17 @@ public class LostFoundItem {
     private String imageUrl;
     private String userId;
     private String userName;
-    private boolean isResolved; // 是否已解决
-    private Date resolvedDate; // 解决日期
-    private String resolvedBy; // 解决人ID
-    private String resolvedByName; // 解决人姓名
-    private String category; // 物品类别
-    private String reward; // 酬谢信息
+    private boolean isResolved;
+    private Date resolvedDate;
+    private String resolvedBy;
+    private String resolvedByName;
+    private String category;
+    private String reward;
+
+    // 构造函数
+    public LostFoundItem() {
+        // 空构造函数，Firebase 需要
+    }
 
     public LostFoundItem(String id, String title, String description, String location,
                          Date date, String contact, String type, String imageUrl,
@@ -46,7 +51,7 @@ public class LostFoundItem {
     public String getLocation() { return location; }
     public Date getDate() { return date; }
     public String getContact() { return contact; }
-    public String getType() { return type; }
+    public String getType() { return type; }  // 添加这个方法
     public String getImageUrl() { return imageUrl; }
     public String getUserId() { return userId; }
     public String getUserName() { return userName; }
@@ -64,7 +69,7 @@ public class LostFoundItem {
     public void setLocation(String location) { this.location = location; }
     public void setDate(Date date) { this.date = date; }
     public void setContact(String contact) { this.contact = contact; }
-    public void setType(String type) { this.type = type; }
+    public void setType(String type) { this.type = type; }  // 添加这个方法
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setUserId(String userId) { this.userId = userId; }
     public void setUserName(String userName) { this.userName = userName; }

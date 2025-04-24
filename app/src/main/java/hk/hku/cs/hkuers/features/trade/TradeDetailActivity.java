@@ -29,8 +29,6 @@ import com.google.firebase.storage.UploadTask;
 
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.chat.ChatRoomActivity;
-import hk.hku.cs.hkuers.features.chat.ChatListActivity;
-import hk.hku.cs.hkuers.models.ChatGroup;
 import hk.hku.cs.hkuers.auth.LoginActivity;
 
 import java.util.ArrayList;
@@ -231,60 +229,65 @@ public class TradeDetailActivity extends AppCompatActivity {
 
     private void contactSeller() {
         if (tradeItem == null || tradeItem.getSellerId() == null) {
-            Toast.makeText(this, "Unable to get seller information", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "无法获取卖家信息", Toast.LENGTH_SHORT).show();
             return;
         }
         
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
             return;
         }
         
         String sellerId = tradeItem.getSellerId();
         String currentUserId = currentUser.getUid();
         
-        // Can't message yourself
+        // 不能给自己发消息
         if (sellerId.equals(currentUserId)) {
-            Toast.makeText(this, "This is your own product", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "这是您自己的商品", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        // Show progress dialog
+        // 显示进度对话框
         AlertDialog progressDialog = new AlertDialog.Builder(this)
-            .setTitle("Connecting to chat")
-            .setMessage("Please wait...")
+            .setTitle("正在连接聊天")
+            .setMessage("请稍候...")
             .setCancelable(false)
             .create();
         progressDialog.show();
         
-        // Create a unique chat ID for this specific item and user combination
-        String chatId = "trade_" + tradeItem.getId() + "_" + currentUserId + "_" + sellerId;
+        // 生成私聊群组ID（两个用户ID按字母顺序排序并拼接，确保唯一性）
+        String chatId;
+        if (sellerId.compareTo(currentUserId) < 0) {
+            chatId = "private_" + sellerId + "_" + currentUserId;
+        } else {
+            chatId = "private_" + currentUserId + "_" + sellerId;
+        }
         
-        // Check if chat for this specific item already exists
+        // 检查私聊是否已存在
         db.collection("chat_rooms").document(chatId).get()
             .addOnSuccessListener(documentSnapshot -> {
                 progressDialog.dismiss();
                 
                 if (documentSnapshot.exists()) {
-                    // Chat already exists, open it
+                    // 聊天已存在，直接打开
                     String chatName = tradeItem.getSellerName() + " - " + tradeItem.getTitle();
                     openChatRoom(chatId, chatName);
                 } else {
-                    // Chat doesn't exist, create a new one
+                    // 聊天不存在，创建新的聊天
                     createPrivateChat(chatId, sellerId);
                 }
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "Failed to contact seller: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "联系卖家失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
     /**
-     * Create a private trade chat room
-     * @param chatId Chat room ID
-     * @param sellerId Seller ID
+     * 创建私聊聊天室
+     * @param chatId 聊天室ID
+     * @param sellerId 卖家ID
      */
     private void createPrivateChat(String chatId, String sellerId) {
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -293,23 +296,22 @@ public class TradeDetailActivity extends AppCompatActivity {
         String currentUserId = currentUser.getUid();
         String chatName = tradeItem.getSellerName() + " - " + tradeItem.getTitle();
         
-        // Prepare chat room data
+        // 准备聊天室数据
         Map<String, Object> chatData = new HashMap<>();
         chatData.put("chat_name", chatName);
-        chatData.put("creator_id", "system"); // No owner for trade chats
+        chatData.put("creator_id", currentUserId);
         chatData.put("created_at", new Timestamp(new Date()));
         chatData.put("is_private", true);
         chatData.put("item_id", tradeItem.getId());
         chatData.put("item_title", tradeItem.getTitle());
-        chatData.put("group_type", ChatGroup.TYPE_TRADE); // Set as trade chat type
         
-        // Add both parties as members
+        // 将双方都添加为成员
         List<String> memberIds = new ArrayList<>();
         memberIds.add(currentUserId);
         memberIds.add(sellerId);
         chatData.put("member_ids", memberIds);
         
-        // Initialize read status
+        // 初始化已读状态
         Map<String, Object> readCounts = new HashMap<>();
         readCounts.put(currentUserId, 0);
         readCounts.put(sellerId, 0);
@@ -320,42 +322,37 @@ public class TradeDetailActivity extends AppCompatActivity {
         userReadStatus.put(sellerId, 0);
         chatData.put("user_read_status", userReadStatus);
         
-        // Set last message and time
+        // 设置最后消息和时间
         chatData.put("last_message", "");
         chatData.put("last_message_time", new Timestamp(new Date()));
         chatData.put("message_count", 0);
         
-        // Generate a random color code for the chat room
-        int colorIndex = Math.abs(chatId.hashCode()) % ChatListActivity.ChatGroupViewHolder.GROUP_COLORS.length;
-        String colorCode = String.format("#%06X", (0xFFFFFF & ChatListActivity.ChatGroupViewHolder.GROUP_COLORS[colorIndex]));
-        chatData.put("color_code", colorCode);
-        
-        // Show progress dialog
+        // 显示进度对话框
         AlertDialog progressDialog = new AlertDialog.Builder(this)
-            .setTitle("Creating chat")
-            .setMessage("Please wait...")
+            .setTitle("正在创建聊天")
+            .setMessage("请稍候...")
             .setCancelable(false)
             .create();
         progressDialog.show();
         
-        // Create chat room
+        // 创建聊天室
         db.collection("chat_rooms").document(chatId)
             .set(chatData)
             .addOnSuccessListener(aVoid -> {
-                // Add system message
+                // 添加系统消息
                 addInitialMessage(chatId, sellerId, progressDialog);
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "Failed to create chat: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "创建聊天失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
     /**
-     * Add initial message to the chat
-     * @param chatId Chat room ID
-     * @param sellerId Seller ID
-     * @param progressDialog Progress dialog
+     * 添加聊天初始消息
+     * @param chatId 聊天室ID
+     * @param sellerId 卖家ID
+     * @param progressDialog 进度对话框
      */
     private void addInitialMessage(String chatId, String sellerId, AlertDialog progressDialog) {
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -364,19 +361,19 @@ public class TradeDetailActivity extends AppCompatActivity {
             return;
         }
         
-        // Create system message
+        // 创建系统消息
         Map<String, Object> message = new HashMap<>();
         message.put("type", "system");
         message.put("text", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
         message.put("timestamp", new Timestamp(new Date()));
         message.put("senderId", "system");
         
-        // Add message
+        // 添加消息
         db.collection("chat_rooms").document(chatId)
             .collection("messages")
             .add(message)
             .addOnSuccessListener(documentReference -> {
-                // Update chat room's last message and time
+                // 更新聊天室的最后消息和时间
                 Map<String, Object> updateData = new HashMap<>();
                 updateData.put("last_message", "Conversation about item \"" + tradeItem.getTitle() + "\" has been created");
                 updateData.put("last_message_time", new Timestamp(new Date()));
@@ -386,18 +383,18 @@ public class TradeDetailActivity extends AppCompatActivity {
                     .update(updateData)
                     .addOnSuccessListener(aVoid -> {
                         progressDialog.dismiss();
-                        // Open chat room
+                        // 打开聊天室
                         String chatName = tradeItem.getSellerName() + " - " + tradeItem.getTitle();
                         openChatRoom(chatId, chatName);
                     })
                     .addOnFailureListener(e -> {
                         progressDialog.dismiss();
-                        Toast.makeText(this, "Failed to update chat room: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "更新聊天室失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
             })
             .addOnFailureListener(e -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "Failed to add message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "添加消息失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
@@ -587,21 +584,7 @@ public class TradeDetailActivity extends AppCompatActivity {
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 // 处理不同类型的图片URI
                 try {
-                    // 优先处理Firebase Storage URLs (http/https)
-                    if (imageUrl.startsWith("http")) {
-                        Log.d(TAG, "加载Firebase Storage图片: " + imageUrl);
-                        Glide.with(this)
-                            .load(imageUrl)
-                            .apply(new RequestOptions()
-                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                 .placeholder(R.drawable.default_avatar)
-                                 .error(R.drawable.default_avatar))
-                            .into(singleImageView);
-                        viewPager.setAdapter(new SingleImageAdapter(singleImageView));
-                        return;
-                    }
-                    
-                    // 解析其他类型的URI
+                    // 尝试通用方法处理所有类型的URI
                     Uri uri = Uri.parse(imageUrl);
                     Log.d(TAG, "Parsed URI: " + uri + ", scheme: " + uri.getScheme());
                     

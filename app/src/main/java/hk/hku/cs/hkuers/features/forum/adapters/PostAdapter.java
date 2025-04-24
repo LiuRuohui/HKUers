@@ -31,9 +31,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         if (post != null) {
             holder.titleTextView.setText(post.getTitle() != null ? post.getTitle() : "");
             holder.authorTextView.setText(post.getAuthor() != null ? post.getAuthor() : "");
-            holder.publishTimeTextView.setText(post.getDate() != null ? post.getDate() : "");
-            holder.replyCountTextView.setText(String.valueOf(post.getReplyCount()));
-            holder.readCountTextView.setText(String.valueOf(post.getViewCount()));
+            holder.publishTimeTextView.setText(post.getTimestamp() != null ? post.getTimestamp() : "");
+            holder.replyCountTextView.setText(post.getComments() != null ? post.getComments() : "0");
+            holder.readCountTextView.setText(post.getLikes() != null ? post.getLikes() : "0");
             // 移除 categoryTextView 的引用，因为布局中没有这个视图
         }
     }

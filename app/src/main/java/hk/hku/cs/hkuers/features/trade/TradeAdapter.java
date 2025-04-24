@@ -181,7 +181,7 @@ public class TradeAdapter extends RecyclerView.Adapter<TradeItemViewHolder> {
                                 imageView.setImageResource(R.drawable.default_avatar);
                             }
                         } else if (imageUrl.startsWith("http")) {
-                            // 远程URL（如Firebase Storage的下载链接）
+                            // 远程URL（仅作备用，当前不使用）
                             try {
                                 Glide.with(context)
                                     .load(imageUrl)
@@ -192,9 +192,9 @@ public class TradeAdapter extends RecyclerView.Adapter<TradeItemViewHolder> {
                                     .into(imageView);
                                 
                                 progressBar.setVisibility(View.GONE);
-                                Log.d(TAG, "加载Firebase Storage图片: " + imageUrl);
+                                Log.d(TAG, "Loaded remote image: " + imageUrl);
                             } catch (Exception e) {
-                                Log.e(TAG, "加载远程图片失败", e);
+                                Log.e(TAG, "Error loading remote image", e);
                                 progressBar.setVisibility(View.GONE);
                                 imageView.setImageResource(R.drawable.default_avatar);
                             }

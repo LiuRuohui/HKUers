@@ -51,13 +51,13 @@ public class LoginActivity extends AppCompatActivity {
                                         });
                                 }
                                 
-                                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, "登录成功", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             } else {
-                                Toast.makeText(LoginActivity.this, "Please verify your email", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, "请先验证邮箱", Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            Toast.makeText(LoginActivity.this, "Login failed: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "登录失败: " + task.getException(), Toast.LENGTH_SHORT).show();
                         }
                     });
         });
@@ -72,16 +72,16 @@ public class LoginActivity extends AppCompatActivity {
     public void navigateToForgotPassword(View view) {
         String email = etLoginEmail.getText().toString().trim();
         if (email.isEmpty()) {
-            Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "请输入邮箱地址", Toast.LENGTH_SHORT).show();
             return;
         }
 
         mAuth.sendPasswordResetEmail(email)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, "Password reset link sent, please check your email", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "重置密码邮件已发送，请检查邮箱", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(LoginActivity.this, "Failed to send password reset link: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "发送重置密码邮件失败: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

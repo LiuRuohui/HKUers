@@ -370,13 +370,111 @@ public class AddTradeActivity extends AppCompatActivity {
         
         // 使用应用内图片
         builtinOption.setOnClickListener(v -> {
-            showSimpleDrawableResourcesDialog();
+            showDrawableResourcesDialog(title, description, price, category);
             dialog.dismiss();
         });
         
         // 使用默认图片
         defaultOption.setOnClickListener(v -> {
             setDefaultLocalImage();
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // 取消按钮
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 显示对话框
+        dialog.show();
+    }
+    
+    /**
+     * 显示drawable资源选择对话框
+     */
+    private void showDrawableResourcesDialog(String title, String description, double price, String category) {
+        // 可用的资源名称列表 (不包含扩展名)
+        final String[] drawableResources = {"mac", "default_avatar", "ic_empty_list", "ic_person"};
+        final int[] drawableResourceIds = {
+                R.drawable.mac,
+                R.drawable.default_avatar,
+                R.drawable.ic_empty_list,
+                R.drawable.ic_person
+        };
+        
+        // 创建自定义对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_app_images_selection, null);
+        builder.setView(dialogView);
+        
+        // 创建对话框
+        AlertDialog dialog = builder.create();
+        
+        // 查找图片卡片视图
+        View macImage = dialogView.findViewById(R.id.image_mac);
+        View avatarImage = dialogView.findViewById(R.id.image_avatar);
+        View emptyListImage = dialogView.findViewById(R.id.image_empty_list);
+        View personImage = dialogView.findViewById(R.id.image_person);
+        
+        // 找到取消按钮
+        View cancelButton = dialogView.findViewById(R.id.btn_app_images_cancel);
+        
+        // Mac图片
+        macImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[0];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[0] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[0], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // Avatar图片
+        avatarImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[1];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[1] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[1], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // Empty List图片
+        emptyListImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[2];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[2] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[2], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
+            dialog.dismiss();
+        });
+        
+        // Person图片
+        personImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[3];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
+            
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[3] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[3], Toast.LENGTH_SHORT).show();
+            
+            continueAddTrade(title, description, price, category);
             dialog.dismiss();
         });
         
@@ -391,147 +489,93 @@ public class AddTradeActivity extends AppCompatActivity {
      * 显示简单的drawable资源选择对话框（不带商品信息参数）
      */
     private void showSimpleDrawableResourcesDialog() {
-        try {
-            // 资源名称列表
-            String[] drawableResources = {
-                "mac", "default_avatar", "ic_empty_list", "ic_person"
-            };
+        // 可用的资源名称列表 (不包含扩展名)
+        final String[] drawableResources = {"mac", "default_avatar", "ic_empty_list", "ic_person"};
+        final int[] drawableResourceIds = {
+                R.drawable.mac,
+                R.drawable.default_avatar,
+                R.drawable.ic_empty_list,
+                R.drawable.ic_person
+        };
+        
+        // 创建自定义对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_app_images_selection, null);
+        builder.setView(dialogView);
+        
+        // 创建对话框
+        AlertDialog dialog = builder.create();
+        
+        // 查找图片卡片视图
+        View macImage = dialogView.findViewById(R.id.image_mac);
+        View avatarImage = dialogView.findViewById(R.id.image_avatar);
+        View emptyListImage = dialogView.findViewById(R.id.image_empty_list);
+        View personImage = dialogView.findViewById(R.id.image_person);
+        
+        // 找到取消按钮
+        View cancelButton = dialogView.findViewById(R.id.btn_app_images_cancel);
+        
+        // Mac图片
+        macImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[0];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
             
-            // 映射到资源ID
-            int[] drawableResourceIds = {
-                R.drawable.mac, R.drawable.default_avatar, R.drawable.ic_empty_list, R.drawable.ic_person
-            };
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[0] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[0], Toast.LENGTH_SHORT).show();
             
-            // 创建自定义对话框
-            AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DarkAlertDialogTheme);
-            View dialogView = getLayoutInflater().inflate(R.layout.dialog_app_images_selection, null);
-            builder.setView(dialogView);
+            dialog.dismiss();
+        });
+        
+        // Avatar图片
+        avatarImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[1];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
             
-            // 创建对话框
-            AlertDialog dialog = builder.create();
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[1] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[1], Toast.LENGTH_SHORT).show();
             
-            // 查找视图
-            ImageView macImage = dialogView.findViewById(R.id.image_mac);
-            ImageView avatarImage = dialogView.findViewById(R.id.image_avatar);
-            ImageView emptyListImage = dialogView.findViewById(R.id.image_empty_list);
-            ImageView personImage = dialogView.findViewById(R.id.image_person);
-            MaterialButton cancelButton = dialogView.findViewById(R.id.btn_app_images_cancel);
+            dialog.dismiss();
+        });
+        
+        // Empty List图片
+        emptyListImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[2];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
             
-            // 获取当前输入的商品信息以便后续使用
-            String title = titleEditText.getText().toString().trim();
-            String description = descriptionEditText.getText().toString().trim();
-            String priceText = priceEditText.getText().toString().trim();
-            String category = categoryAutoCompleteTextView.getText().toString().trim();
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[2] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[2], Toast.LENGTH_SHORT).show();
             
-            double price = 0.0;
-            if (!priceText.isEmpty()) {
-                try {
-                    price = Double.parseDouble(priceText);
-                } catch (NumberFormatException e) {
-                    // 忽略解析错误，使用默认值0.0
-                }
-            }
+            dialog.dismiss();
+        });
+        
+        // Person图片
+        personImage.setOnClickListener(v -> {
+            int resourceId = drawableResourceIds[3];
+            productImageView.setImageResource(resourceId);
+            productImageView.setVisibility(View.VISIBLE);
+            uploadImageLayout.setVisibility(View.GONE);
             
-            // 设置图片已在XML中定义
+            selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
+            Log.d(TAG, "Selected drawable resource: " + drawableResources[3] + ", URI: " + selectedImageUri);
+            Toast.makeText(this, "Image selected: " + drawableResources[3], Toast.LENGTH_SHORT).show();
             
-            // 设置点击事件 - 确保在每个图片点击处理后都调用continueAddTrade
-            final double finalPrice = price;
-            final String finalTitle = title;
-            final String finalDescription = description;
-            final String finalCategory = category;
-            
-            // Mac图片
-            macImage.setOnClickListener(v -> {
-                int resourceId = drawableResourceIds[0];
-                productImageView.setImageResource(resourceId);
-                productImageView.setVisibility(View.VISIBLE);
-                uploadImageLayout.setVisibility(View.GONE);
-                
-                selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-                Log.d(TAG, "Selected drawable resource: " + drawableResources[0] + ", URI: " + selectedImageUri);
-                Toast.makeText(this, "Image selected: " + drawableResources[0], Toast.LENGTH_SHORT).show();
-                
-                dialog.dismiss();
-                
-                // 检查字段是否已填写完毕，如果是，调用continueAddTrade
-                if (isFormReady(finalTitle, finalDescription, finalPrice, finalCategory)) {
-                    continueAddTrade(finalTitle, finalDescription, finalPrice, finalCategory);
-                }
-            });
-            
-            // Avatar图片
-            avatarImage.setOnClickListener(v -> {
-                int resourceId = drawableResourceIds[1];
-                productImageView.setImageResource(resourceId);
-                productImageView.setVisibility(View.VISIBLE);
-                uploadImageLayout.setVisibility(View.GONE);
-                
-                selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-                Log.d(TAG, "Selected drawable resource: " + drawableResources[1] + ", URI: " + selectedImageUri);
-                Toast.makeText(this, "Image selected: " + drawableResources[1], Toast.LENGTH_SHORT).show();
-                
-                dialog.dismiss();
-                
-                // 检查字段是否已填写完毕，如果是，调用continueAddTrade
-                if (isFormReady(finalTitle, finalDescription, finalPrice, finalCategory)) {
-                    continueAddTrade(finalTitle, finalDescription, finalPrice, finalCategory);
-                }
-            });
-            
-            // Empty List图片
-            emptyListImage.setOnClickListener(v -> {
-                int resourceId = drawableResourceIds[2];
-                productImageView.setImageResource(resourceId);
-                productImageView.setVisibility(View.VISIBLE);
-                uploadImageLayout.setVisibility(View.GONE);
-                
-                selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-                Log.d(TAG, "Selected drawable resource: " + drawableResources[2] + ", URI: " + selectedImageUri);
-                Toast.makeText(this, "Image selected: " + drawableResources[2], Toast.LENGTH_SHORT).show();
-                
-                dialog.dismiss();
-                
-                // 检查字段是否已填写完毕，如果是，调用continueAddTrade
-                if (isFormReady(finalTitle, finalDescription, finalPrice, finalCategory)) {
-                    continueAddTrade(finalTitle, finalDescription, finalPrice, finalCategory);
-                }
-            });
-            
-            // Person图片
-            personImage.setOnClickListener(v -> {
-                int resourceId = drawableResourceIds[3];
-                productImageView.setImageResource(resourceId);
-                productImageView.setVisibility(View.VISIBLE);
-                uploadImageLayout.setVisibility(View.GONE);
-                
-                selectedImageUri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-                Log.d(TAG, "Selected drawable resource: " + drawableResources[3] + ", URI: " + selectedImageUri);
-                Toast.makeText(this, "Image selected: " + drawableResources[3], Toast.LENGTH_SHORT).show();
-                
-                dialog.dismiss();
-                
-                // 检查字段是否已填写完毕，如果是，调用continueAddTrade
-                if (isFormReady(finalTitle, finalDescription, finalPrice, finalCategory)) {
-                    continueAddTrade(finalTitle, finalDescription, finalPrice, finalCategory);
-                }
-            });
-            
-            // 取消按钮
-            cancelButton.setOnClickListener(v -> dialog.dismiss());
-            
-            // 显示对话框
-            dialog.show();
-        } catch (Exception e) {
-            Log.e(TAG, "显示图片选择对话框时出错", e);
-            Toast.makeText(this, "无法显示图片选择对话框: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-    
-    /**
-     * 检查表单是否已准备好提交
-     */
-    private boolean isFormReady(String title, String description, double price, String category) {
-        return !title.isEmpty() && !description.isEmpty() && price > 0 && !category.isEmpty();
+            dialog.dismiss();
+        });
+        
+        // 取消按钮
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        
+        // 显示对话框
+        dialog.show();
     }
     
     /**
@@ -577,50 +621,26 @@ public class AddTradeActivity extends AppCompatActivity {
     private void uploadImageAndCreateTrade(Map<String, Object> tradeData) {
         try {
             if (selectedImageUri != null) {
-                // 显示上传状态
-                loadingOverlay.setVisibility(View.VISIBLE);
-                
                 // 检查是否是应用资源URI
                 String scheme = selectedImageUri.getScheme();
                 if (scheme != null && scheme.equals("android.resource")) {
-                    // 对于应用资源，直接使用URI，因为所有设备都能访问
+                    // 对于应用资源，直接使用URI
                     String imageUrl = selectedImageUri.toString();
                     tradeData.put("imageUrl", imageUrl);
                     Log.d(TAG, "使用应用资源图片URI: " + imageUrl);
                     createTradeInFirestore(tradeData);
+                } else if (scheme != null && scheme.equals("content")) {
+                    // 对于content类型的URI（从相册选择的图片），也直接使用
+                    String imageUrl = selectedImageUri.toString();
+                    tradeData.put("imageUrl", imageUrl);
+                    Log.d(TAG, "使用设备相册图片URI: " + imageUrl);
+                    createTradeInFirestore(tradeData);
                 } else {
-                    // 对于其他URI类型（content://或file://），上传到Firebase Storage
-                    String fileName = "trade_" + UUID.randomUUID().toString() + ".jpg";
-                    StorageReference imageRef = storage.getReference().child("trade_images").child(fileName);
-                    
-                    // 上传图片
-                    UploadTask uploadTask = imageRef.putFile(selectedImageUri);
-                    uploadTask.addOnSuccessListener(taskSnapshot -> {
-                        // 获取上传后的下载URL
-                        imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            // 保存下载URL到Firebase
-                            String downloadUrl = uri.toString();
-                            tradeData.put("imageUrl", downloadUrl);
-                            Log.d(TAG, "图片上传成功，下载URL: " + downloadUrl);
-                            
-                            // 创建商品记录
-                            createTradeInFirestore(tradeData);
-                        }).addOnFailureListener(e -> {
-                            Log.e(TAG, "获取下载URL失败", e);
-                            Toast.makeText(AddTradeActivity.this, "获取图片URL失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            loadingOverlay.setVisibility(View.GONE);
-                            submitButton.setEnabled(true);
-                        });
-                    }).addOnFailureListener(e -> {
-                        Log.e(TAG, "上传图片失败", e);
-                        Toast.makeText(AddTradeActivity.this, "上传图片失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        loadingOverlay.setVisibility(View.GONE);
-                        submitButton.setEnabled(true);
-                    }).addOnProgressListener(taskSnapshot -> {
-                        // 显示上传进度
-                        double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                        Log.d(TAG, "上传进度: " + progress + "%");
-                    });
+                    // 为其他类型的URI，如有需要可以添加额外处理
+                    String imageUrl = selectedImageUri.toString();
+                    tradeData.put("imageUrl", imageUrl);
+                    Log.d(TAG, "使用其他格式图片URI: " + imageUrl);
+                    createTradeInFirestore(tradeData);
                 }
             } else {
                 // 如果没有选择图片，设置为空字符串

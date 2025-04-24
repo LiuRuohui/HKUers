@@ -67,36 +67,39 @@ public class ForumActivity extends AppCompatActivity {
 
     private void addSamplePosts() {
         postList.add(new Post(
-                "post1",
-                "欢迎来到港大论坛",
-                "这里是港大论坛的官方公告",
-                "Admin",
-                "2024-03-20",
-                50,
-                100,
-                "announcement"
+                "post1", // id
+                "欢迎来到港大论坛", // title
+                "这里是港大论坛的官方公告", // content
+                "Admin", // author
+                "admin1", // authorId
+                "2024-03-20", // timestamp
+                "50", // likes
+                "100", // comments
+                "announcement" // boardType
         ));
 
         postList.add(new Post(
-                "post2",
-                "校园活动通知",
-                "本周五将举行校园开放日活动",
-                "Student Union",
-                "2024-03-19",
-                30,
-                80,
-                "event"
+                "post2", // id
+                "校园活动通知", // title
+                "本周五将举行校园开放日活动", // content
+                "Student Union", // author
+                "su1", // authorId
+                "2024-03-19", // timestamp
+                "30", // likes
+                "80", // comments
+                "event" // boardType
         ));
 
         postList.add(new Post(
-                "post3",
-                "学术讲座预告",
-                "计算机科学系将举办AI前沿讲座",
-                "CS Department",
-                "2024-03-18",
-                20,
-                60,
-                "academic"
+                "post3", // id
+                "学术讲座预告", // title
+                "计算机科学系将举办AI前沿讲座", // content
+                "CS Department", // author
+                "cs1", // authorId
+                "2024-03-18", // timestamp
+                "20", // likes
+                "60", // comments
+                "academic" // boardType
         ));
 
         postAdapter.notifyDataSetChanged();
@@ -170,7 +173,7 @@ public class ForumActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        findViewById(R.id.btnFun).setOnClickListener(view -> {
+        findViewById(R.id.btnDiscussion).setOnClickListener(view -> {
             Intent intent = new Intent(this, ForumBoardActivity.class);
             intent.putExtra("board_type", "fun");
             startActivity(intent);

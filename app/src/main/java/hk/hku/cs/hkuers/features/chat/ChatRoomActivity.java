@@ -49,7 +49,6 @@ import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.Message;
 import hk.hku.cs.hkuers.features.chat.MemberListActivity;
 import com.bumptech.glide.Glide;
-import hk.hku.cs.hkuers.features.profile.UserProfileManager;
 
 public class ChatRoomActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -176,9 +175,6 @@ public class ChatRoomActivity extends AppCompatActivity {
         // 更新用户读取状态
         updateUserReadStatus();
         
-        // 确保首次加载时滚动到底部
-        recyclerView.post(() -> scrollToBottom(false));
-        
         // 添加日志
         android.util.Log.d("ChatRoomActivity", "onCreate: ChatRoomActivity创建完成");
     }
@@ -226,22 +222,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         }
         
         // 设置RecyclerView
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true); // 从底部开始堆叠项目，以便最新消息在底部
-        recyclerView.setLayoutManager(layoutManager);
-        
-        // 监听布局变化，确保键盘弹出时消息列表不被遮挡
-        recyclerView.addOnLayoutChangeListener((v, left, top, right, bottom, 
-                                                oldLeft, oldTop, oldRight, oldBottom) -> {
-            if (bottom < oldBottom) {
-                // 键盘显示导致布局变小时，滚动到底部
-                recyclerView.postDelayed(() -> {
-                    if (adapter != null && adapter.getItemCount() > 0) {
-                        recyclerView.smoothScrollToPosition(adapter.getItemCount() - 1);
-                    }
-                }, 100);
-            }
-        });
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         
         // 添加日志
         android.util.Log.d("ChatRoomActivity", "initViews: 视图初始化完成");
@@ -447,9 +428,6 @@ public class ChatRoomActivity extends AppCompatActivity {
                 android.util.Log.d("ChatRoomActivity", "onDataChanged: 数据已更新，消息数量: " + getItemCount());
                 if (getItemCount() == 0) {
                     android.util.Log.d("ChatRoomActivity", "没有消息");
-                } else {
-                    // 数据加载完成后，滚动到最底部显示最新消息
-                    scrollToBottom(true);
                 }
             }
         };
@@ -491,9 +469,6 @@ public class ChatRoomActivity extends AppCompatActivity {
         
         // 设置标记表示Activity正在结束
         isFinishing = true;
-        
-        // 在离开前更新用户读取状态
-        updateUserReadStatus();
         
         // 停止监听器
         if (adapter != null) {
@@ -691,17 +666,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             .add(message)
             .addOnSuccessListener(documentReference -> {
                 // 更新聊天室的最后消息和时间
-                Timestamp now = new Timestamp(new Date());
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("last_message", "[Announcement] " + text);
-                updates.put("last_message_time", now);
-                updates.put("user_read_status." + currentUser.getUid(), now);
-                
-                db.collection("chat_rooms").document(chatRoomId)
-                    .update(updates)
-                    .addOnFailureListener(e -> 
-                        Toast.makeText(this, "Failed to update last message: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                    );
+                updateLastMessage("[Announcement] " + text);
             })
             .addOnFailureListener(e -> 
                 Toast.makeText(this, "Failed to send announcement: " + e.getMessage(), Toast.LENGTH_SHORT).show()
@@ -935,16 +900,7 @@ public class ChatRoomActivity extends AppCompatActivity {
             .add(message)
             .addOnSuccessListener(documentReference -> {
                 // 更新聊天室的最后消息和时间
-                Timestamp now = new Timestamp(new Date());
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("last_message", finalUserName + " has left the group");
-                updates.put("last_message_time", now);
-                
-                db.collection("chat_rooms").document(chatRoomId)
-                    .update(updates)
-                    .addOnFailureListener(e -> 
-                        Toast.makeText(this, "Failed to update last message: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                    );
+                updateLastMessage(finalUserName + " has left the group");
             });
     }
     
@@ -970,74 +926,36 @@ public class ChatRoomActivity extends AppCompatActivity {
                 // 清空输入框
                 etMessage.setText("");
                 
-                // 获取当前时间作为时间戳
-                Timestamp now = new Timestamp(new Date());
-                
                 // 更新聊天室的最后消息和时间
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("last_message", messageText);
-                updates.put("last_message_time", now);
+                updateLastMessage(messageText);
                 
-                // 同时更新发送者自己的已读状态和计数，避免自己发的消息被标记为未读
-                updates.put("user_read_status." + currentUser.getUid(), now);
-                
-                // 获取当前消息计数并更新
-                db.collection("chat_rooms").document(chatRoomId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            Long messageCount = documentSnapshot.getLong("message_count");
-                            if (messageCount == null) messageCount = 0L;
-                            messageCount++; // 增加消息计数
-                            
-                            updates.put("message_count", messageCount);
-                            updates.put("read_counts." + currentUser.getUid(), messageCount);
-                            
-                            // 应用所有更新
-                            db.collection("chat_rooms").document(chatRoomId)
-                                .update(updates)
-                                .addOnFailureListener(e -> 
-                                    Toast.makeText(this, "Failed to update chat info: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                                );
-                        }
-                    });
-                
-                // 确保在UI线程上平滑滚动到底部
-                scrollToBottom(true);
+                // 滚动到底部
+                recyclerView.scrollToPosition(adapter.getItemCount() - 1);
             })
             .addOnFailureListener(e -> 
                 Toast.makeText(this, "Failed to send: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
     
+    private void updateLastMessage(String message) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("last_message", message);
+        updates.put("last_message_time", new Timestamp(new Date()));
+        
+        db.collection("chat_rooms").document(chatRoomId)
+            .update(updates)
+            .addOnFailureListener(e -> 
+                Toast.makeText(this, "Failed to update last message: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+            );
+    }
+    
     private void updateUserReadStatus() {
         // 更新用户最后读取时间
-        Map<String, Object> updates = new HashMap<>();
+        Map<String, Object> userReadStatus = new HashMap<>();
+        userReadStatus.put("user_read_status." + currentUser.getUid(), new Timestamp(new Date()));
         
-        // 当前时间作为读取时间戳
-        Timestamp now = new Timestamp(new Date());
-        updates.put("user_read_status." + currentUser.getUid(), now);
-        
-        // 同时更新read_counts，保持向后兼容
         db.collection("chat_rooms").document(chatRoomId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    Long messageCount = documentSnapshot.getLong("message_count");
-                    if (messageCount == null) messageCount = 0L;
-                    
-                    // 添加已读计数更新
-                    updates.put("read_counts." + currentUser.getUid(), messageCount);
-                    
-                    // 应用所有更新
-                    db.collection("chat_rooms").document(chatRoomId)
-                        .update(updates)
-                        .addOnFailureListener(e -> {
-                            android.util.Log.e("ChatRoomActivity", "更新已读状态失败: " + e.getMessage());
-                            Toast.makeText(this, "Failed to update read status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
-                }
-            })
+            .update(userReadStatus)
             .addOnFailureListener(e -> 
                 Toast.makeText(this, "Failed to update read status: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
@@ -1508,9 +1426,6 @@ public class ChatRoomActivity extends AppCompatActivity {
         super.onPause();
         android.util.Log.d("ChatRoomActivity", "onPause: Activity暂停");
         
-        // 在退出聊天室时更新用户读取状态
-        updateUserReadStatus();
-        
         // 在onPause中停止adapter监听，避免在恢复时出现问题
         if (adapter != null) {
             try {
@@ -1659,8 +1574,8 @@ public class ChatRoomActivity extends AppCompatActivity {
                 
                 // 触发滚动到最新消息
                 new Handler().postDelayed(() -> {
-                    if (!isFinishing && !isFinishing()) {
-                        scrollToBottom(true);
+                    if (adapter != null && adapter.getItemCount() > 0 && !isFinishing && !isFinishing()) {
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
                     }
                 }, 300);
             }
@@ -1675,27 +1590,70 @@ public class ChatRoomActivity extends AppCompatActivity {
     // 打开用户资料页面
     private void openUserProfile(String userId, DocumentSnapshot userDoc) {
         try {
-            // 获取点击的头像视图
-            View currentFocus = getCurrentFocus();
+            // 创建Intent
+            Intent intent = new Intent(this, hk.hku.cs.hkuers.features.profile.UserProfileActivity.class);
             
-            // 使用锚点视图，如果没有当前焦点，则使用根视图
-            View anchor = currentFocus != null ? currentFocus : findViewById(R.id.recyclerMessages);
+            // 传递必要的用户ID
+            intent.putExtra("user_id", userId);
             
-            if (anchor == null) {
-                anchor = findViewById(R.id.toolbar);
+            // 传递聊天室返回信息，用于正确处理返回逻辑
+            intent.putExtra("from_chat_room", "true");
+            intent.putExtra("chat_room_id", chatRoomId);
+            intent.putExtra("chat_room_name", chatRoomName);
+            
+            // 如果有文档，传递更多用户信息，减少下一个页面的查询
+            if (userDoc != null) {
+                // 传递用户基本信息
+                if (userDoc.contains("uname") || userDoc.contains("name")) {
+                    String username = userDoc.getString("uname");
+                    if (username == null || username.isEmpty()) {
+                        username = userDoc.getString("name");
+                    }
+                    if (username != null && !username.isEmpty()) {
+                        intent.putExtra("user_name", username);
+                    }
+                }
+                
+                if (userDoc.contains("email")) {
+                    intent.putExtra("user_email", userDoc.getString("email"));
+                }
+                
+                // 添加调试信息，验证头像URL是否存在和正确
+                android.util.Log.d("ChatRoomActivity", "用户文档是否包含avatar_url: " + userDoc.contains("avatar_url"));
+                if (userDoc.contains("avatar_url")) {
+                    String avatarUrl = userDoc.getString("avatar_url");
+                    intent.putExtra("user_avatar_url", avatarUrl);
+                    android.util.Log.d("ChatRoomActivity", "传递给UserProfileActivity的avatarUrl: " + avatarUrl);
+                }
+                
+                if (userDoc.contains("department")) {
+                    intent.putExtra("user_department", userDoc.getString("department"));
+                }
+                
+                if (userDoc.contains("programme")) {
+                    intent.putExtra("user_programme", userDoc.getString("programme"));
+                }
+                
+                if (userDoc.contains("year_of_entry")) {
+                    intent.putExtra("user_year_of_entry", userDoc.getString("year_of_entry"));
+                }
+                
+                if (userDoc.contains("signature")) {
+                    intent.putExtra("user_signature", userDoc.getString("signature"));
+                }
+            } else {
+                android.util.Log.d("ChatRoomActivity", "userDoc为空，无用户数据传递");
             }
             
-            if (anchor == null) {
-                anchor = getWindow().getDecorView().findViewById(android.R.id.content);
-            }
+            // 启动活动
+            startActivity(intent);
             
-            // 使用UserProfileManager显示资料浮窗
-            UserProfileManager.getInstance().showUserProfile(
-                    this, anchor, userId, userDoc, chatRoomId, chatRoomName);
+            // 添加过渡动画
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             
-            android.util.Log.d("ChatRoomActivity", "已打开用户资料浮窗，用户ID: " + userId);
+            android.util.Log.d("ChatRoomActivity", "已打开用户资料页面，用户ID: " + userId);
         } catch (Exception e) {
-            android.util.Log.e("ChatRoomActivity", "打开用户资料浮窗失败: " + e.getMessage(), e);
+            android.util.Log.e("ChatRoomActivity", "打开用户资料失败: " + e.getMessage(), e);
             Toast.makeText(this, "Cannot open user profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -1738,29 +1696,5 @@ public class ChatRoomActivity extends AppCompatActivity {
             android.util.Log.e("ChatRoomActivity", "导航失败: " + e.getMessage(), e);
             Toast.makeText(ChatRoomActivity.this, "Navigation failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-    }
-
-    /**
-     * 滚动到消息列表底部
-     * @param smooth 是否使用平滑滚动
-     */
-    private void scrollToBottom(boolean smooth) {
-        if (recyclerView == null || adapter == null || adapter.getItemCount() == 0) {
-            return;
-        }
-        
-        recyclerView.post(() -> {
-            try {
-                int lastPosition = adapter.getItemCount() - 1;
-                if (smooth) {
-                    recyclerView.smoothScrollToPosition(lastPosition);
-                } else {
-                    recyclerView.scrollToPosition(lastPosition);
-                }
-                android.util.Log.d("ChatRoomActivity", "滚动到底部位置: " + lastPosition);
-            } catch (Exception e) {
-                android.util.Log.e("ChatRoomActivity", "滚动到底部失败: " + e.getMessage());
-            }
-        });
     }
 } 
