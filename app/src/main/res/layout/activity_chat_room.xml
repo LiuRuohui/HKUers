@@ -8,29 +8,22 @@
     android:fitsSystemWindows="true"
     tools:context=".features.chat.ChatRoomActivity">
 
-    <!-- 顶部安全区域，预留系统状态栏位置 -->
-    <View
-        android:id="@+id/statusBarSpace"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="#1E1E1E" />
-
-    <!-- 彩色指示条 -->
+    <!-- 彩色指示条 - 移至顶部 -->
     <View
         android:id="@+id/colorIndicator"
         android:layout_width="match_parent"
         android:layout_height="3dp"
-        android:layout_below="@id/statusBarSpace"
+        android:layout_alignParentTop="true"
         android:background="#4CAF50" />
 
-    <!-- 标题栏 -->
+    <!-- 标题栏 - 直接放在彩色指示条下方 -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
+        android:layout_below="@id/colorIndicator"
         android:background="#1E1E1E"
-        android:elevation="4dp"
-        android:layout_below="@id/colorIndicator">
+        android:elevation="4dp">
 
         <!-- 返回按钮 -->
         <ImageButton

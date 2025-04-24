@@ -97,7 +97,10 @@ public class ChatRoomActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(android.graphics.Color.parseColor("#1E1E1E"));
         }
         
-        // 设置状态栏空间高度
+        // 使用fitsSystemWindows属性，无需手动计算状态栏高度
+        // XML布局中已设置android:fitsSystemWindows="true"
+        // 注释掉以下代码，防止重复设置导致导航栏变低
+        /*
         View statusBarSpace = findViewById(R.id.statusBarSpace);
         if (statusBarSpace != null) {
             int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
@@ -109,6 +112,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                 android.util.Log.d("ChatRoomActivity", "设置状态栏高度: " + statusBarHeight);
             }
         }
+        */
         
         // 测试页面是否正确显示
         String displayName = getIntent().getStringExtra("chatRoomName");
@@ -572,16 +576,34 @@ public class ChatRoomActivity extends AppCompatActivity {
     
     private void showMembersDialog() {
         try {
+            android.util.Log.d("ChatRoomActivity", "调用showMembersDialog方法");
+            android.util.Log.w("ChatRoomActivity", "## 调试断点 ## - 准备跳转到成员列表，chatRoomId=" + chatRoomId);
+            
+            // 检查chatRoomId是否有效
+            if (chatRoomId == null || chatRoomId.isEmpty()) {
+                android.util.Log.e("ChatRoomActivity", "chatRoomId为空或无效");
+                Toast.makeText(this, "Invalid chat room ID", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
             // 简单直接的跳转实现
             Intent intent = new Intent(this, MemberListActivity.class);
             intent.putExtra("chat_room_id", chatRoomId);
             if (chatRoomName != null && !chatRoomName.isEmpty()) {
                 intent.putExtra("chatRoomName", chatRoomName);
+                android.util.Log.d("ChatRoomActivity", "添加chatRoomName参数: " + chatRoomName);
             }
+            
+            android.util.Log.w("ChatRoomActivity", "## 调试断点 ## - 跳转意图创建完成，参数: " + 
+                    "chat_room_id=" + intent.getStringExtra("chat_room_id") + 
+                    ", chatRoomName=" + intent.getStringExtra("chatRoomName"));
+            
             // 使用startActivityForResult而不是startActivity
             startActivityForResult(intent, REQUEST_CODE_VIEW_MEMBERS);
             // 简单的过渡动画
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            
+            android.util.Log.d("ChatRoomActivity", "已调用startActivityForResult");
         } catch (Exception e) {
             android.util.Log.e("ChatRoomActivity", "跳转到成员列表失败: " + e.getMessage(), e);
             Toast.makeText(this, "Cannot open member list: " + e.getMessage(), Toast.LENGTH_SHORT).show();

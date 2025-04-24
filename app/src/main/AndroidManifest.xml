@@ -32,6 +32,14 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <!-- 调试配置：允许所有日志标签 -->
+        <meta-data
+            android:name="android.util.Log.DEBUG"
+            android:value="true" />
+        <meta-data
+            android:name="android.util.Log.VERBOSE"
+            android:value="true" />
+
         <!-- Step 1: 将 LoginActivity 设为默认启动页 -->
         <activity
             android:name=".auth.LoginActivity"
