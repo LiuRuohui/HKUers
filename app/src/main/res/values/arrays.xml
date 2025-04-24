@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="lost_found_categories">
+        <item>全部</item>
+        <item>证件</item>
+        <item>电子产品</item>
+        <item>书籍</item>
+        <item>衣物</item>
+        <item>其他</item>
+    </string-array>
+</resources>

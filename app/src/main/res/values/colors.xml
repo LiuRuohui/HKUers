@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 主题颜色 -->
-    <color name="colorPrimary">#FF2196F3</color>
-    <color name="colorPrimaryDark">#FF1976D2</color>
+    <color name="colorPrimary">@color/primary</color>
     <color name="primary">#0073E6</color>
     <color name="primary_variant">#004881</color>
     <color name="primary_dark">#00325A</color>
@@ -21,7 +20,7 @@
     <color name="tertiary_container">#FFD8E4</color>
     <color name="on_tertiary_container">#31111D</color>
 
-    <color name="error">#F44336</color>
+    <color name="error">#BA1A1A</color>
     <color name="on_error">#FFFFFF</color>
     <color name="error_container">#FFDAD6</color>
     <color name="on_error_container">#410002</color>
@@ -63,30 +62,8 @@
     <color name="success">#4CAF50</color>
     <color name="warning">#FFC107</color>
 
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="resolved_green">#4CAF50</color>
+    <color name="placeholder_gray">#CCCCCC</color>
+    <color name="error_red">#FFE0E0</color>
 
-    <!-- 用于底部导航栏的颜色选择器 -->
-    <color name="colorAccent">#FF03DAC5</color>
-    <color name="colorInactive">#9E9E9E</color>
-
-    <!-- 聊天消息气泡颜色 -->
-    <color name="message_bubble_sender">#2196F3</color>
-    <color name="message_bubble_receiver">#424242</color>
-    <color name="message_text_sender">#FFFFFF</color>
-    <color name="message_text_receiver">#FFFFFF</color>
-
-    <!-- Chip背景颜色 -->
-    <color name="chip_background_selected">#2196F3</color>
-    <color name="chip_background_unselected">#424242</color>
-
-    <color name="textColorPrimary">#FFFFFF</color>
-    <color name="textColorSecondary">#B3FFFFFF</color>
-    <color name="windowBackground">#121212</color>
-    <color name="navigationBarColor">#000000</color>
-    <color name="statusBarColor">#000000</color>
-    <color name="gray">#9E9E9E</color>
 </resources>
