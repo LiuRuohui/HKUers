@@ -39,4 +39,6 @@
     <string name="my_favorites">My Favorites</string>
     <string name="favorite_added">Added to favorites</string>
     <string name="favorite_removed">Removed from favorites</string>
+    <string name="tab_indicator_description">Tab indicator</string>
+    <string name="filter">Filter</string>
 </resources>

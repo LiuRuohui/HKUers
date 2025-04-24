@@ -45,6 +45,7 @@ public class TradeListActivity extends AppCompatActivity {
     private FloatingActionButton fabMyTrade;
     private FloatingActionButton fabMyFavorites;
     private boolean isShowingFavorites = false;
+    private View loadingView;
     
     // 添加一个普通RecyclerView.Adapter作为备用方案
     private TradeAdapter fallbackAdapter;
@@ -141,7 +142,6 @@ public class TradeListActivity extends AppCompatActivity {
             }
             
             // 显示加载状态
-            View loadingView = findViewById(R.id.loadingProgressBar);
             if (loadingView != null) {
                 loadingView.setVisibility(View.VISIBLE);
             }
@@ -173,75 +173,98 @@ public class TradeListActivity extends AppCompatActivity {
                 Log.d(TAG, "Not filtering by category, showing all items");
             }
             
-            query.get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    try {
-                        Log.d(TAG, "Manual query returned " + queryDocumentSnapshots.size() + " documents");
+            // 排序处理
+            final String sortOption = sortSpinner != null ? sortSpinner.getText().toString() : "Newest First";
+            if (sortOption.equals("Price: Low to High")) {
+                query = query.orderBy("price", Query.Direction.ASCENDING);
+            } else if (sortOption.equals("Price: High to Low")) {
+                query = query.orderBy("price", Query.Direction.DESCENDING);
+            } else if (sortOption.equals("Oldest First")) {
+                query = query.orderBy("createTime", Query.Direction.ASCENDING);
+            } else {
+                // Default to newest first
+                query = query.orderBy("createTime", Query.Direction.DESCENDING);
+            }
+            
+            Log.d(TAG, "Query prepared with search: " + finalSearchText + ", category: " + finalSelectedCategory + ", sort: " + sortOption);
+            
+            // 执行查询
+            query.get().addOnCompleteListener(task -> {
+                try {
+                    if (task.isSuccessful()) {
+                        // 创建一个临时列表以存储完成卖家信息加载的商品
+                        List<TradeItem> tempItems = new ArrayList<>();
+                        List<QueryDocumentSnapshot> documents = new ArrayList<>();
                         
-                        // 如果没有数据，打印日志
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            Log.d(TAG, "No items found in Firestore");
+                        // 先收集所有文档
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            documents.add(document);
                         }
                         
-                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Log.d(TAG, "Query returned " + documents.size() + " documents");
+                        
+                        // 如果没有商品，直接显示空状态
+                        if (documents.isEmpty()) {
+                            fallbackItems.clear();
+                            if (fallbackAdapter != null) {
+                                fallbackAdapter.notifyDataSetChanged();
+                            }
+                            
+                            // 使用在方法开始已经定义的loadingView变量
+                            if (loadingView != null) {
+                                loadingView.setVisibility(View.GONE);
+                            }
+                            
+                            // 显示空状态
+                            View emptyView = findViewById(R.id.emptyView);
+                            if (emptyView != null) {
+                                emptyView.setVisibility(View.VISIBLE);
+                            }
+                            return;
+                        }
+                        
+                        // 使用计数器来跟踪加载完成的商品数量
+                        final int[] completedCounter = {0};
+                        final int totalCount = documents.size();
+
+                        // 处理每个文档
+                        for (QueryDocumentSnapshot document : documents) {
                             try {
+                                // 获取文档字段
                                 String id = document.getId();
                                 String title = document.getString("title");
                                 String description = document.getString("description");
+                                
+                                Double priceObj = document.getDouble("price");
+                                double price = priceObj != null ? priceObj : 0.0;
+                                
                                 String sellerId = document.getString("sellerId");
                                 String sellerName = document.getString("sellerName");
                                 String category = document.getString("category");
                                 String status = document.getString("status");
                                 String imageUrl = document.getString("imageUrl");
-                                double price = 0;
                                 
-                                // 安全地尝试获取价格
-                                try {
-                                    if (document.contains("price")) {
-                                        if (document.get("price") instanceof Double) {
-                                            price = document.getDouble("price");
-                                        } else if (document.get("price") instanceof Long) {
-                                            price = document.getLong("price");
-                                        } else {
-                                            price = 0;
-                                        }
+                                // 尝试获取createTime
+                                Timestamp createTime = null;
+                                Object createTimeObj = document.get("createTime");
+                                if (createTimeObj instanceof Timestamp) {
+                                    createTime = (Timestamp) createTimeObj;
+                                } else if (document.contains("timestamp")) {
+                                    Long timestamp = document.getLong("timestamp");
+                                    if (timestamp != null) {
+                                        createTime = new Timestamp(new Date(timestamp));
                                     }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "Error parsing price for document " + id, e);
-                                    price = 0;
                                 }
                                 
-                                // 处理时间戳 - 考虑两种格式
-                                Timestamp createTime = null;
-                                try {
-                                    // 尝试获取Timestamp类型
-                                    if (document.contains("createTime")) {
-                                        if (document.get("createTime") instanceof Timestamp) {
-                                            createTime = document.getTimestamp("createTime");
-                                        } else if (document.get("createTime") instanceof Long) {
-                                            // 转换长整型为Timestamp
-                                            long timeMillis = document.getLong("createTime");
-                                            createTime = new Timestamp(new Date(timeMillis));
-                                        }
-                                    } else if (document.contains("timestamp")) {
-                                        // 尝试从timestamp字段获取
-                                        long timeMillis = document.getLong("timestamp");
-                                        createTime = new Timestamp(new Date(timeMillis));
-                                    }
-                                    
-                                    if (createTime == null) {
-                                        // 如果都没有，使用当前时间
-                                        createTime = Timestamp.now();
-                                    }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "Error parsing timestamp for document " + id, e);
+                                // 如果没有createTime，使用当前时间
+                                if (createTime == null) {
                                     createTime = Timestamp.now();
                                 }
                                 
-                                // 创建交易项
+                                // 创建TradeItem对象并设置所有字段
                                 TradeItem item = new TradeItem();
                                 item.setId(id);
-                                item.setTitle(title != null ? title : "Unknown title");
+                                item.setTitle(title);
                                 item.setDescription(description);
                                 item.setPrice(price);
                                 item.setSellerId(sellerId);
@@ -263,100 +286,151 @@ public class TradeListActivity extends AppCompatActivity {
                                     }
                                     
                                     if (!matchesSearch) {
+                                        completedCounter[0]++;
+                                        checkAndUpdateUI(completedCounter[0], totalCount, tempItems);
                                         continue; // 跳过不匹配的项目
                                     }
                                 }
                                 
-                                // 添加到列表
-                                fallbackItems.add(item);
-                                Log.d(TAG, "Added manual item: " + item.getTitle());
+                                // 查询卖家真实名称
+                                if (sellerId != null && !sellerId.isEmpty()) {
+                                    // 从users集合中查询卖家信息
+                                    db.collection("users").document(sellerId).get()
+                                        .addOnSuccessListener(userDoc -> {
+                                            String userName = null;
+                                            if (userDoc.exists()) {
+                                                // 优先使用uname字段
+                                                userName = userDoc.getString("uname");
+                                                
+                                                // 如果uname为空，尝试使用displayName字段
+                                                if (userName == null || userName.isEmpty()) {
+                                                    userName = userDoc.getString("displayName");
+                                                }
+                                                
+                                                // 如果找到了用户名，更新商品的sellerName
+                                                if (userName != null && !userName.isEmpty()) {
+                                                    item.setSellerName(userName);
+                                                    Log.d(TAG, "Updated seller name for item " + id + ": " + userName);
+                                                }
+                                            }
+                                            
+                                            // 添加到临时列表
+                                            tempItems.add(item);
+                                            completedCounter[0]++;
+                                            
+                                            // 检查是否所有商品都已处理完毕
+                                            checkAndUpdateUI(completedCounter[0], totalCount, tempItems);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Error fetching seller info for ID " + sellerId + ": " + e.getMessage());
+                                            
+                                            // 即使获取卖家信息失败，也添加商品到列表
+                                            tempItems.add(item);
+                                            completedCounter[0]++;
+                                            
+                                            // 检查是否所有商品都已处理完毕
+                                            checkAndUpdateUI(completedCounter[0], totalCount, tempItems);
+                                        });
+                                } else {
+                                    // 如果没有sellerId，直接添加到列表
+                                    tempItems.add(item);
+                                    completedCounter[0]++;
+                                    
+                                    // 检查是否所有商品都已处理完毕
+                                    checkAndUpdateUI(completedCounter[0], totalCount, tempItems);
+                                }
+                                
                             } catch (Exception e) {
-                                Log.e(TAG, "Error parsing document " + document.getId(), e);
-                                // 继续处理下一个文档
+                                Log.e(TAG, "Error processing document: " + e.getMessage(), e);
+                                completedCounter[0]++;
+                                checkAndUpdateUI(completedCounter[0], totalCount, tempItems);
                             }
                         }
+                    } else {
+                        Log.e(TAG, "Error getting documents: ", task.getException());
                         
-                        // 应用排序
-                        applySortingToFallbackItems();
-                        
-                        // 通知适配器更新
-                        if (fallbackAdapter != null) {
-                            fallbackAdapter.notifyDataSetChanged();
-                            Log.d(TAG, "Notified fallback adapter, items: " + fallbackItems.size());
+                        // 使用在方法开始已经定义的loadingView变量
+                        if (loadingView != null) {
+                            loadingView.setVisibility(View.GONE);
                         }
                         
-                        // 隐藏加载状态
-                        View loadingView2 = findViewById(R.id.loadingProgressBar);
-                        if (loadingView2 != null) {
-                            loadingView2.setVisibility(View.GONE);
-                        }
-                        
-                        // 更新空视图状态
+                        // 显示空状态
                         View emptyView = findViewById(R.id.emptyView);
                         if (emptyView != null) {
-                            emptyView.setVisibility(fallbackItems.isEmpty() ? View.VISIBLE : View.GONE);
+                            emptyView.setVisibility(View.VISIBLE);
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing manual query results", e);
+                        
+                        Toast.makeText(TradeListActivity.this, "Failed to load trades: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading trades manually", e);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error in query completion: " + e.getMessage(), e);
                     
-                    // 隐藏加载状态
-                    View loadingView2 = findViewById(R.id.loadingProgressBar);
-                    if (loadingView2 != null) {
-                        loadingView2.setVisibility(View.GONE);
+                    // 使用在方法开始已经定义的loadingView变量
+                    if (loadingView != null) {
+                        loadingView.setVisibility(View.GONE);
                     }
                     
-                    // 显示空视图
+                    // 显示空状态
                     View emptyView = findViewById(R.id.emptyView);
                     if (emptyView != null) {
                         emptyView.setVisibility(View.VISIBLE);
                     }
-                    
-                    Toast.makeText(this, "加载商品列表失败", Toast.LENGTH_SHORT).show();
-                });
+                }
+            });
         } catch (Exception e) {
-            Log.e(TAG, "Error in loadAllTradesManually", e);
+            Log.e(TAG, "Error in loadAllTradesManually: " + e.getMessage(), e);
+            
+            // 使用在方法开始已经定义的loadingView变量
+            if (loadingView != null) {
+                loadingView.setVisibility(View.GONE);
+            }
+            
+            // 显示空状态
+            View emptyView = findViewById(R.id.emptyView);
+            if (emptyView != null) {
+                emptyView.setVisibility(View.VISIBLE);
+            }
+            
+            Toast.makeText(this, "Error loading trades: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
     
-    private void applySortingToFallbackItems() {
-        try {
-            String sortOption = "Newest First"; // 默认排序
+    /**
+     * 检查是否所有商品都已处理，如果是，更新UI
+     */
+    private void checkAndUpdateUI(int completed, int total, List<TradeItem> tempItems) {
+        if (completed >= total) {
+            // 所有商品都处理完毕
+            // 更新列表数据
+            fallbackItems.clear();
+            fallbackItems.addAll(tempItems);
             
-            if (sortSpinner != null && sortSpinner.getText() != null) {
-                sortOption = sortSpinner.getText().toString();
+            // 刷新UI
+            if (fallbackAdapter != null) {
+                fallbackAdapter.notifyDataSetChanged();
+                Log.d(TAG, "Updated fallback adapter with " + fallbackItems.size() + " items");
             }
             
-            switch (sortOption) {
-                case "Newest First":
-                    fallbackItems.sort((a, b) -> {
-                        if (a.getCreateTime() == null) return 1;
-                        if (b.getCreateTime() == null) return -1;
-                        return -a.getCreateTime().compareTo(b.getCreateTime()); // 降序，最新的在前
-                    });
-                    break;
-                case "Oldest First":
-                    fallbackItems.sort((a, b) -> {
-                        if (a.getCreateTime() == null) return -1;
-                        if (b.getCreateTime() == null) return 1;
-                        return a.getCreateTime().compareTo(b.getCreateTime()); // 升序，最旧的在前
-                    });
-                    break;
-                case "Price: Low to High":
-                    fallbackItems.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
-                    break;
-                case "Price: High to Low":
-                    fallbackItems.sort((a, b) -> -Double.compare(a.getPrice(), b.getPrice()));
-                    break;
+            // 隐藏加载状态
+            if (loadingView != null) {
+                loadingView.setVisibility(View.GONE);
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error applying sorting", e);
+            
+            // 如果没有商品，显示空状态
+            if (fallbackItems.isEmpty()) {
+                View emptyView = findViewById(R.id.emptyView);
+                if (emptyView != null) {
+                    emptyView.setVisibility(View.VISIBLE);
+                }
+            } else {
+                View emptyView = findViewById(R.id.emptyView);
+                if (emptyView != null) {
+                    emptyView.setVisibility(View.GONE);
+                }
+            }
         }
     }
-    
+
     private void setupFallbackAdapter() {
         try {
             fallbackAdapter = new TradeAdapter(fallbackItems, this::onItemClick);
@@ -387,6 +461,9 @@ public class TradeListActivity extends AppCompatActivity {
             searchEditText = findViewById(R.id.searchEditText);
             categorySpinner = findViewById(R.id.categorySpinner);
             sortSpinner = findViewById(R.id.sortSpinner);
+            
+            // 初始化loadingView
+            loadingView = findViewById(R.id.loadingProgressBar);
             
             // 设置toolbar的返回按钮点击事件
             androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
@@ -593,7 +670,6 @@ public class TradeListActivity extends AppCompatActivity {
             
             if (needRefresh) {
                 // 显示加载指示器
-                View loadingView = findViewById(R.id.loadingProgressBar);
                 if (loadingView != null) {
                     loadingView.setVisibility(View.VISIBLE);
                 }
@@ -636,7 +712,6 @@ public class TradeListActivity extends AppCompatActivity {
             }
             
             // 隐藏加载指示器
-            View loadingView = findViewById(R.id.loadingProgressBar);
             if (loadingView != null) {
                 loadingView.setVisibility(View.GONE);
             }
@@ -689,7 +764,6 @@ public class TradeListActivity extends AppCompatActivity {
         if (requestCode == ADD_TRADE_REQUEST_CODE) {
             Log.d("TradeListActivity", "Returned from AddTradeActivity, refreshing data");
             // 显示加载状态
-            View loadingView = findViewById(R.id.loadingProgressBar);
             if (loadingView != null) {
                 loadingView.setVisibility(View.VISIBLE);
             }

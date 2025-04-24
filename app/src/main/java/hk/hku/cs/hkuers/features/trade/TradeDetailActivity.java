@@ -587,7 +587,21 @@ public class TradeDetailActivity extends AppCompatActivity {
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 // 处理不同类型的图片URI
                 try {
-                    // 尝试通用方法处理所有类型的URI
+                    // 优先处理Firebase Storage URLs (http/https)
+                    if (imageUrl.startsWith("http")) {
+                        Log.d(TAG, "加载Firebase Storage图片: " + imageUrl);
+                        Glide.with(this)
+                            .load(imageUrl)
+                            .apply(new RequestOptions()
+                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                 .placeholder(R.drawable.default_avatar)
+                                 .error(R.drawable.default_avatar))
+                            .into(singleImageView);
+                        viewPager.setAdapter(new SingleImageAdapter(singleImageView));
+                        return;
+                    }
+                    
+                    // 解析其他类型的URI
                     Uri uri = Uri.parse(imageUrl);
                     Log.d(TAG, "Parsed URI: " + uri + ", scheme: " + uri.getScheme());
                     
