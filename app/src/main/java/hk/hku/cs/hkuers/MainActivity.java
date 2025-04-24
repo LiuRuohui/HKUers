@@ -10,6 +10,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import hk.hku.cs.hkuers.features.chat.ChatListActivity;
 import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
+import hk.hku.cs.hkuers.features.forum.ForumActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.navigation_forum) {
                 // 处理论坛按钮点击
-                Toast.makeText(MainActivity.this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                openForum();
                 return true;
             } else if (itemId == R.id.navigation_dashboard) {
                 // 主页已经是当前页面，不需要额外操作
@@ -89,5 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void openMarketplace() {
         startActivity(new Intent(this, MarketplaceActivity.class));
+    }
+
+    private void openForum() {startActivity(new Intent(this, ForumActivity.class));
     }
 }

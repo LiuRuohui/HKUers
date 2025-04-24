@@ -45,12 +45,12 @@ public class RegistrationActivity extends AppCompatActivity {
                 String password = etPassword.getText().toString().trim();
 
                 if (!isValidHKUEmail(email)) {
-                    Toast.makeText(RegistrationActivity.this, "必须使用@connect.hku.hk邮箱", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegistrationActivity.this, "Must use @connect.hku.hk email", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 if (!isValidPassword(password)) {
-                    Toast.makeText(RegistrationActivity.this, "密码需至少8位且包含字母和数字", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegistrationActivity.this, "Password should contain at least 8 digits, including numbers and letters", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -62,10 +62,10 @@ public class RegistrationActivity extends AppCompatActivity {
                                 mAuth.getCurrentUser().sendEmailVerification();
                                 // 存储用户到Firestore
                                 saveUserToFirestore(email);
-                                Toast.makeText(RegistrationActivity.this, "注册成功！请检查邮箱验证", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RegistrationActivity.this, "Registration successful! Please check verify your email", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
                             } else {
-                                Toast.makeText(RegistrationActivity.this, "注册失败: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RegistrationActivity.this, "Registration failed: " + task.getException(), Toast.LENGTH_SHORT).show();
                             }
                         });
             }
@@ -103,7 +103,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (!task.isSuccessful()) {
-                            Toast.makeText(RegistrationActivity.this, "用户数据存储失败", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegistrationActivity.this, "Failed to save user data", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

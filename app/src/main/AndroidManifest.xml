@@ -102,5 +102,23 @@
         <activity
             android:name=".features.trade.EditTradeActivity"
             android:exported="false" />
+        <activity
+            android:name=".features.forum.ForumActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.forum.ForumBoardActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".features.forum.LostFoundActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".features.forum.NewForumBoardActivity"
+            android:exported="false"
+            android:parentActivityName=".features.forum.ForumBoardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.forum.ForumBoardActivity" />
+        </activity>
+
     </application>
 </manifest>

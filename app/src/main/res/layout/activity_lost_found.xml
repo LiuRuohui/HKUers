@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- 搜索框 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/searchEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="搜索失物招领信息"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 分类选择 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="分类："
+                    android:layout_gravity="center_vertical"/>
+
+                <Spinner
+                    android:id="@+id/spinnerCategory"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+            <!-- 失物招领列表 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvLostFound"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="8dp"/>
+
+        </LinearLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- 发布新信息按钮 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabNewLostFound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="发布新信息"
+        app:srcCompat="@android:drawable/ic_input_add"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

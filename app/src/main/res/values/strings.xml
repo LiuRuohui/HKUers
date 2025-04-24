@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HKUers</string>
-    <string name="hku_xxx_connect_hku_hk">HKU邮箱 (xxx@connect.hku.hk)</string>
-    <string name="_8">密码（至少8位，包含字母和数字）</string>
+    <string name="hku_xxx_connect_hku_hk">HKU email (xxx@connect.hku.hk)</string>
+    <string name="_8">password (>= 8 digits, numbers + letters)</string>
     <string name="search">Search</string>
     <string name="search_hint">Search items...</string>
     <string name="search_items">Search items...</string>
@@ -39,4 +39,7 @@
     <string name="my_favorites">My Favorites</string>
     <string name="favorite_added">Added to favorites</string>
     <string name="favorite_removed">Removed from favorites</string>
+    <string name="tab_indicator_description">Page indicator dots</string>
+    <string name="filter">Filter</string>
+    <string name="save">Save</string>
 </resources>
