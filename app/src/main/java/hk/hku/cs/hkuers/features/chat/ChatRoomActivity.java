@@ -49,7 +49,6 @@ import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.Message;
 import hk.hku.cs.hkuers.features.chat.MemberListActivity;
 import com.bumptech.glide.Glide;
-import hk.hku.cs.hkuers.features.profile.UserProfileManager;
 
 public class ChatRoomActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -1591,27 +1590,70 @@ public class ChatRoomActivity extends AppCompatActivity {
     // 打开用户资料页面
     private void openUserProfile(String userId, DocumentSnapshot userDoc) {
         try {
-            // 获取点击的头像视图
-            View currentFocus = getCurrentFocus();
+            // 创建Intent
+            Intent intent = new Intent(this, hk.hku.cs.hkuers.features.profile.UserProfileActivity.class);
             
-            // 使用锚点视图，如果没有当前焦点，则使用根视图
-            View anchor = currentFocus != null ? currentFocus : findViewById(R.id.recyclerMessages);
+            // 传递必要的用户ID
+            intent.putExtra("user_id", userId);
             
-            if (anchor == null) {
-                anchor = findViewById(R.id.toolbar);
+            // 传递聊天室返回信息，用于正确处理返回逻辑
+            intent.putExtra("from_chat_room", "true");
+            intent.putExtra("chat_room_id", chatRoomId);
+            intent.putExtra("chat_room_name", chatRoomName);
+            
+            // 如果有文档，传递更多用户信息，减少下一个页面的查询
+            if (userDoc != null) {
+                // 传递用户基本信息
+                if (userDoc.contains("uname") || userDoc.contains("name")) {
+                    String username = userDoc.getString("uname");
+                    if (username == null || username.isEmpty()) {
+                        username = userDoc.getString("name");
+                    }
+                    if (username != null && !username.isEmpty()) {
+                        intent.putExtra("user_name", username);
+                    }
+                }
+                
+                if (userDoc.contains("email")) {
+                    intent.putExtra("user_email", userDoc.getString("email"));
+                }
+                
+                // 添加调试信息，验证头像URL是否存在和正确
+                android.util.Log.d("ChatRoomActivity", "用户文档是否包含avatar_url: " + userDoc.contains("avatar_url"));
+                if (userDoc.contains("avatar_url")) {
+                    String avatarUrl = userDoc.getString("avatar_url");
+                    intent.putExtra("user_avatar_url", avatarUrl);
+                    android.util.Log.d("ChatRoomActivity", "传递给UserProfileActivity的avatarUrl: " + avatarUrl);
+                }
+                
+                if (userDoc.contains("department")) {
+                    intent.putExtra("user_department", userDoc.getString("department"));
+                }
+                
+                if (userDoc.contains("programme")) {
+                    intent.putExtra("user_programme", userDoc.getString("programme"));
+                }
+                
+                if (userDoc.contains("year_of_entry")) {
+                    intent.putExtra("user_year_of_entry", userDoc.getString("year_of_entry"));
+                }
+                
+                if (userDoc.contains("signature")) {
+                    intent.putExtra("user_signature", userDoc.getString("signature"));
+                }
+            } else {
+                android.util.Log.d("ChatRoomActivity", "userDoc为空，无用户数据传递");
             }
             
-            if (anchor == null) {
-                anchor = getWindow().getDecorView().findViewById(android.R.id.content);
-            }
+            // 启动活动
+            startActivity(intent);
             
-            // 使用UserProfileManager显示资料浮窗
-            UserProfileManager.getInstance().showUserProfile(
-                    this, anchor, userId, userDoc, chatRoomId, chatRoomName);
+            // 添加过渡动画
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             
-            android.util.Log.d("ChatRoomActivity", "已打开用户资料浮窗，用户ID: " + userId);
+            android.util.Log.d("ChatRoomActivity", "已打开用户资料页面，用户ID: " + userId);
         } catch (Exception e) {
-            android.util.Log.e("ChatRoomActivity", "打开用户资料浮窗失败: " + e.getMessage(), e);
+            android.util.Log.e("ChatRoomActivity", "打开用户资料失败: " + e.getMessage(), e);
             Toast.makeText(this, "Cannot open user profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }

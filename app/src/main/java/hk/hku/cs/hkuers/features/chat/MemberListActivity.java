@@ -35,7 +35,6 @@ import java.util.Map;
 
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.profile.UserProfileActivity;
-import hk.hku.cs.hkuers.features.profile.UserProfileManager;
 
 public class MemberListActivity extends AppCompatActivity {
 
@@ -267,7 +266,7 @@ public class MemberListActivity extends AppCompatActivity {
     private void loadMembers(boolean isInitialLoad) {
         isLoading = true;
         showLoading(true);
-        android.util.Log.d(TAG, "开始加载成员数据，chatRoomId=" + chatRoomId);
+        Log.d(TAG, "开始加载成员数据，chatRoomId=" + chatRoomId);
         
         // 直接查询document，检查chat_room的结构
         db.collection("chat_rooms").document(chatRoomId)
@@ -277,7 +276,7 @@ public class MemberListActivity extends AppCompatActivity {
                     // 打印所有字段，以便调试
                     Map<String, Object> data = documentSnapshot.getData();
                     if (data != null) {
-                        android.util.Log.d(TAG, "聊天室数据: " + data.toString());
+                        Log.d(TAG, "聊天室数据: " + data.toString());
                         
                         // 根据聊天室数据结构，尝试不同的字段名获取成员列表
                         List<String> memberIds = null;
@@ -285,61 +284,29 @@ public class MemberListActivity extends AppCompatActivity {
                         // 尝试不同的字段名
                         if (data.containsKey("member_ids")) {
                             memberIds = (List<String>) data.get("member_ids");
-                            android.util.Log.d(TAG, "找到member_ids字段: " + memberIds);
+                            Log.d(TAG, "找到member_ids字段");
                         } else if (data.containsKey("members")) {
                             memberIds = (List<String>) data.get("members");
-                            android.util.Log.d(TAG, "找到members字段: " + memberIds);
+                            Log.d(TAG, "找到members字段");
                         } else if (data.containsKey("memberIds")) {
                             memberIds = (List<String>) data.get("memberIds");
-                            android.util.Log.d(TAG, "找到memberIds字段: " + memberIds);
+                            Log.d(TAG, "找到memberIds字段");
                         } else if (data.containsKey("users")) {
-                            // 检查users字段的类型
-                            Object usersObj = data.get("users");
-                            if (usersObj instanceof List) {
-                                // 如果是List类型
-                                memberIds = (List<String>) usersObj;
-                                android.util.Log.d(TAG, "找到users字段(List): " + memberIds);
-                            } else if (usersObj instanceof Map) {
-                                // 如果是Map类型
-                                Map<String, Object> usersMap = (Map<String, Object>) usersObj;
-                                memberIds = new ArrayList<>(usersMap.keySet());
-                                android.util.Log.d(TAG, "找到users字段(Map)，转换为List: " + memberIds);
-                            }
+                            memberIds = (List<String>) data.get("users");
+                            Log.d(TAG, "找到users字段");
                         }
                         
-                        // 如果仍然找不到成员列表，尝试user_read_status字段
-                        if (memberIds == null && data.containsKey("user_read_status")) {
-                            Object userReadStatusObj = data.get("user_read_status");
-                            if (userReadStatusObj instanceof Map) {
-                                Map<String, Object> userReadStatusMap = (Map<String, Object>) userReadStatusObj;
-                                memberIds = new ArrayList<>(userReadStatusMap.keySet());
-                                android.util.Log.d(TAG, "从user_read_status获取成员ID: " + memberIds);
-                            }
-                        }
-                        
-                        // 最后一次尝试：从read_counts获取成员
-                        if (memberIds == null && data.containsKey("read_counts")) {
-                            Object readCountsObj = data.get("read_counts");
-                            if (readCountsObj instanceof Map) {
-                                Map<String, Object> readCountsMap = (Map<String, Object>) readCountsObj;
-                                memberIds = new ArrayList<>(readCountsMap.keySet());
-                                android.util.Log.d(TAG, "从read_counts获取成员ID: " + memberIds);
-                            }
-                        }
-                        
-                        // 如果仍然找不到成员，添加当前用户作为测试
-                        if (memberIds == null || memberIds.isEmpty()) {
-                            android.util.Log.d(TAG, "找不到成员，添加当前用户作为测试成员");
-                            memberIds = new ArrayList<>();
-                            if (currentUser != null) {
-                                memberIds.add(currentUser.getUid());
-                            }
+                        // 如果memberIds为null，尝试将users字段(Map)转换为List
+                        if (memberIds == null && data.containsKey("users") && data.get("users") instanceof Map) {
+                            Map<String, Object> usersMap = (Map<String, Object>) data.get("users");
+                            memberIds = new ArrayList<>(usersMap.keySet());
+                            Log.d(TAG, "将users Map转换为List: " + memberIds.size() + "个成员");
                         }
                         
                         // 如果找到了成员列表
                         if (memberIds != null && !memberIds.isEmpty()) {
                             final List<String> finalMemberIds = memberIds;
-                            android.util.Log.d(TAG, "找到" + memberIds.size() + "个成员ID: " + memberIds.toString());
+                            Log.d(TAG, "找到" + memberIds.size() + "个成员ID: " + memberIds.toString());
                             tvMemberCount.setText(String.format("共%d人", memberIds.size()));
                             
                             // 获取成员信息
@@ -362,7 +329,7 @@ public class MemberListActivity extends AppCompatActivity {
                             
                             // 查询这一批用户的详细信息
                             if (!currentBatch.isEmpty()) {
-                                android.util.Log.d(TAG, "加载成员批次: " + currentBatch.toString());
+                                Log.d(TAG, "加载成员批次: " + currentBatch.toString());
                                 fetchUsers(currentBatch, isInitialLoad);
                                 
                                 // 记住最后一个ID
@@ -371,7 +338,7 @@ public class MemberListActivity extends AppCompatActivity {
                                     .get()
                                     .addOnSuccessListener(userDoc -> {
                                         lastVisible = userDoc;
-                                        android.util.Log.d(TAG, "设置lastVisible为: " + lastId);
+                                        Log.d(TAG, "设置lastVisible为: " + lastId);
                                     });
                             } else {
                                 // 没有更多成员
@@ -381,21 +348,21 @@ public class MemberListActivity extends AppCompatActivity {
                             }
                         } else {
                             // 成员列表为空或未找到
-                            android.util.Log.d(TAG, "未找到成员列表或成员列表为空");
+                            Log.d(TAG, "未找到成员列表或成员列表为空");
                             tvMemberCount.setText("共0人");
                             showLoading(false);
                             updateEmptyView();
                             isLoading = false;
                         }
                     } else {
-                        android.util.Log.e(TAG, "聊天室数据为null");
+                        Log.e(TAG, "聊天室数据为null");
                         showLoading(false);
                         updateEmptyView();
                         isLoading = false;
                     }
                 } else {
                     // 聊天室不存在
-                    android.util.Log.e(TAG, "聊天室不存在");
+                    Log.e(TAG, "聊天室不存在");
                     Toast.makeText(MemberListActivity.this, "Chat room not found", Toast.LENGTH_SHORT).show();
                     showLoading(false);
                     updateEmptyView();
@@ -403,7 +370,7 @@ public class MemberListActivity extends AppCompatActivity {
                 }
             })
             .addOnFailureListener(e -> {
-                android.util.Log.e(TAG, "加载聊天室失败: " + e.getMessage());
+                Log.e(TAG, "加载聊天室失败: " + e.getMessage());
                 Toast.makeText(MemberListActivity.this, "Failed to load member list", Toast.LENGTH_SHORT).show();
                 showLoading(false);
                 updateEmptyView();
@@ -412,61 +379,31 @@ public class MemberListActivity extends AppCompatActivity {
     }
 
     private void fetchUsers(List<String> userIds, boolean isFirstBatch) {
-        android.util.Log.d(TAG, "查询用户数据，数量: " + userIds.size());
-        
         // 如果是第一批并且需要清空列表
         if (isFirstBatch) {
             memberList.clear();
             memberAdapter.notifyDataSetChanged();
         }
         
-        // 尝试通过文档ID直接获取
-        List<DocumentReference> userRefs = new ArrayList<>();
-        for (String userId : userIds) {
-            android.util.Log.d(TAG, "添加用户引用: " + userId);
-            userRefs.add(db.collection("users").document(userId));
-        }
-        
-        // 先尝试直接通过文档ID获取数据
-        if (!userRefs.isEmpty()) {
-            android.util.Log.d(TAG, "直接通过文档ID批量获取用户数据");
-            
-            // 批量获取
-            db.runTransaction(transaction -> {
-                List<DocumentSnapshot> userDocs = new ArrayList<>();
-                for (DocumentReference ref : userRefs) {
-                    DocumentSnapshot doc = transaction.get(ref);
-                    if (doc.exists()) {
-                        userDocs.add(doc);
-                        android.util.Log.d(TAG, "文档ID获取成功: " + doc.getId());
-                    } else {
-                        android.util.Log.d(TAG, "文档不存在: " + ref.getId());
-                    }
-                }
-                return userDocs;
-            }).addOnSuccessListener(userDocs -> {
-                android.util.Log.d(TAG, "通过文档ID直接获取到 " + userDocs.size() + " 个用户数据");
-                
-                if (!userDocs.isEmpty()) {
-                    processUserData(userDocs);
-                } else {
-                    // 如果通过ID获取失败，尝试通过 uid 字段查询
-                    android.util.Log.d(TAG, "通过文档ID获取失败，尝试通过uid字段查询");
-                    fallbackQuery(userIds);
-                }
-            }).addOnFailureListener(e -> {
-                android.util.Log.e(TAG, "批量获取用户失败: " + e.getMessage());
-                // 尝试备用查询方法
-                fallbackQuery(userIds);
-            });
+        // 批量获取用户信息
+        if (userIds.size() <= 10) {
+            // 如果ID数量少于等于10个，可以一次性查询
+            fetchUsersBatch(userIds);
         } else {
-            showNoDataMessage();
+            // 如果ID数量过多，分批次查询
+            List<String> batch = new ArrayList<>();
+            for (int i = 0; i < userIds.size(); i++) {
+                batch.add(userIds.get(i));
+                if (batch.size() == 10 || i == userIds.size() - 1) {
+                    fetchUsersBatch(new ArrayList<>(batch));
+                    batch.clear();
+                }
+            }
         }
     }
 
-    // 添加备用查询方法
-    private void fallbackQuery(List<String> userIds) {
-        android.util.Log.d(TAG, "执行备用查询，使用whereIn查询");
+    private void fetchUsersBatch(List<String> userIds) {
+        Log.d(TAG, "查询用户数据，数量: " + userIds.size());
         
         // 尝试收集所有可能匹配用户ID的字段
         List<String> possibleIdFields = new ArrayList<>();
@@ -482,7 +419,7 @@ public class MemberListActivity extends AppCompatActivity {
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     int resultSize = task.getResult().size();
-                    android.util.Log.d(TAG, "使用" + possibleIdFields.get(0) + "字段获取到 " + resultSize + " 个用户数据");
+                    Log.d(TAG, "使用" + possibleIdFields.get(0) + "字段获取到 " + resultSize + " 个用户数据");
                     
                     if (resultSize > 0) {
                         // 处理获取到的用户数据
@@ -491,29 +428,36 @@ public class MemberListActivity extends AppCompatActivity {
                         // 尝试使用下一个可能的ID字段
                         String nextField = possibleIdFields.get(1);
                         possibleIdFields.remove(0);
-                        android.util.Log.d(TAG, "尝试使用另一个字段: " + nextField);
+                        Log.d(TAG, "尝试使用另一个字段: " + nextField);
                         
-                        // 如果没有结果，创建当前用户的数据
-                        if (currentUser != null) {
-                            android.util.Log.d(TAG, "创建当前用户的数据作为最后尝试");
-                            List<DocumentSnapshot> userDocs = new ArrayList<>();
-                            
-                            // 如果当前用户在请求的ID中，创建一个临时的Document
-                            if (userIds.contains(currentUser.getUid())) {
-                                db.collection("users").document(currentUser.getUid())
-                                    .get()
-                                    .addOnSuccessListener(documentSnapshot -> {
-                                        if (documentSnapshot.exists()) {
-                                            userDocs.add(documentSnapshot);
-                                            processUserData(userDocs);
-                                        } else {
-                                            showNoDataMessage();
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> showNoDataMessage());
-                            } else {
+                        // 直接使用用户ID作为文档ID查询
+                        List<DocumentReference> userRefs = new ArrayList<>();
+                        for (String userId : userIds) {
+                            userRefs.add(db.collection("users").document(userId));
+                        }
+                        
+                        // 批量获取
+                        if (!userRefs.isEmpty()) {
+                            db.runTransaction(transaction -> {
+                                List<DocumentSnapshot> userDocs = new ArrayList<>();
+                                for (DocumentReference ref : userRefs) {
+                                    DocumentSnapshot doc = transaction.get(ref);
+                                    if (doc.exists()) {
+                                        userDocs.add(doc);
+                                    }
+                                }
+                                return userDocs;
+                            }).addOnSuccessListener(userDocs -> {
+                                Log.d(TAG, "通过文档ID直接获取到 " + userDocs.size() + " 个用户数据");
+                                if (!userDocs.isEmpty()) {
+                                    processUserData(userDocs);
+                                } else {
+                                    showNoDataMessage();
+                                }
+                            }).addOnFailureListener(e -> {
+                                Log.e(TAG, "批量获取用户失败: " + e.getMessage());
                                 showNoDataMessage();
-                            }
+                            });
                         } else {
                             showNoDataMessage();
                         }
@@ -521,19 +465,17 @@ public class MemberListActivity extends AppCompatActivity {
                         showNoDataMessage();
                     }
                 } else {
-                    android.util.Log.e(TAG, "获取用户详情失败: " + task.getException());
+                    Log.e(TAG, "获取用户详情失败: " + task.getException());
                     showNoDataMessage();
                 }
             })
             .addOnFailureListener(e -> {
-                android.util.Log.e(TAG, "批量获取用户失败: " + e.getMessage());
+                Log.e(TAG, "批量获取用户失败: " + e.getMessage());
                 showNoDataMessage();
             });
     }
-
+    
     private void processUserData(List<DocumentSnapshot> userDocs) {
-        android.util.Log.d(TAG, "处理用户数据，数量: " + userDocs.size());
-        
         // 查找聊天室所有者ID
         db.collection("chat_rooms").document(chatRoomId)
             .get()
@@ -549,12 +491,10 @@ public class MemberListActivity extends AppCompatActivity {
                 }
                 
                 final String finalOwnerId = ownerId;
-                android.util.Log.d(TAG, "聊天室所有者ID: " + finalOwnerId);
+                Log.d(TAG, "聊天室所有者ID: " + finalOwnerId);
                 
                 // 处理用户数据
                 for (DocumentSnapshot userDoc : userDocs) {
-                    android.util.Log.d(TAG, "处理用户文档: " + userDoc.getId() + ", 数据: " + userDoc.getData());
-                    
                     Member member = new Member();
                     
                     // 获取用户ID (可能在不同字段中)
@@ -563,13 +503,10 @@ public class MemberListActivity extends AppCompatActivity {
                     // 尝试查找可能包含userId的字段
                     if (userDoc.contains("uid")) {
                         userId = userDoc.getString("uid");
-                        android.util.Log.d(TAG, "从uid字段获取用户ID: " + userId);
                     } else if (userDoc.contains("id")) {
                         userId = userDoc.getString("id");
-                        android.util.Log.d(TAG, "从id字段获取用户ID: " + userId);
                     } else if (userDoc.contains("userId")) {
                         userId = userDoc.getString("userId");
-                        android.util.Log.d(TAG, "从userId字段获取用户ID: " + userId);
                     }
                     
                     // 设置基本属性
@@ -579,16 +516,12 @@ public class MemberListActivity extends AppCompatActivity {
                     String username = null;
                     if (userDoc.contains("uname")) {
                         username = userDoc.getString("uname");
-                        android.util.Log.d(TAG, "从uname字段获取用户名: " + username);
                     } else if (userDoc.contains("username")) {
                         username = userDoc.getString("username");
-                        android.util.Log.d(TAG, "从username字段获取用户名: " + username);
                     } else if (userDoc.contains("name")) {
                         username = userDoc.getString("name");
-                        android.util.Log.d(TAG, "从name字段获取用户名: " + username);
                     } else if (userDoc.contains("displayName")) {
                         username = userDoc.getString("displayName");
-                        android.util.Log.d(TAG, "从displayName字段获取用户名: " + username);
                     }
                     
                     // 如果没有用户名，生成默认用户名（使用邮箱前缀或ID的前6位）
@@ -596,24 +529,19 @@ public class MemberListActivity extends AppCompatActivity {
                         String email = userDoc.getString("email");
                         if (email != null && email.contains("@")) {
                             username = email.substring(0, email.indexOf('@'));
-                            android.util.Log.d(TAG, "使用邮箱生成用户名: " + username);
                         } else {
                             // 使用用户ID的前6位作为默认名
                             username = "用户" + userId.substring(0, Math.min(6, userId.length()));
-                            android.util.Log.d(TAG, "使用ID生成用户名: " + username);
                         }
                     }
                     member.setUsername(username);
                     
                     // 尝试获取头像URL
                     String avatarUrl = userDoc.getString("avatar_url");
-                    android.util.Log.d(TAG, "获取头像URL: " + avatarUrl);
                     member.setAvatarUrl(avatarUrl);
                     
                     // 设置是否为群主
-                    boolean isOwner = finalOwnerId != null && finalOwnerId.equals(userId);
-                    android.util.Log.d(TAG, "用户是否为群主: " + isOwner);
-                    member.setIsOwner(isOwner);
+                    member.setIsOwner(finalOwnerId != null && finalOwnerId.equals(userId));
                     
                     // 设置额外属性
                     if (userDoc.contains("email")) {
@@ -638,28 +566,7 @@ public class MemberListActivity extends AppCompatActivity {
                     
                     // 添加到列表
                     memberList.add(member);
-                    android.util.Log.d(TAG, "添加成员: " + member.getUsername() + ", ID: " + userId + ", 头像: " + avatarUrl);
-                    
-                    // 按群主和加入时间排序
-                    if (!memberList.isEmpty()) {
-                        memberList.sort((m1, m2) -> {
-                            // 群主总是排在最前面
-                            if (m1.isOwner()) return -1;
-                            if (m2.isOwner()) return 1;
-                            // 按加入时间排序
-                            return Long.compare(m1.getJoinedAt(), m2.getJoinedAt());
-                        });
-                        
-                        android.util.Log.d(TAG, "成员列表排序完成，共" + memberList.size() + "个成员");
-                    }
-                    
-                    // 更新适配器
-                    memberAdapter.notifyDataSetChanged();
-                    updateEmptyView();
-                    showLoading(false);
-                    isLoading = false;
-                    
-                    android.util.Log.d(TAG, "UI更新完成，成员数量: " + memberList.size());
+                    Log.d(TAG, "添加成员: " + member.getUsername() + ", ID: " + userId + ", 头像: " + avatarUrl);
                 }
                 
                 // 按群主和加入时间排序
@@ -671,8 +578,6 @@ public class MemberListActivity extends AppCompatActivity {
                         // 按加入时间排序
                         return Long.compare(m1.getJoinedAt(), m2.getJoinedAt());
                     });
-                    
-                    android.util.Log.d(TAG, "成员列表排序完成，共" + memberList.size() + "个成员");
                 }
                 
                 // 更新适配器
@@ -680,11 +585,9 @@ public class MemberListActivity extends AppCompatActivity {
                 updateEmptyView();
                 showLoading(false);
                 isLoading = false;
-                
-                android.util.Log.d(TAG, "UI更新完成，成员数量: " + memberList.size());
             })
             .addOnFailureListener(e -> {
-                android.util.Log.e(TAG, "获取聊天室所有者失败: " + e.getMessage());
+                Log.e(TAG, "获取聊天室所有者失败: " + e.getMessage());
                 
                 // 即使失败也要更新UI
                 memberAdapter.notifyDataSetChanged();
@@ -909,7 +812,7 @@ public class MemberListActivity extends AppCompatActivity {
             // 设置头像
             String avatarUrl = member.getAvatarUrl();
             if (avatarUrl != null && !avatarUrl.isEmpty() && !"default".equals(avatarUrl)) {
-                android.util.Log.d(TAG, "加载头像URL: " + avatarUrl);
+                Log.d(TAG, "加载头像URL: " + avatarUrl);
                 
                 // 确保头像URL正确（添加avatar/前缀如果没有）
                 if (!avatarUrl.startsWith("avatar/")) {
@@ -922,7 +825,7 @@ public class MemberListActivity extends AppCompatActivity {
                 String uniqueParam = System.currentTimeMillis() + "_" + Math.random();
                 imageUrl = imageUrl + "?nocache=" + uniqueParam;
                 
-                android.util.Log.d(TAG, "完整头像URL: " + imageUrl);
+                Log.d(TAG, "完整头像URL: " + imageUrl);
                 
                 // 加载网络图片
                 Glide.with(context)
@@ -942,25 +845,45 @@ public class MemberListActivity extends AppCompatActivity {
             
             // 设置点击事件
             holder.itemView.setOnClickListener(v -> {
-                // 获取用户数据
-                db.collection("users").document(member.getUserId())
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        // 使用UserProfileManager显示资料浮窗
-                        UserProfileManager.getInstance().showUserProfile(
-                                context, 
-                                holder.itemView,
-                                member.getUserId(),
-                                documentSnapshot,
-                                chatRoomId,
-                                chatRoomName);
-                        
-                        android.util.Log.d(TAG, "已打开用户资料浮窗，用户ID: " + member.getUserId());
-                    })
-                    .addOnFailureListener(e -> {
-                        android.util.Log.e(TAG, "获取用户数据失败: " + e.getMessage(), e);
-                        Toast.makeText(context, "无法加载用户资料: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+                // 跳转到用户资料页面
+                Intent intent = new Intent(context, UserProfileActivity.class);
+                
+                // 传递用户基本信息
+                intent.putExtra("user_id", member.getUserId());
+                
+                // 传递聊天室返回信息，用于正确处理返回逻辑
+                intent.putExtra("from_chat_room", "true");
+                intent.putExtra("chat_room_id", chatRoomId);
+                intent.putExtra("chat_room_name", chatRoomName);
+                
+                // 传递已有的用户数据，避免重复查询
+                if (member.getUsername() != null) {
+                    intent.putExtra("user_name", member.getUsername());
+                }
+                if (member.getEmail() != null) {
+                    intent.putExtra("user_email", member.getEmail());
+                }
+                if (member.getDepartment() != null) {
+                    intent.putExtra("user_department", member.getDepartment());
+                }
+                if (member.getProgramme() != null) {
+                    intent.putExtra("user_programme", member.getProgramme());
+                }
+                if (member.getYearOfEntry() != null) {
+                    intent.putExtra("user_year_of_entry", member.getYearOfEntry());
+                }
+                if (member.getSignature() != null) {
+                    intent.putExtra("user_signature", member.getSignature());
+                }
+                if (member.getAvatarUrl() != null) {
+                    intent.putExtra("user_avatar_url", member.getAvatarUrl());
+                }
+                
+                // 启动Activity
+                context.startActivity(intent);
+                
+                // 设置过渡动画
+                context.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             });
         }
 

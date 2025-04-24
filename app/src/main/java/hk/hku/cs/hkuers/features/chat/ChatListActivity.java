@@ -10,8 +10,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.RadioGroup;
-import android.widget.RadioButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -25,8 +23,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.chip.Chip;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Calendar;
 
 import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.ProfileActivity;
@@ -58,12 +53,6 @@ public class ChatListActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirestoreRecyclerAdapter<ChatGroup, ChatGroupViewHolder> adapter;
     private FirebaseUser currentUser;
-    private ImageButton btnFilter;
-    
-    // 筛选选项
-    private String currentChatTypeFilter = null; // 当前聊天类型筛选，null表示全部
-    private int currentTimeFilter = 0; // 0: 全部时间, 1: 今天, 2: 最近3天, 3: 最近一周
-    private boolean showUnreadOnly = false; // 是否只显示未读消息
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +91,6 @@ public class ChatListActivity extends AppCompatActivity {
         tvEmptyState = findViewById(R.id.tvEmptyState);
         ImageButton btnCreateChat = findViewById(R.id.btnCreateChat);
         ImageButton btnBack = findViewById(R.id.btnBack);
-        btnFilter = findViewById(R.id.btnFilter);
         
         // 初始化底部导航
         bottomNavigation = findViewById(R.id.bottom_navigation);
@@ -118,9 +106,6 @@ public class ChatListActivity extends AppCompatActivity {
 
         // 设置创建聊天按钮点击事件
         btnCreateChat.setOnClickListener(v -> showCreateChatDialog());
-        
-        // 设置筛选按钮点击事件
-        btnFilter.setOnClickListener(v -> showFilterDialog());
 
         // 设置底部导航
         setupBottomNavigation();
@@ -133,12 +118,6 @@ public class ChatListActivity extends AppCompatActivity {
             addTestData();
             Toast.makeText(this, "Test data added", Toast.LENGTH_SHORT).show();
             return true;
-        });
-        
-        // 加载聊天列表时，同时检查更新用户的未读消息状态
-        checkUnreadMessages(currentUser, db, hasUnread -> {
-            // 未读状态已在 Firestore 更新，不需要在此处理
-            android.util.Log.d("ChatListActivity", "未读消息状态更新: " + hasUnread);
         });
     }
 
@@ -183,47 +162,10 @@ public class ChatListActivity extends AppCompatActivity {
      * 加载用户参与的聊天群组
      */
     private void loadChatGroups() {
-        // 如果有正在监听的adapter，先停止监听
-        if (adapter != null) {
-            adapter.stopListening();
-        }
-        
         // 查询用户参与的聊天室
         Query query = db.collection("chat_rooms")
-                .whereArrayContains("member_ids", currentUser.getUid());
-        
-        // 应用聊天类型筛选
-        if (currentChatTypeFilter != null) {
-            query = query.whereEqualTo("group_type", currentChatTypeFilter);
-        }
-        
-        // 应用时间筛选
-        if (currentTimeFilter > 0) {
-            // 计算时间起点
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            
-            switch (currentTimeFilter) {
-                case 1: // 今天
-                    // 使用今天凌晨的时间戳
-                    break;
-                case 2: // 最近3天
-                    calendar.add(Calendar.DAY_OF_MONTH, -2); // -2因为今天已经包含了一天
-                    break;
-                case 3: // 最近一周
-                    calendar.add(Calendar.DAY_OF_MONTH, -6); // -6因为今天已经包含了一天
-                    break;
-            }
-            
-            Timestamp startTime = new Timestamp(calendar.getTime());
-            query = query.whereGreaterThanOrEqualTo("last_message_time", startTime);
-        }
-        
-        // 按时间降序排序（无论是否有时间筛选）
-        query = query.orderBy("last_message_time", Query.Direction.DESCENDING);
+                .whereArrayContains("member_ids", currentUser.getUid())
+                .orderBy("last_message_time", Query.Direction.DESCENDING);
         
         FirestoreRecyclerOptions<ChatGroup> options = new FirestoreRecyclerOptions.Builder<ChatGroup>()
                 .setQuery(query, ChatGroup.class)
@@ -246,7 +188,7 @@ public class ChatListActivity extends AppCompatActivity {
                     nameFromDb = snapshot.getString("name");
                     if (nameFromDb == null || nameFromDb.isEmpty()) {
                         // 使用ID的前几个字符作为名称
-                        chatName = "Chat Room-" + chatId.substring(0, Math.min(6, chatId.length()));
+                        chatName = "聊天室-" + chatId.substring(0, Math.min(6, chatId.length()));
                     } else {
                         chatName = nameFromDb;
                     }
@@ -259,20 +201,7 @@ public class ChatListActivity extends AppCompatActivity {
                 model.setLastMessage(snapshot.getString("last_message"));
                 model.setLastMessageTimestamp(snapshot.getTimestamp("last_message_time"));
                 
-                // 获取群聊类型
-                String groupType = snapshot.getString("group_type");
-                if (groupType == null) {
-                    // 兼容旧数据，未设置类型的默认为普通群聊
-                    groupType = ChatGroup.TYPE_NORMAL;
-                }
-                model.setGroupType(groupType);
-                
-                // 获取创建者ID，用于判断是否为群主
-                String creatorId = snapshot.getString("creator_id");
-                boolean isCreator = currentUser.getUid().equals(creatorId);
-                
                 // 计算未读消息数
-                int unreadCount = 0;
                 Map<String, Object> readCounts = (Map<String, Object>) snapshot.get("read_counts");
                 Map<String, Object> userReadStatus = (Map<String, Object>) snapshot.get("user_read_status");
                 
@@ -288,24 +217,12 @@ public class ChatListActivity extends AppCompatActivity {
                     }
                     
                     // 计算未读消息数
-                    unreadCount = (int)(messageCount - userReadCount);
-                    model.setUnreadCount(unreadCount);
-                }
-                
-                // 如果筛选条件为仅显示未读且当前项没有未读消息，则跳过这个项
-                if (showUnreadOnly && unreadCount <= 0) {
-                    holder.itemView.setVisibility(View.GONE);
-                    holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
-                    return;
-                } else {
-                    holder.itemView.setVisibility(View.VISIBLE);
-                    holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
+                    long unreadCount = messageCount - userReadCount;
+                    model.setUnreadCount((int) unreadCount);
                 }
                 
                 // 绑定数据到视图
-                holder.bind(model, isCreator);
+                holder.bind(model);
                 
                 // 设置点击事件
                 holder.itemView.setOnClickListener(v -> {
@@ -314,13 +231,6 @@ public class ChatListActivity extends AppCompatActivity {
                     
                     // 打开聊天室
                     openChatActivity(chatId, chatName);
-                });
-                
-                // 设置长按事件
-                holder.itemView.setOnLongClickListener(v -> {
-                    // 根据群聊类型处理长按菜单
-                    showChatOptions(model, isCreator);
-                    return true;
                 });
             }
 
@@ -336,56 +246,22 @@ public class ChatListActivity extends AppCompatActivity {
             public void onDataChanged() {
                 // 数据加载完成后，检查是否为空
                 int itemCount = getItemCount();
-                int visibleItemCount = getVisibleItemCount();
-                android.util.Log.d("ChatListActivity", "Data loaded successfully, found " + itemCount + " chat rooms, " + visibleItemCount + " visible");
+                android.util.Log.d("ChatListActivity", "数据加载完成，共有 " + itemCount + " 个聊天室");
                 
-                if (visibleItemCount == 0) {
+                if (itemCount == 0) {
                     recyclerView.setVisibility(View.GONE);
                     tvEmptyState.setVisibility(View.VISIBLE);
-                    
-                    // 根据当前筛选类型设置不同的空状态提示
-                    if (currentChatTypeFilter == null) {
-                        tvEmptyState.setText(showUnreadOnly ? 
-                                "No unread chats. All caught up!" : 
-                                "No chats yet. Create your first chat!");
-                    } else if (ChatGroup.TYPE_COURSE.equals(currentChatTypeFilter)) {
-                        tvEmptyState.setText(showUnreadOnly ? 
-                                "No unread course chats!" : 
-                                "No course chats. Add a course to join a course chat!");
-                    } else if (ChatGroup.TYPE_TRADE.equals(currentChatTypeFilter)) {
-                        tvEmptyState.setText(showUnreadOnly ? 
-                                "No unread trade chats!" : 
-                                "No trade chats. Check the marketplace for trades!");
-                    } else if (ChatGroup.TYPE_NORMAL.equals(currentChatTypeFilter)) {
-                        tvEmptyState.setText(showUnreadOnly ? 
-                                "No unread group chats!" : 
-                                "No group chats. Create a new group to start chatting!");
-                    }
-                    
-                    android.util.Log.d("ChatListActivity", "Chat rooms empty, showing empty state");
+                    android.util.Log.d("ChatListActivity", "没有聊天室，显示空状态");
                 } else {
                     recyclerView.setVisibility(View.VISIBLE);
                     tvEmptyState.setVisibility(View.GONE);
-                    android.util.Log.d("ChatListActivity", "Chat rooms available, showing list");
+                    android.util.Log.d("ChatListActivity", "有聊天室，显示列表");
                 }
-            }
-            
-            // 计算实际可见的项目数（用于筛选后的空状态判断）
-            private int getVisibleItemCount() {
-                int visibleCount = 0;
-                for (int i = 0; i < getItemCount(); i++) {
-                    ChatGroup model = getItem(i);
-                    if (!showUnreadOnly || model.getUnreadCount() > 0) {
-                        visibleCount++;
-                    }
-                }
-                return visibleCount;
             }
         };
 
         recyclerView.setAdapter(adapter);
-        adapter.startListening();
-        android.util.Log.d("ChatListActivity", "Adapter set and listening started");
+        android.util.Log.d("ChatListActivity", "已设置适配器");
     }
 
     /**
@@ -421,207 +297,119 @@ public class ChatListActivity extends AppCompatActivity {
                             android.util.Log.e("ChatListActivity", "标记已读失败: " + e.getMessage()));
                 }
             });
-            
-        // 更新完标记后，检查更新未读消息总体状态
-        checkUnreadMessages(currentUser, db, hasUnread -> {
-            android.util.Log.d("ChatListActivity", "标记已读后更新未读状态: " + hasUnread);
-        });
     }
 
     /**
      * 显示创建新聊天对话框
      */
     private void showCreateChatDialog() {
-        // 创建对话框选项
-        final String[] options = {"Create Normal Group", "Join Existing Group"};
-        
-        new AlertDialog.Builder(this)
-                .setTitle("Chat Options")
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            // 创建普通群聊
-                            showCreateNormalGroupDialog();
-                            break;
-                        case 1:
-                            // 加入现有群聊
-                            showJoinExistingGroupDialog();
-                            break;
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-    
-    /**
-     * 显示创建普通群聊对话框
-     */
-    private void showCreateNormalGroupDialog() {
         // 创建对话框布局
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_create_normal_chat, null);
-        TextInputLayout tilGroupName = dialogView.findViewById(R.id.tilGroupName);
-        TextInputEditText etGroupName = dialogView.findViewById(R.id.etGroupName);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_create_chat, null);
+        TextInputLayout tilCourse = dialogView.findViewById(R.id.tilCourse);
+        TextInputLayout tilSection = dialogView.findViewById(R.id.tilSection);
+        TextInputLayout tilSemester = dialogView.findViewById(R.id.tilSemester);
+        TextInputEditText etCourse = dialogView.findViewById(R.id.etCourse);
+        TextInputEditText etSection = dialogView.findViewById(R.id.etSection);
+        TextInputEditText etSemester = dialogView.findViewById(R.id.etSemester);
 
         // 创建对话框
         new AlertDialog.Builder(this)
-                .setTitle("Create Group Chat")
+                .setTitle("Create Course Chat Group")
                 .setView(dialogView)
                 .setPositiveButton("Create", (dialog, which) -> {
                     // 验证输入
-                    String groupName = etGroupName.getText().toString().trim();
+                    String course = etCourse.getText().toString().trim();
+                    String section = etSection.getText().toString().trim();
+                    String semester = etSemester.getText().toString().trim();
                     
-                    if (groupName.isEmpty()) {
-                        Toast.makeText(this, "Please enter a group name", Toast.LENGTH_SHORT).show();
+                    if (course.isEmpty()) {
+                        Toast.makeText(this, "Please enter course code", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     
-                    // 创建普通群聊
-                    createNormalChatGroup(groupName);
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-    
-    /**
-     * 显示加入现有群聊对话框
-     */
-    private void showJoinExistingGroupDialog() {
-        // 创建对话框布局
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_join_chat, null);
-        TextInputLayout tilGroupId = dialogView.findViewById(R.id.tilGroupId);
-        TextInputEditText etGroupId = dialogView.findViewById(R.id.etGroupId);
-        
-        // 创建对话框
-        new AlertDialog.Builder(this)
-                .setTitle("Join Existing Group")
-                .setView(dialogView)
-                .setPositiveButton("Join", (dialog, which) -> {
-                    // 验证输入
-                    String groupId = etGroupId.getText().toString().trim();
-                    
-                    if (groupId.isEmpty()) {
-                        Toast.makeText(this, "Please enter a group ID or name", Toast.LENGTH_SHORT).show();
+                    if (section.isEmpty()) {
+                        Toast.makeText(this, "Please enter section", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     
-                    // 查找并加入群聊
-                    findAndJoinChatGroup(groupId);
+                    if (semester.isEmpty()) {
+                        Toast.makeText(this, "Please enter semester", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // 创建聊天群组
+                    createNewChatGroup(course, section, semester);
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
     /**
-     * 查找并加入群聊
-     * @param searchText 群聊ID或名称
+     * 创建新的聊天群组
+     * @param course 课程编号
+     * @param section 班级
+     * @param semester 学期
      */
-    private void findAndJoinChatGroup(String searchText) {
-        // 首先尝试通过ID查找
-        db.collection("chat_rooms").document(searchText)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    // 找到了群聊，检查类型
-                    String groupType = documentSnapshot.getString("group_type");
-                    if (ChatGroup.TYPE_TRADE.equals(groupType)) {
-                        Toast.makeText(this, "Cannot join trade chats", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    
-                    // 获取群聊名称
-                    String chatName = documentSnapshot.getString("chat_name");
-                    if (chatName == null || chatName.isEmpty()) {
-                        chatName = "Chat Room-" + searchText;
-                    }
-                    
-                    // 加入群聊
-                    joinExistingChatGroup(searchText, chatName);
-                    return;
-                }
-                
-                // 通过ID没找到，尝试通过名称查找
+    private void createNewChatGroup(String course, String section, String semester) {
+        // 生成聊天室名称 格式: 课程-班级-学期
+        String chatName = course + "-" + section + "-" + semester;
+        
+        // 首先查询是否已存在相同的聊天室
         db.collection("chat_rooms")
-                    .whereEqualTo("chat_name", searchText)
-                    .whereNotEqualTo("group_type", ChatGroup.TYPE_TRADE) // 排除购物聊天
+            .whereEqualTo("course", course)
+            .whereEqualTo("section", section)
+            .whereEqualTo("semester", semester)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 if (!queryDocumentSnapshots.isEmpty()) {
-                            // 找到了群聊
-                            DocumentReference chatRef = queryDocumentSnapshots.getDocuments().get(0).getReference();
-                            String chatId = chatRef.getId();
-                            String chatName = queryDocumentSnapshots.getDocuments().get(0).getString("chat_name");
-                            
-                            // 加入群聊
-                            joinExistingChatGroup(chatId, chatName);
-                        } else {
-                            Toast.makeText(this, "Group not found", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnFailureListener(e -> 
-                        Toast.makeText(this, "Query failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                    );
-            })
-            .addOnFailureListener(e -> 
-                Toast.makeText(this, "Query failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-            );
-    }
-    
-    /**
-     * 创建普通群聊
-     * @param groupName 群聊名称
-     */
-    private void createNormalChatGroup(String groupName) {
-        // 首先检查是否已存在同名群聊
-        db.collection("chat_rooms")
-            .whereEqualTo("chat_name", groupName)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                if (!queryDocumentSnapshots.isEmpty()) {
-                    // 群聊已存在，提示用户
+                    // 聊天室已存在，提示用户并询问是否加入
+                    DocumentReference existingChatRef = queryDocumentSnapshots.getDocuments().get(0).getReference();
+                    String existingChatId = existingChatRef.getId();
+                    String existingChatName = queryDocumentSnapshots.getDocuments().get(0).getString("chat_name");
+                    
                     new AlertDialog.Builder(ChatListActivity.this)
-                        .setTitle("Group Already Exists")
-                        .setMessage("A group with this name already exists. Would you like to join it?")
+                        .setTitle("Chat Room Already Exists")
+                        .setMessage("A chat room for this course already exists. Do you want to join it?")
                         .setPositiveButton("Join", (dialog, which) -> {
-                            // 用户选择加入现有群聊
-                            DocumentReference existingChatRef = queryDocumentSnapshots.getDocuments().get(0).getReference();
-                            String existingChatId = existingChatRef.getId();
-                            joinExistingChatGroup(existingChatId, groupName);
+                            // 用户选择加入现有聊天室
+                            joinExistingChatGroup(existingChatId, existingChatName);
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
                 } else {
-                    // 群聊不存在，创建新群聊
-                    createNewNormalChatGroupInternal(groupName);
+                    // 聊天室不存在，创建新聊天室
+                    createNewChatGroupInternal(chatName, course, section, semester);
                 }
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "Query failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to query chat room: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
 
     /**
-     * 内部方法，实际创建新的普通群聊
-     * @param chatName 群聊名称
+     * 内部方法，实际创建新的聊天群组
      */
-    private void createNewNormalChatGroupInternal(String chatName) {
+    private void createNewChatGroupInternal(String chatName, String course, String section, String semester) {
         // 获取当前时间
         Timestamp now = new Timestamp(new Date());
         
-        // 生成唯一ID
+        // 生成唯一ID (可选用chatName作为ID，但这里仍使用自动生成的ID)
         String chatId = db.collection("chat_rooms").document().getId();
         
         // 在Firestore中创建聊天室文档
         Map<String, Object> chatData = new HashMap<>();
         chatData.put("chat_id", chatId);
         chatData.put("chat_name", chatName);
+        chatData.put("course", course);
+        chatData.put("section", section);
+        chatData.put("semester", semester);
         chatData.put("creator_id", currentUser.getUid());
         chatData.put("created_at", now);
         chatData.put("is_active", true);
-        chatData.put("group_type", ChatGroup.TYPE_NORMAL); // 设置为普通群聊类型
         
         // 设置最后消息时间为创建时间，确保聊天室能在列表查询中显示
         chatData.put("last_message_time", now);
-        chatData.put("last_message", "Group created. Welcome!");
+        chatData.put("last_message", "Chat room created. Let's start communicating!");
         
         // 为聊天室生成一个随机颜色代码
         int colorIndex = Math.abs(chatId.hashCode()) % ChatGroupViewHolder.GROUP_COLORS.length;
@@ -653,7 +441,7 @@ public class ChatListActivity extends AppCompatActivity {
                     // 将用户详细信息添加到聊天室成员子集合
                     addUserToGroup(chatId, chatName);
                     
-                    Toast.makeText(this, "Group created successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Course group created successfully", Toast.LENGTH_SHORT).show();
                     
                     // 添加一条初始消息
                     addInitialMessage(chatId);
@@ -672,6 +460,31 @@ public class ChatListActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> 
                     Toast.makeText(this, "Failed to create group: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
+    }
+
+    /**
+     * 添加初始消息到聊天室
+     * @param chatId 聊天室ID
+     */
+    private void addInitialMessage(String chatId) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("senderId", "system");  // 使用与Message类一致的字段名
+        message.put("text", "Chat room created. Let's start communicating!");
+        message.put("timestamp", new Timestamp(new Date()));
+        message.put("type", "text");
+        
+        db.collection("chat_rooms").document(chatId)
+          .collection("messages")
+          .add(message)
+          .addOnSuccessListener(documentReference -> {
+              // 更新聊天室的消息计数和最后消息时间
+              db.collection("chat_rooms").document(chatId)
+                .update(
+                    "message_count", 1L,
+                    "last_message", "Chat room created. Let's start communicating!",
+                    "last_message_time", new Timestamp(new Date())
+                );
+          });
     }
 
     /**
@@ -813,116 +626,6 @@ public class ChatListActivity extends AppCompatActivity {
     }
 
     /**
-     * 为新创建的群聊添加初始系统消息
-     * @param chatId 聊天室ID
-     */
-    private void addInitialMessage(String chatId) {
-        // 组装消息数据
-        Map<String, Object> message = new HashMap<>();
-        message.put("senderId", "system");
-        message.put("text", "Group created. Welcome!");
-        message.put("timestamp", new Timestamp(new Date()));
-        message.put("type", "text");
-        
-        // 保存消息到Firestore
-        db.collection("chat_rooms").document(chatId)
-            .collection("messages")
-            .add(message)
-            .addOnSuccessListener(documentReference -> {
-                // 消息添加成功，更新聊天室消息计数
-                updateChatRoomMessageCount(chatId);
-            });
-    }
-    
-    /**
-     * 为课程群聊添加初始系统消息
-     * @param chatId 聊天室ID
-     * @param courseName 课程名称
-     */
-    private void addCourseInitialMessage(String chatId, String courseName) {
-        // 组装消息数据
-        Map<String, Object> message = new HashMap<>();
-        message.put("senderId", "system");
-        message.put("text", "Course chat for " + courseName + " created. Welcome!");
-        message.put("timestamp", new Timestamp(new Date()));
-        message.put("type", "text");
-        
-        // 保存消息到Firestore
-        db.collection("chat_rooms").document(chatId)
-            .collection("messages")
-            .add(message)
-            .addOnSuccessListener(documentReference -> {
-                // 消息添加成功，更新聊天室消息计数
-                updateChatRoomMessageCount(chatId);
-            });
-    }
-    
-    /**
-     * 为测试群聊添加初始消息
-     * @param chatId 聊天室ID
-     */
-    private void addTestInitialMessage(String chatId) {
-        // 组装消息数据
-        Map<String, Object> message = new HashMap<>();
-        message.put("senderId", "system");
-        message.put("text", "Test Group created. Welcome!");
-        message.put("timestamp", new Timestamp(new Date()));
-        message.put("type", "text");
-        
-        // 保存消息到Firestore
-        db.collection("chat_rooms").document(chatId)
-            .collection("messages")
-            .add(message);
-        
-        // 添加一条测试消息
-        Map<String, Object> testMessage = new HashMap<>();
-        testMessage.put("senderId", currentUser.getUid());
-        testMessage.put("text", "Hello everyone, this is a test message.");
-        testMessage.put("timestamp", new Timestamp(new Date()));
-        testMessage.put("type", "text");
-        
-        db.collection("chat_rooms").document(chatId)
-            .collection("messages")
-            .add(testMessage)
-            .addOnSuccessListener(documentReference -> {
-                // 消息添加成功，更新聊天室消息计数和最后消息
-                db.collection("chat_rooms").document(chatId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            Long currentCount = documentSnapshot.getLong("message_count");
-                            if (currentCount == null) currentCount = 0L;
-                            
-                            documentSnapshot.getReference().update(
-                                "message_count", currentCount + 2,  // 两条消息
-                                "last_message", "Hello everyone, this is a test message.",
-                                "last_message_time", new Timestamp(new Date())
-                            );
-                        }
-                    });
-            });
-    }
-    
-    /**
-     * 更新聊天室消息计数
-     * @param chatId 聊天室ID
-     */
-    private void updateChatRoomMessageCount(String chatId) {
-        db.collection("chat_rooms").document(chatId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    Long currentCount = documentSnapshot.getLong("message_count");
-                    if (currentCount == null) currentCount = 0L;
-                    
-                    documentSnapshot.getReference().update(
-                        "message_count", currentCount + 1
-                    );
-                }
-            });
-    }
-
-    /**
      * 添加测试数据（仅用于开发测试）
      */
     private void addTestData() {
@@ -943,402 +646,9 @@ public class ChatListActivity extends AppCompatActivity {
             String section = courseData[1];
             String semester = courseData[2];
             
-            // 创建课程群聊
-            createCourseChatGroup(course, section, semester);
+            // 创建聊天群组
+            createNewChatGroup(course, section, semester);
         }
-    }
-    
-    /**
-     * 创建课程群聊（测试用）
-     * @param courseId 课程ID
-     * @param courseClass 课程班级
-     * @param courseSemester 课程学期
-     */
-    private void createCourseChatGroup(String courseId, String courseClass, String courseSemester) {
-        // 生成聊天室名称 格式: 课程-班级-学期
-        String chatName = courseId + "-" + courseClass + "-" + courseSemester;
-        
-        // 获取当前时间
-        Timestamp now = new Timestamp(new Date());
-        
-        // 生成唯一ID
-        String chatId = db.collection("chat_rooms").document().getId();
-        
-        // 在Firestore中创建聊天室文档
-        Map<String, Object> chatData = new HashMap<>();
-        chatData.put("chat_id", chatId);
-        chatData.put("chat_name", chatName);
-        chatData.put("courseId", courseId);
-        chatData.put("courseClass", courseClass);
-        chatData.put("courseSemester", courseSemester);
-        chatData.put("creator_id", "system"); // 系统创建，没有群主
-        chatData.put("created_at", now);
-        chatData.put("is_active", true);
-        chatData.put("group_type", ChatGroup.TYPE_COURSE); // 设置为课程群聊类型
-        
-        // 设置最后消息时间为创建时间，确保聊天室能在列表查询中显示
-        chatData.put("last_message_time", now);
-        chatData.put("last_message", "Course chat for " + chatName + " created. Welcome!");
-        
-        // 为聊天室生成一个随机颜色代码
-        int colorIndex = Math.abs(chatId.hashCode()) % ChatGroupViewHolder.GROUP_COLORS.length;
-        String colorCode = String.format("#%06X", (0xFFFFFF & ChatGroupViewHolder.GROUP_COLORS[colorIndex]));
-        chatData.put("color_code", colorCode);
-        
-        // 初始化成员列表
-        List<String> memberIds = new ArrayList<>();
-        memberIds.add(currentUser.getUid());
-        chatData.put("member_ids", memberIds);
-        
-        // 初始化消息计数
-        chatData.put("message_count", 0L);
-        
-        // 初始化用户读取状态
-        Map<String, Object> userReadStatus = new HashMap<>();
-        userReadStatus.put(currentUser.getUid(), now);
-        chatData.put("user_read_status", userReadStatus);
-        
-        // 初始化读取计数
-        Map<String, Object> readCounts = new HashMap<>();
-        readCounts.put(currentUser.getUid(), 0L);
-        chatData.put("read_counts", readCounts);
-
-        // 保存聊天室数据
-        db.collection("chat_rooms").document(chatId)
-                .set(chatData)
-                .addOnSuccessListener(documentReference -> {
-                    // 将用户详细信息添加到聊天室成员子集合
-                    addUserToGroup(chatId, chatName);
-                    
-                    Toast.makeText(this, "测试课程群聊创建成功", Toast.LENGTH_SHORT).show();
-                    
-                    // 添加一条初始消息
-                    addTestInitialMessage(chatId);
-                    
-                    // 刷新适配器
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
-                    }
-                })
-                .addOnFailureListener(e -> 
-                    Toast.makeText(this, "创建测试群聊失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
-    }
-
-    /**
-     * 显示聊天选项菜单
-     * @param group 聊天群组
-     * @param isCreator 是否为创建者
-     */
-    private void showChatOptions(ChatGroup group, boolean isCreator) {
-        ArrayList<String> options = new ArrayList<>();
-        
-        // 根据群聊类型和用户权限添加选项
-        if (group.isNormalGroup() && isCreator) {
-            // 普通群聊且是群主
-            options.add("Manage Group");
-            options.add("Disband Group");
-        } else if (group.isCourseGroup()) {
-            // 课程群聊
-            options.add("Leave Group");
-        } else if (group.isTradeGroup()) {
-            // 购物聊天
-            options.add("Delete Chat");
-        } else {
-            // 普通群聊非群主
-            options.add("Leave Group");
-        }
-        
-        // 显示菜单
-        new AlertDialog.Builder(this)
-            .setTitle(group.getGroupName())
-            .setItems(options.toArray(new String[0]), (dialog, which) -> {
-                String option = options.get(which);
-                switch (option) {
-                    case "Manage Group":
-                        // TODO: 群组管理功能
-                        Toast.makeText(this, "Group management feature coming soon", Toast.LENGTH_SHORT).show();
-                        break;
-                    case "Disband Group":
-                        confirmDismissGroup(group.getGroupId(), group.getGroupName());
-                        break;
-                    case "Leave Group":
-                        confirmLeaveGroup(group.getGroupId(), group.getGroupName(), group.getGroupType());
-                        break;
-                    case "Delete Chat":
-                        confirmDeleteChat(group.getGroupId(), group.getGroupName());
-                        break;
-                }
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
-    }
-    
-    /**
-     * 确认解散群聊
-     * @param chatId 聊天室ID
-     * @param chatName 聊天室名称
-     */
-    private void confirmDismissGroup(String chatId, String chatName) {
-        new AlertDialog.Builder(this)
-            .setTitle("Disband Group")
-            .setMessage("Are you sure you want to disband the group \"" + chatName + "\"? This action cannot be undone.")
-            .setPositiveButton("Disband", (dialog, which) -> {
-                dismissGroup(chatId);
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
-    }
-    
-    /**
-     * 解散群聊
-     * @param chatId 聊天室ID
-     */
-    private void dismissGroup(String chatId) {
-        db.collection("chat_rooms").document(chatId)
-            .update("is_active", false)
-            .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Group disbanded", Toast.LENGTH_SHORT).show();
-                if (adapter != null) {
-                    adapter.notifyDataSetChanged();
-                }
-            })
-            .addOnFailureListener(e -> 
-                Toast.makeText(this, "Failed to disband group: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-            );
-    }
-    
-    /**
-     * 确认退出群聊
-     * @param chatId 聊天室ID
-     * @param chatName 聊天室名称
-     * @param groupType 群聊类型
-     */
-    private void confirmLeaveGroup(String chatId, String chatName, String groupType) {
-        new AlertDialog.Builder(this)
-            .setTitle("Leave Group")
-            .setMessage("Are you sure you want to leave the group \"" + chatName + "\"?")
-            .setPositiveButton("Leave", (dialog, which) -> {
-                leaveGroup(chatId, groupType);
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
-    }
-    
-    /**
-     * 退出群聊
-     * @param chatId 聊天室ID
-     * @param groupType 群聊类型
-     */
-    private void leaveGroup(String chatId, String groupType) {
-        db.collection("chat_rooms").document(chatId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    List<String> memberIds = (List<String>) documentSnapshot.get("member_ids");
-                    
-                    if (memberIds != null && memberIds.contains(currentUser.getUid())) {
-                        // 从成员列表中移除用户
-                        memberIds.remove(currentUser.getUid());
-                        
-                        // 更新聊天室文档
-                        documentSnapshot.getReference().update("member_ids", memberIds)
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, "Left the group", Toast.LENGTH_SHORT).show();
-                                if (adapter != null) {
-                                    adapter.notifyDataSetChanged();
-                                }
-                                
-                                // 添加用户退出的系统消息
-                                addUserLeaveMessage(chatId);
-                            })
-                            .addOnFailureListener(e -> 
-                                Toast.makeText(this, "Failed to leave group: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                            );
-                    }
-                }
-            })
-            .addOnFailureListener(e -> 
-                Toast.makeText(this, "Operation failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-            );
-    }
-    
-    /**
-     * 添加用户退出的系统消息
-     * @param chatId 聊天室ID
-     */
-    private void addUserLeaveMessage(String chatId) {
-        String userName = currentUser.getDisplayName();
-        if (userName == null || userName.isEmpty()) {
-            userName = currentUser.getEmail();
-        }
-        
-        // 创建final变量以便在lambda表达式中使用
-        final String finalUserName = userName;
-        
-        Map<String, Object> message = new HashMap<>();
-        message.put("senderId", "system");
-        message.put("text", finalUserName + " left the group");
-        message.put("timestamp", new Timestamp(new Date()));
-        message.put("type", "text");
-        
-        db.collection("chat_rooms").document(chatId)
-          .collection("messages")
-          .add(message)
-          .addOnSuccessListener(documentReference -> {
-              // 更新聊天室的消息计数和最后消息时间
-              db.collection("chat_rooms").document(chatId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Long currentCount = documentSnapshot.getLong("message_count");
-                        if (currentCount == null) currentCount = 0L;
-                        
-                        documentSnapshot.getReference().update(
-                            "message_count", currentCount + 1,
-                            "last_message", finalUserName + " left the group",
-                            "last_message_time", new Timestamp(new Date())
-                        );
-                    }
-                });
-          });
-    }
-    
-    /**
-     * 确认删除聊天
-     * @param chatId 聊天室ID
-     * @param chatName 聊天室名称
-     */
-    private void confirmDeleteChat(String chatId, String chatName) {
-        new AlertDialog.Builder(this)
-            .setTitle("Delete Chat")
-            .setMessage("Are you sure you want to delete the chat with \"" + chatName + "\"? This action cannot be undone.")
-            .setPositiveButton("Delete", (dialog, which) -> {
-                leaveGroup(chatId, ChatGroup.TYPE_TRADE);
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
-    }
-
-    /**
-     * 检查用户是否有未读消息并更新标志
-     * 可从任何地方静态调用，以检查当前用户是否有未读消息
-     * 
-     * @param callback 接收检查结果的回调（true表示有未读消息，false表示没有）
-     */
-    public static void checkUnreadMessages(FirebaseUser user, FirebaseFirestore firestore, OnUnreadMessagesCheckListener callback) {
-        // 验证用户已登录
-        if (user == null) {
-            if (callback != null) {
-                callback.onResult(false);
-            }
-            return;
-        }
-        
-        // 查询当前用户参与的所有聊天室
-        firestore.collection("chat_rooms")
-            .whereArrayContains("member_ids", user.getUid())
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                boolean hasUnread = false;
-                int totalUnread = 0;
-                
-                // 遍历所有聊天室
-                for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                    // 获取消息总数和用户已读数
-                    Long messageCount = document.getLong("message_count");
-                    if (messageCount == null) messageCount = 0L;
-                    
-                    // 获取用户已读数
-                    Map<String, Object> readCounts = (Map<String, Object>) document.get("read_counts");
-                    if (readCounts != null) {
-                        Long userReadCount = 0L;
-                        Object userReadCountObj = readCounts.get(user.getUid());
-                        if (userReadCountObj instanceof Long) {
-                            userReadCount = (Long) userReadCountObj;
-                        }
-                        
-                        // 计算未读数
-                        long unreadCount = messageCount - userReadCount;
-                        if (unreadCount > 0) {
-                            hasUnread = true;
-                            totalUnread += unreadCount;
-                        }
-                    } else {
-                        // 如果readCounts为空，则认为有未读消息
-                        if (messageCount > 0) {
-                            hasUnread = true;
-                            totalUnread += messageCount;
-                        }
-                    }
-                }
-                
-                // 在用户数据中存储是否有未读消息的标志
-                updateUserUnreadMessagesFlag(user.getUid(), firestore, hasUnread, totalUnread);
-                
-                // 通过回调返回结果
-                if (callback != null) {
-                    callback.onResult(hasUnread);
-                }
-            })
-            .addOnFailureListener(e -> {
-                android.util.Log.e("ChatListActivity", "检查未读消息失败: " + e.getMessage());
-                if (callback != null) {
-                    callback.onResult(false);
-                }
-            });
-    }
-    
-    /**
-     * 更新用户的未读消息标志
-     * 
-     * @param userId 用户ID
-     * @param firestore Firestore实例
-     * @param hasUnread 是否有未读消息
-     * @param totalUnread 未读消息总数
-     */
-    private static void updateUserUnreadMessagesFlag(String userId, FirebaseFirestore firestore, boolean hasUnread, int totalUnread) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("has_unread_messages", hasUnread);
-        updates.put("unread_messages_count", totalUnread);
-        updates.put("last_unread_check", new Timestamp(new Date()));
-        
-        // 先检查用户文档是否存在
-        firestore.collection("users").document(userId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    // 用户文档存在，直接更新
-                    documentSnapshot.getReference().update(updates)
-                        .addOnFailureListener(e -> 
-                            android.util.Log.e("ChatListActivity", "更新用户未读消息标志失败: " + e.getMessage())
-                        );
-                } else {
-                    // 用户文档不存在，创建新文档
-                    Map<String, Object> userData = new HashMap<>(updates);
-                    // 添加用户ID，确保文档中有这个字段
-                    userData.put("user_id", userId);
-                    
-                    documentSnapshot.getReference().set(userData)
-                        .addOnFailureListener(e -> 
-                            android.util.Log.e("ChatListActivity", "创建用户未读消息标志失败: " + e.getMessage())
-                        );
-                }
-            })
-            .addOnFailureListener(e -> 
-                android.util.Log.e("ChatListActivity", "检查用户文档失败: " + e.getMessage())
-            );
-    }
-    
-    /**
-     * 未读消息检查监听器接口
-     */
-    public interface OnUnreadMessagesCheckListener {
-        /**
-         * 检查结果回调
-         * @param hasUnread 是否有未读消息
-         */
-        void onResult(boolean hasUnread);
     }
 
     @Override
@@ -1346,13 +656,6 @@ public class ChatListActivity extends AppCompatActivity {
         super.onStart();
         if (adapter != null) {
             adapter.startListening();
-        }
-        
-        // 每次活动重新可见时，更新未读消息状态
-        if (currentUser != null) {
-            checkUnreadMessages(currentUser, db, hasUnread -> {
-                android.util.Log.d("ChatListActivity", "onStart 未读消息状态更新: " + hasUnread);
-            });
         }
     }
 
@@ -1368,7 +671,7 @@ public class ChatListActivity extends AppCompatActivity {
      * 聊天群组ViewHolder类
      */
     public static class ChatGroupViewHolder extends RecyclerView.ViewHolder {
-        private final TextView tvGroupName, tvLastMessage, tvTimestamp, tvUnreadCount, tvGroupType;
+        private final TextView tvGroupName, tvLastMessage, tvTimestamp, tvUnreadCount;
         private final ImageView ivReadMark;
         private final View colorIndicator;
         
@@ -1388,7 +691,7 @@ public class ChatListActivity extends AppCompatActivity {
             0xFF8BC34A, // 浅绿色
             0xFF3F51B5, // 靛蓝色
             0xFFFF4081, // 粉红色
-            0xFF009688  // 青绿色
+            0xFF009688  // 蓝绿色
         };
         
         public ChatGroupViewHolder(@NonNull View itemView) {
@@ -1397,186 +700,48 @@ public class ChatListActivity extends AppCompatActivity {
             tvLastMessage = itemView.findViewById(R.id.tvLastMessage);
             tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
             tvUnreadCount = itemView.findViewById(R.id.tvUnreadCount);
-            tvGroupType = itemView.findViewById(R.id.tvGroupType);
             ivReadMark = itemView.findViewById(R.id.ivReadMark);
             colorIndicator = itemView.findViewById(R.id.colorIndicator);
         }
 
-        public void bind(ChatGroup group, boolean isCreator) {
+        public void bind(ChatGroup group) {
+            // 设置群组名称
             tvGroupName.setText(group.getGroupName());
             
-            String lastMessage = group.getLastMessage();
-            if (lastMessage == null || lastMessage.isEmpty()) {
-                tvLastMessage.setText("暂无消息");
-            } else {
-                tvLastMessage.setText(lastMessage);
-            }
+            // 设置最后消息
+            tvLastMessage.setText(group.getLastMessage());
             
-            if (group.getLastMessageTimestamp() != null) {
+            // 设置时间戳
             tvTimestamp.setText(group.getFormattedTimestamp());
-                tvTimestamp.setVisibility(View.VISIBLE);
-            } else {
-                tvTimestamp.setVisibility(View.GONE);
-            }
             
-            // 设置群聊类型标识
-            if (group.isNormalGroup()) {
-                if (isCreator) {
-                    tvGroupType.setText("群主");
-                    tvGroupType.setVisibility(View.VISIBLE);
-            } else {
-                    tvGroupType.setVisibility(View.GONE);
-                }
-            } else if (group.isCourseGroup()) {
-                tvGroupType.setText("课程");
-                tvGroupType.setVisibility(View.VISIBLE);
-            } else if (group.isTradeGroup()) {
-                tvGroupType.setText("商品");
-                tvGroupType.setVisibility(View.VISIBLE);
-            } else {
-                tvGroupType.setVisibility(View.GONE);
-            }
-            
-            // 设置未读消息数
-            int unreadCount = group.getUnreadCount();
-            if (unreadCount > 0) {
-                tvUnreadCount.setText(String.valueOf(unreadCount));
-                tvUnreadCount.setVisibility(View.VISIBLE);
-                ivReadMark.setVisibility(View.GONE);
-                } else {
-                tvUnreadCount.setVisibility(View.GONE);
-                ivReadMark.setVisibility(View.VISIBLE);
-            }
-            
-            // 设置颜色标识
+            // 设置随机但稳定的颜色（根据群组ID生成）
             String groupId = group.getGroupId();
             if (groupId != null && !groupId.isEmpty()) {
                 int colorIndex = Math.abs(groupId.hashCode()) % GROUP_COLORS.length;
                 colorIndicator.setBackgroundColor(GROUP_COLORS[colorIndex]);
             } else {
+                // 默认颜色
                 colorIndicator.setBackgroundColor(GROUP_COLORS[0]);
             }
-        }
-    }
-
-    /**
-     * 显示筛选对话框
-     */
-    private void showFilterDialog() {
-        // 创建对话框视图
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_filter_chat, null);
-        
-        // 初始化聊天类型筛选选项
-        RadioGroup rgChatType = dialogView.findViewById(R.id.rgChatType);
-        RadioButton rbAllChats = dialogView.findViewById(R.id.rbAllChats);
-        RadioButton rbCourseChats = dialogView.findViewById(R.id.rbCourseChats);
-        RadioButton rbTradeChats = dialogView.findViewById(R.id.rbTradeChats);
-        RadioButton rbNormalChats = dialogView.findViewById(R.id.rbNormalChats);
-        
-        // 初始化时间筛选选项
-        RadioGroup rgTimeFilter = dialogView.findViewById(R.id.rgTimeFilter);
-        RadioButton rbAllTime = dialogView.findViewById(R.id.rbAllTime);
-        RadioButton rbToday = dialogView.findViewById(R.id.rbToday);
-        RadioButton rbThreeDays = dialogView.findViewById(R.id.rbThreeDays);
-        RadioButton rbOneWeek = dialogView.findViewById(R.id.rbOneWeek);
-        
-        // 初始化消息状态筛选选项
-        RadioGroup rgStatusFilter = dialogView.findViewById(R.id.rgStatusFilter);
-        RadioButton rbAllStatus = dialogView.findViewById(R.id.rbAllStatus);
-        RadioButton rbUnreadOnly = dialogView.findViewById(R.id.rbUnreadOnly);
-        
-        // 设置当前筛选状态
-        // 聊天类型
-        if (currentChatTypeFilter == null) {
-            rbAllChats.setChecked(true);
-        } else if (ChatGroup.TYPE_COURSE.equals(currentChatTypeFilter)) {
-            rbCourseChats.setChecked(true);
-        } else if (ChatGroup.TYPE_TRADE.equals(currentChatTypeFilter)) {
-            rbTradeChats.setChecked(true);
-        } else if (ChatGroup.TYPE_NORMAL.equals(currentChatTypeFilter)) {
-            rbNormalChats.setChecked(true);
-        }
-        
-        // 时间筛选
-        switch (currentTimeFilter) {
-            case 0:
-                rbAllTime.setChecked(true);
-                break;
-            case 1:
-                rbToday.setChecked(true);
-                break;
-            case 2:
-                rbThreeDays.setChecked(true);
-                break;
-            case 3:
-                rbOneWeek.setChecked(true);
-                break;
-        }
-        
-        // 消息状态筛选
-        if (showUnreadOnly) {
-            rbUnreadOnly.setChecked(true);
-        } else {
-            rbAllStatus.setChecked(true);
-        }
-        
-        // 初始化按钮
-        Button btnReset = dialogView.findViewById(R.id.btnReset);
-        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
-        Button btnApply = dialogView.findViewById(R.id.btnApply);
-        
-        // 创建并显示对话框（使用自定义布局，不使用AlertDialog的按钮）
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.DialogTheme)
-                .setView(dialogView)
-                .setCancelable(true)
-                .create();
-        
-        // 设置按钮点击事件
-        btnReset.setOnClickListener(v -> {
-            // 重置所有筛选条件
-            currentChatTypeFilter = null;
-            currentTimeFilter = 0;
-            showUnreadOnly = false;
-            loadChatGroups();
-            dialog.dismiss();
-        });
-        
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-        
-        btnApply.setOnClickListener(v -> {
-            // 获取聊天类型筛选
-            int chatTypeId = rgChatType.getCheckedRadioButtonId();
-            if (chatTypeId == R.id.rbAllChats) {
-                currentChatTypeFilter = null;
-            } else if (chatTypeId == R.id.rbCourseChats) {
-                currentChatTypeFilter = ChatGroup.TYPE_COURSE;
-            } else if (chatTypeId == R.id.rbTradeChats) {
-                currentChatTypeFilter = ChatGroup.TYPE_TRADE;
-            } else if (chatTypeId == R.id.rbNormalChats) {
-                currentChatTypeFilter = ChatGroup.TYPE_NORMAL;
+            
+            // 设置未读消息数量和已读标记
+            int unreadCount = group.getUnreadCount();
+            if (unreadCount > 0) {
+                // 有未读消息，显示红点
+                tvUnreadCount.setVisibility(View.VISIBLE);
+                ivReadMark.setVisibility(View.GONE);
+                
+                // 未读消息超过99时显示"99+"
+                if (unreadCount > 99) {
+                    tvUnreadCount.setText("99+");
+                } else {
+                    tvUnreadCount.setText(String.valueOf(unreadCount));
+                }
+            } else {
+                // 没有未读消息，显示绿色对勾
+                tvUnreadCount.setVisibility(View.GONE);
+                ivReadMark.setVisibility(View.VISIBLE);
             }
-            
-            // 获取时间筛选
-            int timeId = rgTimeFilter.getCheckedRadioButtonId();
-            if (timeId == R.id.rbAllTime) {
-                currentTimeFilter = 0;
-            } else if (timeId == R.id.rbToday) {
-                currentTimeFilter = 1;
-            } else if (timeId == R.id.rbThreeDays) {
-                currentTimeFilter = 2;
-            } else if (timeId == R.id.rbOneWeek) {
-                currentTimeFilter = 3;
-            }
-            
-            // 获取消息状态筛选
-            int statusId = rgStatusFilter.getCheckedRadioButtonId();
-            showUnreadOnly = (statusId == R.id.rbUnreadOnly);
-            
-            // 应用筛选并刷新列表
-            loadChatGroups();
-            dialog.dismiss();
-        });
-        
-        dialog.show();
+        }
     }
 }
