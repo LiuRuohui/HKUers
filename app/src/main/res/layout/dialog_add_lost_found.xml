@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="物品类型："
+            android:text="Item type："
             android:textStyle="bold"/>
 
         <RadioGroup
@@ -28,14 +28,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="丢失物品"/>
+                android:text="Lost items"/>
 
             <RadioButton
                 android:id="@+id/rbFound"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="拾得物品"/>
+                android:text="Pick up items"/>
         </RadioGroup>
 
         <!-- 标题输入 -->
@@ -48,7 +48,7 @@
                 android:id="@+id/etTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="标题"
+                android:hint="Title"
                 android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -62,7 +62,7 @@
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="描述"
+                android:hint="Description"
                 android:inputType="textMultiLine"
                 android:lines="4"/>
         </com.google.android.material.textfield.TextInputLayout>
@@ -71,7 +71,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="物品分类："
+            android:text="sorting："
             android:textStyle="bold"/>
 
         <Spinner
@@ -90,7 +90,7 @@
                 android:id="@+id/etLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="地点"
+                android:hint="Destination"
                 android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -98,7 +98,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="日期："
+            android:text="Data："
             android:textStyle="bold"/>
 
         <Button
@@ -106,7 +106,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="选择日期"/>
+            android:text="Select data"/>
 
         <!-- 联系方式输入 -->
         <com.google.android.material.textfield.TextInputLayout
@@ -118,7 +118,7 @@
                 android:id="@+id/etContactInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="联系方式"
+                android:hint="Contact"
                 android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 

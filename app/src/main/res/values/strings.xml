@@ -4,7 +4,7 @@
     <string name="hku_xxx_connect_hku_hk">HKU邮箱 (xxx@connect.hku.hk)</string>
     <string name="_8">密码（至少8位，包含字母和数字）</string>
     <string name="search">Search</string>
-    <string name="search_hint">Search items...</string>
+    <string name="search_hint">Search lost and found items</string>
     <string name="search_items">Search items...</string>
     <string name="add_trade">Add Trade</string>
     <string name="title">Title</string>
@@ -32,7 +32,7 @@
     <string name="no_items_found">No Items Found</string>
     <string name="no_items_description">There are no items matching your search criteria. Try adjusting your filters.</string>
     <string name="my_trades">My Trades</string>
-    <string name="add_item">Add Item</string>
+    <string name="add_item">Add new item</string>
     <string name="edit_item">Edit Item</string>
     <string name="delete_item">Delete Item</string>
     <string name="product_image">Product Image</string>
@@ -42,4 +42,39 @@
     <string name="tab_indicator_description">Page indicator dots</string>
     <string name="filter">Filter</string>
     <string name="save">Save</string>
+    <string name="like_comment">Like and comment</string>
+    <string name="forum_title">Forum</string>
+    <string name="item_image">Item image</string>
+    <string name="select_image">Select Image</string>
+    <string name="lost">Lost</string>
+    <string name="found">Found</string>
+    <string name="title_hint">Title</string>
+    <string name="description_hint">Description</string>
+    <string name="location_hint">Location</string>
+    <string name="delete">Delete</string>
+    <string name="resolved">Resolved</string>
+    <string name="mark_as_resolved">Mark as Resolved</string>
+    <string name="location_format">Location: %s</string>
+    <string name="date_format">Date: %s</string>
+    <string name="type_format">Type: %s</string>
+    <string name="contact_format">Contact: %s</string>
+    <string name="post_detail">Post Details</string>
+    <string name="post_not_found">Post Not Found</string>
+    <string name="user_not_found">User Not Found</string>
+    <string name="comment_hint">Write your comment...</string>
+    <string name="send">Send</string>
+    <string name="campus_life">Campus Life</string>
+    <string name="discussion">Discussion</string>
+    <string name="lost_found">Lost and Found</string>
+    <string name="contact_info">Contact Information</string>
+    <string name="contact_info_hint">Please enter contact information</string>
+    <string name="create_lost_found">Post Lost and Found Item</string>
+    <string name="create_post">Create Post</string>
+    <string name="delete_comment">Delete Comment</string>
+    <string name="confirm_delete">Confirm Deletion</string>
+    <string name="cancel">Cancel</string>
+    <string name="loading">Loading...</string>
+    <string name="error_occurred">An Error Occurred</string>
+    <string name="retry">Retry</string>
+
 </resources>

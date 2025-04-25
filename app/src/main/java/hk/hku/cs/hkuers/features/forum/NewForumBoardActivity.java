@@ -17,6 +17,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import hk.hku.cs.hkuers.R;
@@ -38,7 +40,7 @@ public class NewForumBoardActivity extends AppCompatActivity {
         // 获取版块类型
         boardType = getIntent().getStringExtra("board_type");
         if (boardType == null) {
-            boardType = "discussion"; // 默认为讨论版块
+            boardType = "campus_life"; // 默认为校园生活版块
         }
 
         // 初始化Firebase
@@ -87,35 +89,63 @@ public class NewForumBoardActivity extends AppCompatActivity {
             return;
         }
 
-        // 创建新的Post对象
-        Post post = new Post(
-                UUID.randomUUID().toString(), // 生成唯一ID
-                title,
-                content,
-                currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "匿名用户",
-                currentUser.getUid(), // 用户ID
-                new java.util.Date().toString(), // 转换为字符串
-                "0", // 初始点赞数
-                "0", // 初始评论数
-                boardType
-        );
+        // 根据不同的版块类型保存到不同的集合
+        if ("lostfound".equals(boardType)) {
+            // 保存到失物招领集合
+            Map<String, Object> lostFoundItem = new HashMap<>();
+            lostFoundItem.put("title", title);
+            lostFoundItem.put("description", content);
+            lostFoundItem.put("author", currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "匿名用户");
+            lostFoundItem.put("authorId", currentUser.getUid());
+            lostFoundItem.put("timestamp", new java.util.Date().toString());
+            lostFoundItem.put("status", "active"); // 状态：活跃/已解决
 
-        // 添加日志
-        Log.d(TAG, "Saving post to Firestore: " + post.toString());
+            // 添加日志
+            Log.d(TAG, "Saving lost and found item to Firestore: " + lostFoundItem);
 
-        // 保存到Firestore
-        db.collection("forum_posts")
-                .add(post.toMap())  // 使用 toMap() 方法将 Post 对象转换为 Map
-                .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Post saved successfully with ID: " + documentReference.getId());
-                    Toast.makeText(this, "发布成功", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK, new Intent().putExtra("refresh", true));
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error adding document", e);
-                    Toast.makeText(this, "发布失败: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                });
+            // 保存到Firestore
+            db.collection("lostFoundItems")
+                    .add(lostFoundItem)
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d(TAG, "Lost and found item saved successfully with ID: " + documentReference.getId());
+                        Toast.makeText(this, "发布成功", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK, new Intent().putExtra("refresh", true));
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error adding lost and found item", e);
+                        Toast.makeText(this, "发布失败: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // 保存到论坛帖子集合
+            Post post = new Post(
+                    UUID.randomUUID().toString(), // 生成唯一ID
+                    title,
+                    content,
+                    currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "匿名用户",
+                    currentUser.getUid(), // 用户ID
+                    new java.util.Date().toString(), // 时间戳
+                    boardType // 版块类型
+            );
+
+            // 添加日志
+            Log.d(TAG, "Saving post to Firestore: " + post.toString());
+
+            // 保存到Firestore
+            db.collection("forum_posts")
+                    .add(post.toMap())  // 使用 toMap() 方法将 Post 对象转换为 Map
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d(TAG, "Post saved successfully with ID: " + documentReference.getId());
+                        Toast.makeText(this, "发布成功", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK, new Intent().putExtra("refresh", true));
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error adding document", e);
+                        Toast.makeText(this, "发布失败: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    });
+        }
     }
 }

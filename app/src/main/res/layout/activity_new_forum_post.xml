@@ -14,7 +14,7 @@
             android:id="@+id/etTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="标题"
+            android:hint="Title"
             android:inputType="text"
             android:maxLines="1" />
 
@@ -30,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="top"
-            android:hint="内容"
+            android:hint="Content"
             android:inputType="textMultiLine" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -38,7 +38,7 @@
         android:id="@+id/btnPublish"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="发布"
+        android:text="Publish"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp" />
 

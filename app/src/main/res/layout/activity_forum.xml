@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 搜索框 -->
+        <!-- Search Bar -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,24 +21,24 @@
                 android:id="@+id/searchEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="搜索帖子"
+                android:hint="Search posts"
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- 主要内容区域 -->
+        <!-- Main Content Area -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- 轮播图 -->
+            <!-- Carousel -->
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/viewPager"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"/>
 
-            <!-- 轮播图指示器 -->
+            <!-- Carousel Indicators -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/indicatorDots"
                 android:layout_width="match_parent"
@@ -50,7 +50,7 @@
                 app:tabGravity="center"
                 app:tabIndicatorHeight="0dp"/>
 
-            <!-- 版块入口 -->
+            <!-- Board Sections -->
             <LinearLayout
                 android:id="@+id/boardSection"
                 android:layout_width="match_parent"
@@ -60,33 +60,33 @@
                 android:weightSum="3">
 
                 <Button
-                    android:id="@+id/btnDiscussion"
-                    android:text="校园生活"
+                    android:id="@+id/btnCampusLife"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginEnd="8dp"
+                    android:text="Campus Life"/>
 
 
                 <Button
                     android:id="@+id/btnLostFound"
-                    android:text="失物招领"
+                    android:text="Lost &amp; Found"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"/>
             </LinearLayout>
 
-            <!-- 热门帖子标题 -->
+            <!-- Hot Posts Title -->
             <TextView
                 android:id="@+id/tvHotPosts"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:text="热门帖子"
+                android:text="Popular Posts"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
 
-            <!-- 帖子列表 -->
+            <!-- Posts List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPosts"
                 android:layout_width="match_parent"
@@ -96,14 +96,5 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 发布新帖子按钮 -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabNewPost"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="发布新帖子"
-        app:srcCompat="@android:drawable/ic_input_add"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

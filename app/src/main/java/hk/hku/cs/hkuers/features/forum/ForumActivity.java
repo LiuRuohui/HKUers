@@ -13,17 +13,26 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import hk.hku.cs.hkuers.R;
+import hk.hku.cs.hkuers.auth.LoginActivity;
 import hk.hku.cs.hkuers.features.forum.adapters.BannerAdapter;
 import hk.hku.cs.hkuers.features.forum.adapters.PostAdapter;
 import hk.hku.cs.hkuers.features.forum.models.BannerItem;
 import hk.hku.cs.hkuers.features.forum.models.Post;
 
-public class ForumActivity extends AppCompatActivity {
+public class ForumActivity extends AppCompatActivity implements PostAdapter.OnPostClickListener {
+    private static final String TAG = "ForumActivity";
+
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     private ViewPager2 viewPager;
     private TabLayout indicatorDots;
     private RecyclerView recyclerView;
@@ -36,91 +45,52 @@ public class ForumActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_forum);
-            Log.d("ForumActivity", "onCreate: setContentView completed");
+        setContentView(R.layout.activity_forum);
 
-            // 初始化帖子列表
-            postList = new ArrayList<>();
+        // 初始化Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
-            // 初始化帖子RecyclerView
-            recyclerView = findViewById(R.id.rvPosts);
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            postAdapter = new PostAdapter(postList);
-            recyclerView.setAdapter(postAdapter);
-
-            // 添加示例数据
-            addSamplePosts();
-
-            // 初始化轮播图
-            setupBanner();
-
-            // 设置版块按钮点击事件
-            setupButtonClickListeners();
-
-        } catch (Exception e) {
-            Log.e("ForumActivity", "Error in onCreate", e);
-            Toast.makeText(this, "加载论坛页面时出错: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        // 检查用户是否已登录
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
+            return;
         }
-    }
 
-    private void addSamplePosts() {
-        postList.add(new Post(
-                "post1", // id
-                "欢迎来到港大论坛", // title
-                "这里是港大论坛的官方公告", // content
-                "Admin", // author
-                "admin1", // authorId
-                "2024-03-20", // timestamp
-                "50", // likes
-                "100", // comments
-                "announcement" // boardType
-        ));
+        // 初始化帖子列表
+        postList = new ArrayList<>();
+        recyclerView = findViewById(R.id.rvPosts);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        postAdapter = new PostAdapter(this, postList, currentUser.getUid(), this);
+        recyclerView.setAdapter(postAdapter);
 
-        postList.add(new Post(
-                "post2", // id
-                "校园活动通知", // title
-                "本周五将举行校园开放日活动", // content
-                "Student Union", // author
-                "su1", // authorId
-                "2024-03-19", // timestamp
-                "30", // likes
-                "80", // comments
-                "event" // boardType
-        ));
+        // 初始化轮播图
+        setupBanner();
 
-        postList.add(new Post(
-                "post3", // id
-                "学术讲座预告", // title
-                "计算机科学系将举办AI前沿讲座", // content
-                "CS Department", // author
-                "cs1", // authorId
-                "2024-03-18", // timestamp
-                "20", // likes
-                "60", // comments
-                "academic" // boardType
-        ));
+        // 设置按钮点击事件
+        setupButtonClickListeners();
 
-        postAdapter.notifyDataSetChanged();
+        // 加载热门帖子
+        loadHotPosts();
     }
 
     private void setupBanner() {
         try {
-            Log.d("ForumActivity", "setupBanner: start");
             viewPager = findViewById(R.id.viewPager);
             indicatorDots = findViewById(R.id.indicatorDots);
 
             if (viewPager == null || indicatorDots == null) {
-                Log.e("ForumActivity", "ViewPager or TabLayout is null");
+                Log.e(TAG, "ViewPager or TabLayout is null");
                 return;
             }
 
             // 创建轮播图数据
             List<BannerItem> bannerItems = new ArrayList<>();
-            bannerItems.add(new BannerItem("公告", R.drawable.ic_launcher_foreground));
-            bannerItems.add(new BannerItem("热点", R.drawable.ic_launcher_foreground));
-            bannerItems.add(new BannerItem("新闻", R.drawable.ic_launcher_foreground));
+            bannerItems.add(new BannerItem("Campus Life", R.drawable.banner_campus_life));
+            bannerItems.add(new BannerItem("Lost&Found", R.drawable.banner_lost_found));
+            bannerItems.add(new BannerItem("Hot event", R.drawable.banner_events));
 
             // 设置轮播图适配器
             BannerAdapter bannerAdapter = new BannerAdapter(bannerItems);
@@ -139,7 +109,7 @@ public class ForumActivity extends AppCompatActivity {
             setupAutoScroll(bannerItems);
 
         } catch (Exception e) {
-            Log.e("ForumActivity", "Error in setupBanner", e);
+            Log.e(TAG, "Error in setupBanner", e);
             Toast.makeText(this, "设置轮播图时出错: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
@@ -167,22 +137,38 @@ public class ForumActivity extends AppCompatActivity {
     }
 
     private void setupButtonClickListeners() {
-        findViewById(R.id.btnDiscussion).setOnClickListener(view -> {
+        findViewById(R.id.btnCampusLife).setOnClickListener(v -> {
             Intent intent = new Intent(this, ForumBoardActivity.class);
-            intent.putExtra("board_type", "discussion");
+            intent.putExtra("board_type", "campus_life");
             startActivity(intent);
         });
 
-        findViewById(R.id.btnDiscussion).setOnClickListener(view -> {
-            Intent intent = new Intent(this, ForumBoardActivity.class);
-            intent.putExtra("board_type", "fun");
-            startActivity(intent);
-        });
-
-        findViewById(R.id.btnLostFound).setOnClickListener(view -> {
+        findViewById(R.id.btnLostFound).setOnClickListener(v -> {
             Intent intent = new Intent(this, LostFoundActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void loadHotPosts() {
+        db.collection("forum_posts")
+                .orderBy("likes", Query.Direction.DESCENDING)
+                .limit(10)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    postList.clear();
+                    for (var doc : queryDocumentSnapshots.getDocuments()) {
+                        Post post = doc.toObject(Post.class);
+                        if (post != null) {
+                            post.setId(doc.getId());
+                            postList.add(post);
+                        }
+                    }
+                    postAdapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading hot posts", e);
+                    Toast.makeText(this, "加载热门帖子失败", Toast.LENGTH_SHORT).show();
+                });
     }
 
     @Override
@@ -199,5 +185,28 @@ public class ForumActivity extends AppCompatActivity {
         if (sliderHandler != null && sliderRunnable != null) {
             sliderHandler.removeCallbacks(sliderRunnable);
         }
+    }
+
+    @Override
+    public void onPostClick(Post post) {
+        Intent intent = new Intent(this, PostDetailActivity.class);
+        intent.putExtra("post_id", post.getId());
+        intent.putExtra("post_title", post.getTitle());
+        intent.putExtra("post_content", post.getContent());
+        intent.putExtra("post_author", post.getAuthor());
+        intent.putExtra("post_timestamp", post.getTimestamp());
+        intent.putExtra("post_likes", post.getLikes());
+        intent.putExtra("post_comments", post.getComments());
+        startActivity(intent);
+    }
+
+    @Override
+    public void onLikeClick(Post post) {
+        // 点赞功能在 PostDetailActivity 中实现
+    }
+
+    @Override
+    public void onCommentClick(Post post) {
+        // 评论功能在 PostDetailActivity 中实现
     }
 }

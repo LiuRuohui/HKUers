@@ -27,7 +27,7 @@ import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.forum.adapters.LostFoundAdapter;
 import hk.hku.cs.hkuers.features.forum.models.LostFoundItem;
 
-// 首先，添加必要的导入
+// First, necessary imports
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
@@ -71,25 +71,25 @@ public class LostFoundActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lost_found);
 
         try {
-            // 初始化Firebase Auth
+            // Initialize Firebase Auth
             mAuth = FirebaseAuth.getInstance();
 
-            // 初始化日期格式化器
+            // Initialize date formatter
             dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            // 初始化列表
+            // Initialize lists
             lostFoundItems = new ArrayList<>();
             filteredList = new ArrayList<>();
 
-            // 初始化Firebase
+            // Initialize Firebase
             db = FirebaseFirestore.getInstance();
 
-            // 初始化SwipeRefreshLayout
+            // Initialize SwipeRefreshLayout
             swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
             if (swipeRefreshLayout != null) {
                 swipeRefreshLayout.setOnRefreshListener(this::refreshData);
             }
 
-            // 初始化搜索框
+            // Initialize search box
             searchEditText = findViewById(R.id.searchEditText);
             if (searchEditText != null) {
                 searchEditText.addTextChangedListener(new TextWatcher() {
@@ -108,23 +108,23 @@ public class LostFoundActivity extends AppCompatActivity {
                 });
             }
 
-            // 初始化RecyclerView - 使用正确的ID
-            recyclerView = findViewById(R.id.rvLostFound);
+            // Initialize RecyclerView - use correct ID
+            recyclerView = findViewById(R.id.recyclerView);
             if (recyclerView == null) {
                 Log.e(TAG, "RecyclerView not found! Check your layout ID");
                 Toast.makeText(this, "Error: RecyclerView not found", Toast.LENGTH_SHORT).show();
-                return; // 如果关键视图丢失，提前退出
+                return; // Exit early if key view is missing
             }
 
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new LostFoundAdapter(this, filteredList); // 添加 this 作为 Context 参数
+            adapter = new LostFoundAdapter(this, filteredList); // Add this as Context parameter
             recyclerView.setAdapter(adapter);
 
-            // 初始化分类下拉菜单
+            // Initialize category dropdown
             spinnerCategory = findViewById(R.id.spinnerCategory);
             if (spinnerCategory != null) {
-                // 设置spinner
-                String[] itemTypes = {"全部", "手机", "钱包", "钥匙", "卡片", "其他"};
+                // Set up spinner
+                String[] itemTypes = {"All", "Phone", "Wallet", "Keys", "Cards", "Other"};
                 ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                         this, android.R.layout.simple_spinner_item, itemTypes);
                 spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -133,28 +133,28 @@ public class LostFoundActivity extends AppCompatActivity {
                 spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        // 安全地调用过滤方法
+                        // Safely call filter method
                         filterItems(position);
                     }
 
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {
-                        // 不做任何处理
+                        // Do nothing
                     }
                 });
             } else {
                 Log.e(TAG, "spinnerCategory not found in layout!");
             }
 
-            // 初始化浮动操作按钮
-            fabNewLostFound = findViewById(R.id.fabNewLostFound);
+            // Initialize floating action button
+            fabNewLostFound = findViewById(R.id.fabAdd);
             if (fabNewLostFound != null) {
                 fabNewLostFound.setOnClickListener(v -> showAddPostDialog());
             } else {
                 Log.e(TAG, "FAB not found in layout!");
             }
 
-            // 加载初始数据
+            // Load initial data
             loadLostFoundItems();
 
         } catch (Exception e) {
@@ -162,6 +162,7 @@ public class LostFoundActivity extends AppCompatActivity {
             Toast.makeText(this, "Error initializing: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+
     private void setupRecyclerView() {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -170,10 +171,10 @@ public class LostFoundActivity extends AppCompatActivity {
     }
 
     private void refreshData() {
-        // 刷新数据
+        // Refresh data
         loadLostFoundItems();
 
-        // 结束刷新动画
+        // End refresh animation
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setRefreshing(false);
         }
@@ -181,11 +182,11 @@ public class LostFoundActivity extends AppCompatActivity {
 
     private void filterBySearchText(String query) {
         if (query == null || query.isEmpty()) {
-            // 如果搜索框为空，使用分类过滤
+            // If search box is empty, use category filter
             if (spinnerCategory != null) {
                 filterItems(spinnerCategory.getSelectedItemPosition());
             } else {
-                // 如果没有分类选择器，显示所有项目
+                // If no category selector, show all items
                 filteredList.clear();
                 filteredList.addAll(lostFoundItems);
                 if (adapter != null) {
@@ -195,12 +196,12 @@ public class LostFoundActivity extends AppCompatActivity {
             return;
         }
 
-        // 执行搜索过滤
+        // Perform search filtering
         List<LostFoundItem> searchResults = new ArrayList<>();
         String lowerCaseQuery = query.toLowerCase();
 
         for (LostFoundItem item : lostFoundItems) {
-            // 在标题、描述和地点中搜索
+            // Search in title, description and location
             if ((item.getTitle() != null && item.getTitle().toLowerCase().contains(lowerCaseQuery)) ||
                     (item.getDescription() != null && item.getDescription().toLowerCase().contains(lowerCaseQuery)) ||
                     (item.getLocation() != null && item.getLocation().toLowerCase().contains(lowerCaseQuery))) {
@@ -208,7 +209,7 @@ public class LostFoundActivity extends AppCompatActivity {
             }
         }
 
-        // 更新列表
+        // Update list
         filteredList.clear();
         filteredList.addAll(searchResults);
         if (adapter != null) {
@@ -218,15 +219,15 @@ public class LostFoundActivity extends AppCompatActivity {
 
     private void loadLostFoundItems() {
         try {
-            // 显示加载指示器
+            // Show loading indicator
             if (swipeRefreshLayout != null && !swipeRefreshLayout.isRefreshing()) {
                 swipeRefreshLayout.setRefreshing(true);
             }
 
-            // 清除现有数据
+            // Clear existing data
             lostFoundItems.clear();
 
-            // 从 Firestore 获取数据
+            // Get data from Firestore
             db.collection("lostFoundItems")
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -238,16 +239,16 @@ public class LostFoundActivity extends AppCompatActivity {
                                 }
                             }
 
-                            // 应用当前过滤器
+                            // Apply current filter
                             if (searchEditText != null && searchEditText.getText() != null &&
                                     !searchEditText.getText().toString().isEmpty()) {
-                                // 如果有搜索文本，按搜索文本过滤
+                                // If there's search text, filter by search text
                                 filterBySearchText(searchEditText.getText().toString());
                             } else if (spinnerCategory != null) {
-                                // 否则按分类过滤
+                                // Otherwise filter by category
                                 filterItems(spinnerCategory.getSelectedItemPosition());
                             } else {
-                                // 如果没有过滤器，显示所有项目
+                                // If no filter, show all items
                                 filteredList.clear();
                                 filteredList.addAll(lostFoundItems);
                                 if (adapter != null) {
@@ -256,11 +257,11 @@ public class LostFoundActivity extends AppCompatActivity {
                             }
                         } else {
                             Log.d(TAG, "No documents found");
-                            // 如果没有数据，添加示例数据
+                            // Add sample data if no data
                             addSampleData();
                         }
 
-                        // 隐藏加载指示器
+                        // Hide loading indicator
                         if (swipeRefreshLayout != null) {
                             swipeRefreshLayout.setRefreshing(false);
                         }
@@ -268,9 +269,9 @@ public class LostFoundActivity extends AppCompatActivity {
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error getting documents: ", e);
                         Toast.makeText(this, "Error loading items", Toast.LENGTH_SHORT).show();
-                        // 发生错误时添加示例数据
+                        // Add sample data on error
                         addSampleData();
-                        // 隐藏加载指示器
+                        // Hide loading indicator
                         if (swipeRefreshLayout != null) {
                             swipeRefreshLayout.setRefreshing(false);
                         }
@@ -278,7 +279,7 @@ public class LostFoundActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error loading items", e);
             Toast.makeText(this, "Error loading items", Toast.LENGTH_SHORT).show();
-            // 确保隐藏加载指示器
+            // Ensure loading indicator is hidden
             if (swipeRefreshLayout != null) {
                 swipeRefreshLayout.setRefreshing(false);
             }
@@ -287,63 +288,63 @@ public class LostFoundActivity extends AppCompatActivity {
 
     private void addSampleData() {
         Log.d(TAG, "Adding sample data");
-        // 添加几个样本数据项进行测试
+        // Add some sample data items for testing
         try {
             lostFoundItems.clear();
             filteredList.clear();
             LostFoundItem item1 = new LostFoundItem(
                     "item1",
-                    "丢失iPhone 13手机",
-                    "黑色iPhone 13，蓝色手机壳，有明显划痕",
-                    "图书馆一楼",
+                    "Lost iPhone 13",
+                    "Black iPhone 13 with blue case, has visible scratches",
+                    "Library 1st floor",
                     new Date(),
                     "john@example.com",
-                    "lost", // 类型：丢失
-                    "", // 暂无图片
+                    "lost", // Type: lost
+                    "", // No image yet
                     "user123",
-                    "张三",
-                    "手机" // 分类
+                    "John",
+                    "Phone" // Category
             );
             lostFoundItems.add(item1);
             Log.d(TAG, "Added item1: " + item1.getTitle());
 
             LostFoundItem item2 = new LostFoundItem(
                     "item2",
-                    "捡到学生证",
-                    "捡到一张学生证，姓名李明，学号2021xxxx",
-                    "学生中心",
+                    "Found Student ID Card",
+                    "Found a student ID card, name: Li Ming, student ID: 2021xxxx",
+                    "Student Center",
                     new Date(),
                     "mary@example.com",
-                    "found", // 类型：拾得
-                    "", // 暂无图片
+                    "found", // Type: found
+                    "", // No image yet
                     "user456",
-                    "李四",
-                    "卡片" // 分类
+                    "Mary",
+                    "Cards" // Category
             );
             lostFoundItems.add(item2);
             Log.d(TAG, "Added item2: " + item2.getTitle());
 
             LostFoundItem item3 = new LostFoundItem(
                     "item3",
-                    "丢失钱包",
-                    "黑色皮质钱包，内有少量现金和银行卡",
-                    "饭堂",
+                    "Lost Wallet",
+                    "Black leather wallet with small amount of cash and bank cards",
+                    "Canteen",
                     new Date(),
                     "tom@example.com",
-                    "lost", // 类型：丢失
-                    "", // 暂无图片
+                    "lost", // Type: lost
+                    "", // No image yet
                     "user789",
-                    "王五",
-                    "钱包" // 分类
+                    "Tom",
+                    "Wallet" // Category
             );
             lostFoundItems.add(item3);
             Log.d(TAG, "Added item3: " + item3.getTitle());
 
-            // 更新 filteredList
+            // Update filteredList
             filteredList.addAll(lostFoundItems);
             Log.d(TAG, "Updated filteredList with " + filteredList.size() + " items");
 
-            // 通知适配器
+            // Notify adapter
             if (adapter != null) {
                 adapter.notifyDataSetChanged();
                 Log.d(TAG, "Notified adapter of data change");
@@ -358,23 +359,23 @@ public class LostFoundActivity extends AppCompatActivity {
 
     private void showAddPostDialog() {
         try {
-            // 检查用户是否已登录
+            // Check if user is logged in
             FirebaseUser currentUser = mAuth.getCurrentUser();
             if (currentUser == null) {
-                Toast.makeText(this, "请先登录再发布信息", Toast.LENGTH_SHORT).show();
-                // TODO: 如果需要，跳转到登录页面
+                Toast.makeText(this, "Please login before posting", Toast.LENGTH_SHORT).show();
+                // TODO: Redirect to login page if needed
                 return;
             }
 
-            // 创建对话框布局
+            // Create dialog layout
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("发布失物招领信息");
+            builder.setTitle("Post Lost & Found Item");
 
-            // 使用自定义布局
+            // Use custom layout
             View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_lost_found, null);
             builder.setView(dialogView);
 
-            // 获取对话框控件
+            // Get dialog controls
             final EditText etTitle = dialogView.findViewById(R.id.etTitle);
             final EditText etDescription = dialogView.findViewById(R.id.etDescription);
             final EditText etLocation = dialogView.findViewById(R.id.etLocation);
@@ -383,59 +384,59 @@ public class LostFoundActivity extends AppCompatActivity {
             final RadioGroup rgType = dialogView.findViewById(R.id.rgType);
             final Spinner spinnerItemCategory = dialogView.findViewById(R.id.spinnerItemCategory);
 
-            // 设置分类下拉框
-            String[] categories = {"手机", "钱包", "钥匙", "卡片", "其他"};
+            // Set up category dropdown
+            String[] categories = {"Phone", "Wallet", "Keys", "Cards", "Other"};
             ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
                     this, android.R.layout.simple_spinner_item, categories);
             categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerItemCategory.setAdapter(categoryAdapter);
 
-            // 设置日期选择
+            // Set up date selection
             selectedDate = Calendar.getInstance();
             btnDate.setText(dateFormatter.format(selectedDate.getTime()));
             btnDate.setOnClickListener(v -> {
                 showDatePickerDialog(btnDate);
             });
 
-            // 如果已登录用户有联系信息，预填充
+            // Prefill contact info if logged-in user has email
             if (currentUser.getEmail() != null) {
                 etContactInfo.setText(currentUser.getEmail());
             }
 
-            // 设置对话框按钮
-            builder.setPositiveButton("发布", null); // 暂时设置为null，稍后重写
-            builder.setNegativeButton("取消", (dialog, which) -> dialog.cancel());
+            // Set dialog buttons
+            builder.setPositiveButton("Post", null); // Set to null, will override later
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
-            // 创建并显示对话框
+            // Create and show dialog
             AlertDialog dialog = builder.create();
 
-            // 重写Positive按钮点击事件，以防空字段提交
+            // Override Positive button click to prevent empty field submission
             dialog.setOnShowListener(dialogInterface -> {
                 Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 button.setOnClickListener(view -> {
-                    // 验证所有必填字段
+                    // Validate all required fields
                     if (validateFields(etTitle, etDescription, etLocation, etContactInfo, rgType, spinnerItemCategory)) {
-                        // 收集表单数据
+                        // Collect form data
                         String title = etTitle.getText().toString().trim();
                         String description = etDescription.getText().toString().trim();
                         String location = etLocation.getText().toString().trim();
                         String contactInfo = etContactInfo.getText().toString().trim();
                         String category = spinnerItemCategory.getSelectedItem().toString();
 
-                        // 获取类型 (lost/found)
-                        String type = "lost"; // 默认为丢失
+                        // Get type (lost/found)
+                        String type = "lost"; // Default to lost
                         int selectedTypeId = rgType.getCheckedRadioButtonId();
                         if (selectedTypeId != -1) {
                             RadioButton selectedType = dialog.findViewById(selectedTypeId);
-                            if (selectedType != null && "拾得物品".equals(selectedType.getText().toString())) {
+                            if (selectedType != null && "Found Item".equals(selectedType.getText().toString())) {
                                 type = "found";
                             }
                         }
 
-                        // 创建并保存项目
+                        // Create and save item
                         saveNewItem(title, description, location, contactInfo, category, type);
 
-                        // 关闭对话框
+                        // Close dialog
                         dialog.dismiss();
                     }
                 });
@@ -444,14 +445,14 @@ public class LostFoundActivity extends AppCompatActivity {
             dialog.show();
         } catch (Exception e) {
             Log.e(TAG, "Error showing add post dialog: " + e.getMessage(), e);
-            Toast.makeText(this, "无法创建发布对话框: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Cannot create posting dialog: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
 
     private void filterItems(int position) {
         try {
-            // 安全检查
+            // Safety check
             if (spinnerCategory == null) {
                 Log.d(TAG, "spinnerCategory is null, using all items");
                 filteredList.clear();
@@ -468,14 +469,14 @@ public class LostFoundActivity extends AppCompatActivity {
                 String selectedCategory = spinnerCategory.getItemAtPosition(position).toString();
 
                 for (LostFoundItem item : lostFoundItems) {
-                    // 首个选项"全部"或类别匹配时添加项目
-                    if (position == 0 || "全部".equals(selectedCategory) ||
+                    // Add item when first option "All" or category matches
+                    if (position == 0 || "All".equals(selectedCategory) ||
                             selectedCategory.equals(item.getCategory())) {
                         filteredList.add(item);
                     }
                 }
             } else {
-                // 无效位置，显示所有项目
+                // Invalid position, show all items
                 filteredList.addAll(lostFoundItems);
             }
 
@@ -484,7 +485,7 @@ public class LostFoundActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e(TAG, "Error filtering items: " + e.getMessage(), e);
-            // 发生异常时，显示所有项目
+            // On exception, show all items
             filteredList.clear();
             filteredList.addAll(lostFoundItems);
             if (adapter != null) {
@@ -493,7 +494,7 @@ public class LostFoundActivity extends AppCompatActivity {
         }
     }
 
-    // 显示日期选择器对话框
+    // Show date picker dialog
     private void showDatePickerDialog(final Button dateButton) {
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
@@ -510,95 +511,95 @@ public class LostFoundActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    // 验证表单字段
+    // Validate form fields
     private boolean validateFields(EditText etTitle, EditText etDescription,
                                    EditText etLocation, EditText etContactInfo,
                                    RadioGroup rgType, Spinner spinnerItemCategory) {
         boolean valid = true;
 
-        // 检查标题
+        // Check title
         if (etTitle.getText().toString().trim().isEmpty()) {
-            etTitle.setError("请输入标题");
+            etTitle.setError("Please enter a title");
             valid = false;
         }
 
-        // 检查描述
+        // Check description
         if (etDescription.getText().toString().trim().isEmpty()) {
-            etDescription.setError("请输入描述");
+            etDescription.setError("Please enter a description");
             valid = false;
         }
 
-        // 检查地点
+        // Check location
         if (etLocation.getText().toString().trim().isEmpty()) {
-            etLocation.setError("请输入地点");
+            etLocation.setError("Please enter a location");
             valid = false;
         }
 
-        // 检查联系方式
+        // Check contact info
         if (etContactInfo.getText().toString().trim().isEmpty()) {
-            etContactInfo.setError("请输入联系方式");
+            etContactInfo.setError("Please enter contact information");
             valid = false;
         }
 
-        // 检查类型选择
+        // Check type selection
         if (rgType.getCheckedRadioButtonId() == -1) {
-            Toast.makeText(this, "请选择物品类型（丢失/拾得）", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select item type (Lost/Found)", Toast.LENGTH_SHORT).show();
             valid = false;
         }
 
         return valid;
     }
 
-    // 保存新项目到Firestore
+    // Save new item to Firestore
     private void saveNewItem(String title, String description, String location,
                              String contactInfo, String category, String type) {
         try {
-            // 显示加载提示
-            Toast.makeText(this, "正在发布...", Toast.LENGTH_SHORT).show();
+            // Show loading message
+            Toast.makeText(this, "Posting...", Toast.LENGTH_SHORT).show();
 
-            // 获取当前用户信息
+            // Get current user info
             FirebaseUser user = mAuth.getCurrentUser();
             if (user == null) {
-                Toast.makeText(this, "用户未登录", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
                 return;
             }
 
 
-            // 创建一个唯一ID
+            // Create a unique ID
             String itemId = UUID.randomUUID().toString();
 
-            // 创建新的LostFoundItem对象
+            // Create new LostFoundItem object
             LostFoundItem newItem = new LostFoundItem(
                     itemId,
                     title,
                     description,
                     location,
-                    selectedDate.getTime(), // 使用所选日期
+                    selectedDate.getTime(), // Use selected date
                     contactInfo,
                     type,
-                    "", // 暂无图片URL
+                    "", // No image URL yet
                     user.getUid(),
-                    user.getDisplayName() != null ? user.getDisplayName() : "匿名用户",
+                    user.getDisplayName() != null ? user.getDisplayName() : "Anonymous User",
                     category
             );
 
-            // 保存到Firestore
+            // Save to Firestore
             db.collection("lostFoundItems")
                     .document(itemId)
                     .set(newItem)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(LostFoundActivity.this, "发布成功！", Toast.LENGTH_SHORT).show();
-                        // 刷新数据
+                        Toast.makeText(LostFoundActivity.this, "Posted successfully!", Toast.LENGTH_SHORT).show();
+                        // Refresh data
                         loadLostFoundItems();
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error adding document", e);
-                        Toast.makeText(LostFoundActivity.this, "发布失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LostFoundActivity.this, "Posting failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
 
         } catch (Exception e) {
             Log.e(TAG, "Error saving new item: " + e.getMessage(), e);
-            Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }

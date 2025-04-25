@@ -13,7 +13,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="标题">
+            android:hint="Title">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etTitle"
@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="描述">
+            android:hint="Description">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDescription"
@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="地点">
+            android:hint="Location">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etLocation"
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="联系方式">
+            android:hint="Contact Information">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etContact"
@@ -69,7 +69,7 @@
             android:layout_height="200dp"
             android:layout_marginTop="16dp"
             android:background="@color/design_default_color_background"
-            android:contentDescription="物品图片"
+            android:contentDescription="Item Image"
             android:scaleType="centerCrop" />
 
         <com.google.android.material.button.MaterialButton
@@ -77,7 +77,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="添加图片" />
+            android:text="Add Image" />
 
     </LinearLayout>
 
