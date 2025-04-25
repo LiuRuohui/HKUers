@@ -30,6 +30,7 @@ import java.util.Map;
 
 import hk.hku.cs.hkuers.features.chat.ChatListActivity;
 import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
+import hk.hku.cs.hkuers.features.forum.ForumActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.navigation_forum) {
                 // 处理论坛按钮点击
-                Toast.makeText(MainActivity.this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                openForum();
                 return true;
             } else if (itemId == R.id.navigation_dashboard) {
                 // 主页已经是当前页面，不需要额外操作
@@ -209,9 +210,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, ChatListActivity.class));
     }
 
-    private void openMap() {
-        startActivity(new Intent(this, MapActivity.class));
-    }
+    //    private void openMap() {
+    //        startActivity(new Intent(this, MapActivity.class));
+    //    }
 
     private void openProfile() {
         startActivity(new Intent(this, ProfileActivity.class));
@@ -224,7 +225,11 @@ public class MainActivity extends AppCompatActivity {
     private void openMarketplace() {
         startActivity(new Intent(this, MarketplaceActivity.class));
     }
-    
+
+    private void openForum() {
+        startActivity(new Intent(this, ForumActivity.class));
+    }
+
     // 通知项数据类
     private static class NotificationItem {
         private String title;

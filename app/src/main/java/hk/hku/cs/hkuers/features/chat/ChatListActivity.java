@@ -46,6 +46,7 @@ import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.ProfileActivity;
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
+import hk.hku.cs.hkuers.features.forum.ForumActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.ChatGroup;
@@ -157,7 +158,8 @@ public class ChatListActivity extends AppCompatActivity {
                 // 已经在聊天页面，不需要操作
                 return true;
             } else if (itemId == R.id.navigation_forum) {
-                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, ForumActivity.class));
+                finish();
                 return true;
             } else if (itemId == R.id.navigation_dashboard) {
                 // 跳转到主页
