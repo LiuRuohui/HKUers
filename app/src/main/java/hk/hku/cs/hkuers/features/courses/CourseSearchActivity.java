@@ -41,6 +41,7 @@ import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.chat.ChatListActivity;
 import hk.hku.cs.hkuers.features.chat.ChatRoomActivity;
+import hk.hku.cs.hkuers.features.forum.ForumActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.ChatGroup;
@@ -262,7 +263,8 @@ public class CourseSearchActivity extends AppCompatActivity {
                 finish();
                 return true;
             } else if (itemId == R.id.navigation_forum) {
-                Toast.makeText(this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, ForumActivity.class));
+                finish();
                 return true;
             } else if (itemId == R.id.navigation_dashboard) {
                 startActivity(new Intent(this, MainActivity.class));

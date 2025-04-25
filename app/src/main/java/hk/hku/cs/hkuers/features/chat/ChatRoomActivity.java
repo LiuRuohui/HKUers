@@ -44,6 +44,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import hk.hku.cs.hkuers.MainActivity;
 import hk.hku.cs.hkuers.R;
 import hk.hku.cs.hkuers.features.courses.CourseSearchActivity;
+import hk.hku.cs.hkuers.features.forum.ForumActivity;
 import hk.hku.cs.hkuers.features.map.MapActivity;
 import hk.hku.cs.hkuers.features.marketplace.MarketplaceActivity;
 import hk.hku.cs.hkuers.models.Message;
@@ -1604,7 +1605,7 @@ public class ChatRoomActivity extends AppCompatActivity {
                         return true;
                     } else if (itemId == R.id.navigation_forum) {
                         android.util.Log.d("ChatRoomActivity", "用户点击了Forum选项");
-                        Toast.makeText(ChatRoomActivity.this, "Forum feature coming soon", Toast.LENGTH_SHORT).show();
+                        directNavigateTo(ForumActivity.class);
                         return true;
                     } else if (itemId == R.id.navigation_dashboard) {
                         android.util.Log.d("ChatRoomActivity", "用户点击了Dashboard选项");

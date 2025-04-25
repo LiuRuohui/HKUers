@@ -89,4 +89,15 @@
     <color name="navigationBarColor">#000000</color>
     <color name="statusBarColor">#000000</color>
     <color name="gray">#9E9E9E</color>
+
+    <color name="resolved_green">#4CAF50</color>
+    <color name="placeholder_gray">#CCCCCC</color>
+    <color name="error_red">#FFE0E0</color>
+
+    <!-- Lost and Found -->
+    <color name="type_background">#2196F3</color>
+    <color name="category_background">#FF9800</color>
+    <color name="resolved_background">#4CAF50</color>
+    <color name="image_placeholder_background">#EEEEEE</color>
+
 </resources>
